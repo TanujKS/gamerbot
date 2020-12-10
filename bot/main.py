@@ -485,6 +485,7 @@ async def help(ctx, *args):
         embed.add_field(name="Game Commands (?help games)", value="Commands for mini-games that all members can play", inline=False)
         embed.add_field(name="Game Stats Commands (?help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name="Miscellaneous Commands (?help misc)", value="All other commands I can do!", inline=False)
+        embed.add_field(name="APIs (?help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
     elif args[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
@@ -531,7 +532,15 @@ async def help(ctx, *args):
         embed.add_field(name="?skywars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Skywars player \nOptional modes are: solos normal, solos insane, teams normal, teams insane", inline=False)
         embed.add_field(name="?duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, op, sumo, skywars, uhc doubles, combo, bridge", inline=False)
         embed.add_field(name="?fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
-        embed.add_field(name="?twitch (channel)", value="Checks to see if the specified channel is live on Twitch.tv", inline=False)
+        embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
+        embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
+    elif args[0] == "apis":
+        embed = discord.Embed(title="APIs used for statistics", description=f"All APIs used by {str(bot.user)}". color=0xff0000)
+        embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)
+        embed.add_field(name="Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
+        embed.add_field(name="Fortnite API", value="https://fortnite-api.com/", inline=False)
+        embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
+        embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
         return await ctx.send("Invalid category")
     await ctx.send(embed=embed)

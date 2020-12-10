@@ -1716,6 +1716,7 @@ async def youtube(ctx, *channelarg):
             embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
             embed.add_field(name="ID:", value=item['snippet']['channelID'], inline=True)
             embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
+            embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
             await ctx.send(embed=embed)
     except asyncio.TimeoutError:
         pass

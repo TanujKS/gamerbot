@@ -1712,15 +1712,16 @@ async def youtube(ctx, *channelarg):
     try:
         seemore = await bot.wait_for('message', timeout=30, check=check)
         for item in data['items']:
-            try:
-                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
-                embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
-                embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
-                embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
-                embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
-                await ctx.send(embed=embed)
-            except discord.HTTPException:
-                pass
+            if data['items'] .index(item) != 0:
+                try:
+                    embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
+                    embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
+                    embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
+                    embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
+                    embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
+                    await ctx.send(embed=embed)
+                except discord.HTTPException:
+                    pass
     except asyncio.TimeoutError:
         pass
 

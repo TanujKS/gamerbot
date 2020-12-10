@@ -1696,7 +1696,7 @@ async def youtube(ctx, *channelarg):
     if not data['items']:
         return await ctx.send("Invalid channel")
     channel_id = ((data['items'])[0]['snippet']['channelId'])
-    stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={api_key}").json()
+    stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={os.environ.get('YT_KEY')}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
     embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
     embed.add_field(name="Channel ID:", value=channel_id, inline=True)

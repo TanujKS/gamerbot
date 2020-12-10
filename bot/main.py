@@ -1651,7 +1651,7 @@ async def fortnite(ctx, player):
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @bot.command()
 async def twitch(ctx, channel):
-    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", "Authorization":f'{os.environ.get('TWITCH_AUTH')}'}).json()
+    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", "Authorization":f"{os.environ.get('TWITCH_AUTH')}"}).json()
     if not user['data']:
         return await ctx.send("Invalid channel")
     try:

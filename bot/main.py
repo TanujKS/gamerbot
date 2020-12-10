@@ -535,7 +535,7 @@ async def help(ctx, *args):
         embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
         embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
     elif args[0] == "apis":
-        embed = discord.Embed(title="APIs used for statistics", description=f"All APIs used by {str(bot.user)}". color=0xff0000)
+        embed = discord.Embed(title="APIs used for statistics", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
         embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)
         embed.add_field(name="Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
         embed.add_field(name="Fortnite API", value="https://fortnite-api.com/", inline=False)

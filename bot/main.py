@@ -186,7 +186,7 @@ In nick: Must be 32 or fewer in length.""":
         await ctx.send("Nickname must be 32 or fewer characters")
     elif str(error) == "Command raised an exception: Forbidden: 403 Forbidden (error code: 50013): Missing Permissions":
         await ctx.send(f"Command failed. This could be caused because the member you are trying to edit has a role higher than {get(ctx.guild.roles, name=bot.user.name).mention}")
-    elif str(error) == "You do not own this bot."
+    elif str(error) == "You do not own this bot.":
         await ctx.send(error)
     else:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")

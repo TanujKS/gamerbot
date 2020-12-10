@@ -1705,14 +1705,14 @@ async def youtube(ctx, *channelarg):
     embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics']['subscriberCount'], inline=True)
     embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
     embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
-    embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel}s and then run '?youtube (id_of_the_right_channel)'")
+    embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channelarg}s and then run '?youtube (id_of_the_channel_you_want)'")
     await ctx.send(embed=embed)
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:
         seemore = await bot.wait_for('message', timeout=30, check=check)
-        embed = discord.Embed(title=f"All channels with the name {channel}", description="When you see the one you want, do ?youtube 'id_of_channel_you_want'", color=0xff0000)
         for item in data['items']:
+            embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
             embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
             embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
             embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)

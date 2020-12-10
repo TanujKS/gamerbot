@@ -1310,7 +1310,7 @@ async def changeprofile(ctx):
 
 @bot.command()
 async def hypixel(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key=dba11918-7be7-49af-871f-0a0e56f2b41a&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
@@ -1378,15 +1378,15 @@ async def hypixel(ctx, player):
     embed.add_field(name="Level:", value=level, inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="Karma:", value=karma, inline=True)
-    friends = requests.get(f"https://api.hypixel.net/friends?key={os.environ.get("HYPIXEL_KEY")}&uuid={data['player']['uuid']}").json()
+    friends = requests.get(f"https://api.hypixel.net/friends?key={os.environ.get('HYPIXEL_KEY')}&uuid={data['player']['uuid']}").json()
     try:
         friends = str(len(friends['records']))
     except KeyError:
         friends = "None"
     embed.add_field(name="Friends:", value=friends, inline=True)
-    id = requests.get(f"https://api.hypixel.net/findGuild?key={os.environ.get("HYPIXEL_KEY")}&byUuid={data['player']['uuid']}").json()
+    id = requests.get(f"https://api.hypixel.net/findGuild?key={os.environ.get('HYPIXEL_KEY')}&byUuid={data['player']['uuid']}").json()
     try:
-        guild = requests.get(f"https://api.hypixel.net/guild?key={os.environ.get("HYPIXEL_KEY")}&id={id['guild']}").json()
+        guild = requests.get(f"https://api.hypixel.net/guild?key={os.environ.get('HYPIXEL_KEY')}&id={id['guild']}").json()
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="Guild Members:", value=len(guild['guild']['members']), inline=True)
@@ -1398,7 +1398,7 @@ async def hypixel(ctx, player):
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get("HYPIXEL_KEY")}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Bedwars")
     if len(mode) == 0:
@@ -1450,7 +1450,7 @@ async def bedwars(ctx, player, *mode):
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get("HYPIXEL_KEY")}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
     if len(mode) == 0:
@@ -1523,7 +1523,7 @@ async def skywars(ctx, player, *mode):
 
 @bot.command()
 async def duels(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get("HYPIXEL_KEY")}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Duels")
     if len(mode) == 0:
@@ -1601,7 +1601,7 @@ async def duels(ctx, player, *mode):
 async def skyblock(ctx, player):
     if ctx.author.id != botmaster:
         return await ctx.send("This command is not ready yet. Sorry :(")
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get("HYPIXEL_KEY")}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
     if not data['player']:
         return await ctx.send("That player does not exist")
     profiles = data['player']['stats']['SkyBlock']['profiles']
@@ -1651,7 +1651,7 @@ async def fortnite(ctx, player):
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @bot.command()
 async def twitch(ctx, channel):
-    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{os.environ.get("TWITCH_CLIENT_ID")}", 'Authorization':f'{os.environ.get("TWITCH_AUTH")}'}).json()
+    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", 'Authorization':f'{os.environ.get('TWITCH_AUTH')}'}).json()
     if not user['data']:
         return await ctx.send("Invalid channel")
     try:
@@ -1664,9 +1664,9 @@ async def twitch(ctx, channel):
         embed.add_field(name="Channel Type", value=data['broadcaster_type'].capitalize(), inline=False)
         embed.add_field(name="Channel Description", value=data['description'], inline=False)
         embed.add_field(name="Views", value=data['view_count'], inline=True)
-        followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{os.environ.get("TWITCH_CLIENT_ID")}", 'Authorization':f'{os.environ.get("TWITCH_AUTH")}'}).json()
+        followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{os.environ.get("TWITCH_CLIENT_ID")}", 'Authorization':f'{os.environ.get('TWITCH_AUTH')}'}).json()
         embed.add_field(name="Followers", value=followers['total'], inline=True)
-        stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{os.environ.get("TWITCH_CLIENT_ID")}", 'Authorization':f'{os.environ.get("TWITCH_AUTH")}'}).json()
+        stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", 'Authorization':f'{os.environ.get('TWITCH_AUTH')}'}).json()
         for x in stream['data']:
             is_live = x['is_live']
             break
@@ -1692,7 +1692,7 @@ async def youtube(ctx, *channelarg):
         channel = f"{channel} {x}"
     channel = channel.replace(" ", "%20")
     channel = channel[3:]
-    data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={os.environ.get("YT_KEY")}").json()
+    data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={os.environ.get('YT_KEY')}").json()
     if not data['items']:
         return await ctx.send("Invalid channel")
     channel_id = ((data['items'])[0]['snippet']['channelId'])

@@ -1713,12 +1713,12 @@ async def youtube(ctx, *channelarg):
         seemore = await bot.wait_for('message', timeout=30, check=check)
         embed = discord.Embed(title=f"All channels with the name {channel}", description="When you see the one you want, do ?youtube 'id_of_channel_you_want'", color=0xff0000)
         for item in data['items']:
-            embed.add_field(name="Name:", value=items['snippet']['title'], inline=True)
-            embed.add_field(name="ID:", value=items['snippet']['channelID'], inline=True)
-            embed.add_field(name="Description:", value=items['snippet']['description'], inline=True)
+            embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
+            embed.add_field(name="ID:", value=item['snippet']['channelID'], inline=True)
+            embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
             await ctx.send(embed=embed)
     except asyncio.TimeoutError:
         pass
-        
+
 
 bot.run(os.environ.get("TOKEN"))

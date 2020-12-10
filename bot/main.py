@@ -1714,7 +1714,7 @@ async def youtube(ctx, *channelarg):
         embed = discord.Embed(title=f"All channels with the name {channel}", description="When you see the one you want, do ?youtube 'id_of_channel_you_want'", color=0xff0000)
         for item in data['items']:
             embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
-            embed.add_field(name="ID:", value=item['snippet']['channelID'], inline=True)
+            embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
             embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
             embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
             await ctx.send(embed=embed)

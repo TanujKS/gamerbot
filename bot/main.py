@@ -1664,9 +1664,9 @@ async def twitch(ctx, channel):
         embed.add_field(name="Channel Type", value=data['broadcaster_type'].capitalize(), inline=False)
         embed.add_field(name="Channel Description", value=data['description'], inline=False)
         embed.add_field(name="Views", value=data['view_count'], inline=True)
-        followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", 'Authorization':f'{os.environ.get('TWITCH_AUTH')}'}).json()
+        followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", "Authorization":f"{os.environ.get('TWITCH_AUTH')}"}).json()
         embed.add_field(name="Followers", value=followers['total'], inline=True)
-        stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", 'Authorization':f'{os.environ.get('TWITCH_AUTH')}'}).json()
+        stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", "Authorization":f"{os.environ.get('TWITCH_AUTH')}"}).json()
         for x in stream['data']:
             is_live = x['is_live']
             break

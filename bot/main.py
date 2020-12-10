@@ -1310,7 +1310,7 @@ async def changeprofile(ctx):
 
 @bot.command()
 async def hypixel(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get("HYPIXEL_KEY")}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={"dba11918-7be7-49af-871f-0a0e56f2b41a"}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
     embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)

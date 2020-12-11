@@ -1709,11 +1709,12 @@ async def youtube(ctx, *channelarg):
     except asyncio.TimeoutError:
         pass
 
+
 @bot.command()
 @commands.is_owner()
 async def remoteshutdown(ctx):
     await ctx.send("Shutting down")
-    sys.exit()
+    bot.close()
 
 
 bot.run(os.environ.get("TOKEN"))

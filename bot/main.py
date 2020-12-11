@@ -1753,5 +1753,4 @@ async def remoteshutdown(ctx):
     sys.exit()
 
 
-print(__name__)
 bot.run(os.environ.get("TOKEN"))

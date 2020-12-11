@@ -43,6 +43,7 @@ moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
+HYPIXEL_KEY = os.environ.get('HYPIXEL_KEY')
 
 async def is_vanilla(ctx):
     return ctx.guild.id == 698735288947834900
@@ -1288,7 +1289,7 @@ async def changeprofile(ctx):
 
 @bot.command()
 async def hypixel(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
@@ -1356,15 +1357,15 @@ async def hypixel(ctx, player):
     embed.add_field(name="Level:", value=level, inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="Karma:", value=karma, inline=True)
-    friends = requests.get(f"https://api.hypixel.net/friends?key={os.environ.get('HYPIXEL_KEY')}&uuid={data['player']['uuid']}").json()
+    friends = requests.get(f"https://api.hypixel.net/friends?key={HYPIXELKEY}&uuid={data['player']['uuid']}").json()
     try:
         friends = str(len(friends['records']))
     except KeyError:
         friends = "None"
     embed.add_field(name="Friends:", value=friends, inline=True)
-    id = requests.get(f"https://api.hypixel.net/findGuild?key={os.environ.get('HYPIXEL_KEY')}&byUuid={data['player']['uuid']}").json()
+    id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXELKEY}&byUuid={data['player']['uuid']}").json()
     try:
-        guild = requests.get(f"https://api.hypixel.net/guild?key={os.environ.get('HYPIXEL_KEY')}&id={id['guild']}").json()
+        guild = requests.get(f"https://api.hypixel.net/guild?key={HYPIXELKEY}&id={id['guild']}").json()
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="Guild Members:", value=len(guild['guild']['members']), inline=True)
@@ -1376,7 +1377,7 @@ async def hypixel(ctx, player):
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Bedwars")
     if len(mode) == 0:
@@ -1428,7 +1429,7 @@ async def bedwars(ctx, player, *mode):
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
     if len(mode) == 0:
@@ -1501,7 +1502,7 @@ async def skywars(ctx, player, *mode):
 
 @bot.command()
 async def duels(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Duels")
     if len(mode) == 0:
@@ -1579,7 +1580,7 @@ async def duels(ctx, player, *mode):
 async def skyblock(ctx, player):
     if ctx.author.id != botmaster:
         return await ctx.send("This command is not ready yet. Sorry :(")
-    data = requests.get(f"https://api.hypixel.net/player?key={os.environ.get('HYPIXEL_KEY')}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
     if not data['player']:
         return await ctx.send("That player does not exist")
     profiles = data['player']['stats']['SkyBlock']['profiles']

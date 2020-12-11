@@ -21,6 +21,7 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 testingserver = None
 reports = None
+exit = False
 clowns = []
 blackListed = []
 tempClowns = {}
@@ -255,12 +256,6 @@ async def on_reaction_remove(reaction, user):
 
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
-@bot.command()
-async def remoteshutdown(ctx):
-    await ctx.send(f"Shutting down {str(bot.user)}.")
-    os.system("heroku run -x")
-
-
 @bot.command()
 @commands.is_owner()
 async def blacklist(ctx):
@@ -520,7 +515,7 @@ async def help(ctx, *args):
         embed=discord.Embed(title="Game Commands", description="Mini-games I can play", color=0xff0000)
         embed.add_field(name="?rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
     elif args[0] == "stats":
-        embed=discord.Embed(title="Game Stat Commands", description="Find other players games stats", color=0xff0000)
+        embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
         embed.add_field(name="?skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
         embed.add_field(name="?hypixel (minecraft_player)", value="Shows Hypixel stats about a Minecraft player", inline=False)

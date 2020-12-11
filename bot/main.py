@@ -258,7 +258,9 @@ async def on_reaction_remove(reaction, user):
 @bot.command()
 async def remoteshutdown(ctx):
     await ctx.send(f"Shutting down {str(bot.user)}.")
-    exit()
+    os.system("heroku run -x")
+
+
 @bot.command()
 @commands.is_owner()
 async def blacklist(ctx):

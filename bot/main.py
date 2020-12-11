@@ -542,7 +542,7 @@ async def help(ctx, *args):
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)
-async def invite(ctx, guild, *args):
+async def invite(ctx, *args):
     max_age = 0
     max_uses = 0
     reason = None
@@ -1717,7 +1717,7 @@ async def youtube(ctx, *channelarg):
     try:
         seemore = await bot.wait_for('message', timeout=30, check=check)
         for item in data['items']:
-            if data['items'] .index(item) != 0:
+            if item != data['items'][0]:
                 try:
                     embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
                     embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)

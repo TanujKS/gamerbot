@@ -22,20 +22,11 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 testingserver = None
 reports = None
-exit = False
 clowns = []
 blackListed = []
 tempClowns = {}
 bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two", "double": "eight_two", "3s": "four_three", "3v3v3v3": "four_three", "triples": "four_three", "4s": "four_four", "4v4v4v4": "four_four", "quadruples":"four_four", "4v4": "two_four",}
-modes = {
-"classic": "classic_duel",
-"uhc": "uhc_duel",
-"op": "op_duel",
-"combo": "combo_duel",
-"skywars": "sw_duel",
-"sumo": "sumo",
-"uhc doubles": "uhc_doubles",
-"bridge": "bridge",}
+modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 botmaster = 566904870951714826
 ezMessageServers = [757430352636542997, 762444045233946644, 698735288947834900]

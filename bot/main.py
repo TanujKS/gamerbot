@@ -586,7 +586,7 @@ async def avatar(ctx, filler, format):
         return await ctx.send("Invalid member")
     try:
         await ctx.send(member.avatar_url_as(format=format, size=1024))
-    except InvalidArgument:
+    except discord.InvalidArgument:
         await ctx.send("format must be 'gif', 'webp', 'png', 'jpg', 'jpeg'")
 
 

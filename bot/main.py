@@ -1292,7 +1292,7 @@ async def changeprofile(ctx):
 
 @bot.command()
 async def hypixel(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
@@ -1360,15 +1360,15 @@ async def hypixel(ctx, player):
     embed.add_field(name="Level:", value=level, inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="Karma:", value=karma, inline=True)
-    friends = requests.get(f"https://api.hypixel.net/friends?key={HYPIXELKEY}&uuid={data['player']['uuid']}").json()
+    friends = requests.get(f"https://api.hypixel.net/friends?key={HYPIXEL_KEY}&uuid={data['player']['uuid']}").json()
     try:
         friends = str(len(friends['records']))
     except KeyError:
         friends = "None"
     embed.add_field(name="Friends:", value=friends, inline=True)
-    id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXELKEY}&byUuid={data['player']['uuid']}").json()
+    id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={data['player']['uuid']}").json()
     try:
-        guild = requests.get(f"https://api.hypixel.net/guild?key={HYPIXELKEY}&id={id['guild']}").json()
+        guild = requests.get(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}").json()
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="Guild Members:", value=len(guild['guild']['members']), inline=True)
@@ -1380,7 +1380,7 @@ async def hypixel(ctx, player):
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Bedwars")
     if len(mode) == 0:
@@ -1432,7 +1432,7 @@ async def bedwars(ctx, player, *mode):
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
     if len(mode) == 0:
@@ -1505,7 +1505,7 @@ async def skywars(ctx, player, *mode):
 
 @bot.command()
 async def duels(ctx, player, *mode):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Duels")
     if len(mode) == 0:
@@ -1583,7 +1583,7 @@ async def duels(ctx, player, *mode):
 async def skyblock(ctx, player):
     if ctx.author.id != botmaster:
         return await ctx.send("This command is not ready yet. Sorry :(")
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXELKEY}&name={player}").json()
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send("That player does not exist")
     profiles = data['player']['stats']['SkyBlock']['profiles']

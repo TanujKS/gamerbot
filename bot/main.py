@@ -45,6 +45,11 @@ async def is_vanilla(ctx):
 async def is_guild_owner(ctx):
     return ctx.guild.owner.id == ctx.author.id
 
+
+async def is_maintainence(ctx):
+    return maintainence == False or ctx.author.id == botmaster
+
+
 def checkstat(data, mode, stat):
     try:
         return data['player']['stats'][mode][stat]
@@ -172,7 +177,7 @@ In nick: Must be 32 or fewer in length.""":
         await ctx.send("Nickname must be 32 or fewer characters")
     elif str(error) == "Command raised an exception: Forbidden: 403 Forbidden (error code: 50013): Missing Permissions":
         await ctx.send(f"Command failed. This could be caused because the member you are trying to edit has a role higher than {get(ctx.guild.roles, name=bot.user.name).mention}")
-    elif "is a required argument that is missing." in str(error):
+    elif "is a required argument that is missing." in str(error) or "You are missing" in str(error):
         await ctx.send(error)
     else:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")
@@ -337,6 +342,7 @@ async def dm(ctx, args, message):
 @commands.has_role("Super Donator")
 @commands.bot_has_guild_permissions(add_reactions=True)
 @commands.cooldown(1, 900, commands.BucketType.user)
+@commands.check(is_maintainence)
 async def clown(ctx):
     try:
         member = ctx.message.mentions[0]
@@ -352,6 +358,7 @@ async def clown(ctx):
 @commands.check(is_vanilla)
 @commands.has_role("Owner")
 @commands.bot_has_guild_permissions(add_reactions=True)
+@commands.check(is_maintainence)
 async def permclown(ctx):
     try:
         member = ctx.message.mentions[0]
@@ -371,6 +378,7 @@ async def permclown(ctx):
 @commands.check(is_vanilla)
 @commands.has_role("Owner")
 @commands.bot_has_guild_permissions(add_reactions=True)
+@commands.check(is_maintainence)
 async def unclown(ctx):
     try:
         member = ctx.message.mentions[0]

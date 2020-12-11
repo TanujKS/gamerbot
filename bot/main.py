@@ -1382,6 +1382,7 @@ async def hypixel(ctx, player):
 async def bedwars(ctx, player, *mode):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
+        print(data['player'])
         return await ctx.send(f"{player} has not played Bedwars")
     if len(mode) == 0:
             try:

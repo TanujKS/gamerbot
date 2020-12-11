@@ -1329,7 +1329,7 @@ async def hypixel(ctx, player):
         date = date.astimezone(timezone('US/Pacific'))
         d1 = date.strftime(date_format)
     except KeyError:
-        d = "Never"
+        d1 = "Never"
         status = "Online"
     if not status:
         if data['player']['lastLogout'] < data['player']['lastLogin']:
@@ -1705,7 +1705,10 @@ async def youtube(ctx, *channelarg):
     embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
     embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
     embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channelarg}s and then run '?youtube (id_of_the_channel_you_want)'")
-    await ctx.send(embed=embed)
+    try:
+        await ctx.send(embed=embed)
+    except discord.HTTPException:
+        return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:

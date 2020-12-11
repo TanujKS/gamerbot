@@ -181,6 +181,7 @@ In nick: Must be 32 or fewer in length.""":
         embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
         embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
         embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
+        embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
         embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
         embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Error:", value=error, inline=False)

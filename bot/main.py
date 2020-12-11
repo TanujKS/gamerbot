@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------INITIALIZATIONS----------------------------------------------------------------------
-import os
+import sys
 import time
 import datetime
 from datetime import datetime
@@ -1666,7 +1666,6 @@ async def fortnite(ctx, player):
         await ctx.send(embed=embed)
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @bot.command()
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{os.environ.get('TWITCH_CLIENT_ID')}", "Authorization":f"{os.environ.get('TWITCH_AUTH')}"}).json()
@@ -1746,5 +1745,14 @@ async def youtube(ctx, *channelarg):
     except asyncio.TimeoutError:
         pass
 
+@bot.command()
+@commands.is_owner()
+async def remoteshutdown(ctx):
+    await ctx.send("Shutting down")
+    sys.exit()
+
+
+@bot.command()
+async def callofduty(ctx, player):
 
 bot.run(os.environ.get("TOKEN"))

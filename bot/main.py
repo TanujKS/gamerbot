@@ -256,6 +256,10 @@ async def on_reaction_remove(reaction, user):
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
+async def remoteshutdown(ctx):
+    await ctx.send(f"Shutting down {str(bot.user)}.")
+    exit()
+@bot.command()
 @commands.is_owner()
 async def blacklist(ctx):
     try:

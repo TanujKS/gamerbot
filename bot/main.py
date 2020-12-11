@@ -1754,5 +1754,5 @@ async def remoteshutdown(ctx):
 
 @bot.command()
 async def callofduty(ctx, player):
-
+    print(__name__)
 bot.run(os.environ.get("TOKEN"))

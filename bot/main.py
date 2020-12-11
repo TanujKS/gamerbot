@@ -349,15 +349,18 @@ async def dm(ctx, args, message):
         for member in ctx.guild.members:
             dm = await member.create_dm()
             await dm.send(message)
+        await ctx.send("DMed all members")
     if ctx.message.mentions:
         for member in ctx.message.mentions:
             dm = await member.create_dm()
             await dm.send(message)
+            await ctx.send(f"DMed {str(member)}")
     if ctx.message.role_mentions:
         for role in ctx.message.role_mentions:
             for member in role.members:
                 dm = await member.create_dm()
                 await dm.send(message)
+            await ctx.send(f"DMed all {role.name}s")
 
 
 #------------------------------------------------------------------------------VANILLAMC ONLY--------------------------------------------------------------------------------------

@@ -553,7 +553,7 @@ async def invite(ctx, *args):
             reason = args[2]
         except IndexError:
             return await ctx.send("Invalid args. 'max_age', 'max_uses', 'reason' ")
-    await ctx.send(await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason))
+    await ctx.send(f"Invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with {reason} as the reason. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
 
 
 @bot.command()

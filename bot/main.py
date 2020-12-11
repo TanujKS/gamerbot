@@ -1662,6 +1662,7 @@ async def fortnite(ctx, player):
         embed.add_field(name="Overall Losses", value=data['data']['stats']['all']['overall']['deaths'], inline=False)
         embed.add_field(name="Overall W/L Rate", value=round(data['data']['stats']['all']['overall']['wins']/data['data']['stats']['all']['overall']['deaths'], 2), inline=False)
         embed.set_footer(text="Stats provided using the unofficial Fortnite-API")
+        embed.set_thumbnail(url="https://logodix.com/logo/45400.jpg")
         await ctx.send(embed=embed)
 
 

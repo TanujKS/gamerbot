@@ -4,3 +4,4 @@ pytz
 youtube-data-api
 callofduty.py
 gtts
+ffmpeg

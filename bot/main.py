@@ -13,15 +13,19 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 from discord import Webhook, AsyncWebhookAdapter
+from discord import FFmpegPCMAudio
 from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
+import gtts
+from gtts import gTTS
+import ffmpeg
+import callofduty
+from callofduty import Mode, Platform, Title
 
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
-testingserver = None
-reports = None
 clowns = []
 blackListed = []
 tempClowns = {}
@@ -40,15 +44,16 @@ YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
 async def is_vanilla(ctx):
-    return ctx.guild.id == 698735288947834900
+    try:
+        return ctx.guild.id == 698735288947834900
+    except AttributeError:
+        pass
 
 async def is_guild_owner(ctx):
-    return ctx.guild.owner.id == ctx.author.id
-
-
-async def is_maintainence(ctx):
-    return maintainence == False or ctx.author.id == botmaster
-
+    try:
+        return ctx.guild.owner.id == ctx.author.id
+    except AttributeError:
+        pass
 
 def checkstat(data, mode, stat):
     try:
@@ -170,15 +175,10 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if "The check functions for command " in str(error) or "is not found" in str(error) or str(error) == "You do not own this bot.":
-        pass
-    elif str(error) == """Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
-In nick: Must be 32 or fewer in length.""":
-        await ctx.send("Nickname must be 32 or fewer characters")
-    elif str(error) == "Command raised an exception: Forbidden: 403 Forbidden (error code: 50013): Missing Permissions":
-        await ctx.send(f"Command failed. This could be caused because the member you are trying to edit has a role higher than {get(ctx.guild.roles, name=bot.user.name).mention}")
-    elif "is a required argument that is missing." in str(error) or "You are missing" in str(error):
+    if isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.NoPrivateMessage) or isinstance(error, commands.BadArgument) or isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.UnexpectedQuoteError) or isinstance(error, commands.DisabledCommand):
         await ctx.send(error)
+    elif isinstance(error, commands.CommandNotFound) or isinstance(error, commands.NotOwner) or isinstance(error, commands.CheckFailure):
+        pass
     else:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")
         embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
@@ -261,11 +261,7 @@ async def on_reaction_remove(reaction, user):
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
 @commands.is_owner()
-async def blacklist(ctx):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def blacklist(ctx, member : discord.Member):
     global blackListed
     if member.id in blackListed:
         return await ctx.send(f"{str(member)} is already blacklisted")
@@ -275,11 +271,7 @@ async def blacklist(ctx):
 
 @bot.command()
 @commands.is_owner()
-async def unblacklist(ctx):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def unblacklist(ctx, member : discord.Member):
     global blackListed
     if not member.id in blackListed:
         return await ctx.send(f"{str(member)} is not blacklisted")
@@ -298,42 +290,32 @@ async def blacklisted(ctx):
 
 @bot.command()
 @commands.is_owner()
-async def guilds(ctx):
-    for guild in bot.guilds:
-        await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
+async def remoteshutdown(ctx):
+    await ctx.send("Shutting down")
+    bot.close()
 
 
 @bot.command()
 @commands.is_owner()
-async def dm(ctx, args, message):
-    if args == "all":
-        for member in ctx.guild.members:
-            try:
-                dm = await member.create_dm()
-                await dm.send(message)
-            except discord.HTTPException:
-                await ctx.send(f"Could not DM {str(member)}")
-                pass
-        await ctx.send("DMed all members")
-    if ctx.message.mentions:
-        for member in ctx.message.mentions:
-            try:
-                dm = await member.create_dm()
-                await dm.send(message)
-                await ctx.send(f"DMed {str(member)}")
-            except discord.HTTPException:
-                await ctx.send(f"Could not DM {str(member)}")
-                pass
-    if ctx.message.role_mentions:
-        for role in ctx.message.role_mentions:
-            for member in role.members:
-                try:
-                    dm = await member.create_dm()
-                    await dm.send(message)
-                except discord.HTTPException:
-                    await ctx.send(f"Could not DM {str(member)}")
-                    pass
-            await ctx.send(f"DMed all {role.name}s")
+async def disablecommand(ctx, commandName):
+    command = get(bot.commands, name=commandName)
+    command.update(enabled=False)
+    await ctx.send(f"Disabled command {command}")
+
+
+@bot.command()
+@commands.is_owner()
+async def enablecommand(ctx, commandName):
+    command = get(bot.commands, name=commandName)
+    command.update(enaled=True)
+    await ctx.send(f"Enabled command {command}")
+
+
+@bot.command()
+@commands.is_owner()
+async def guilds(ctx):
+    for guild in bot.guilds:
+        await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
 
 
 #------------------------------------------------------------------------------VANILLAMC ONLY--------------------------------------------------------------------------------------
@@ -342,12 +324,7 @@ async def dm(ctx, args, message):
 @commands.has_role("Super Donator")
 @commands.bot_has_guild_permissions(add_reactions=True)
 @commands.cooldown(1, 900, commands.BucketType.user)
-@commands.check(is_maintainence)
-async def clown(ctx):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def clown(ctx, member : discord.Member):
     if member.id in tempClowns:
         return await ctx.send(f"{member.name} is already a clown")
     tempClowns[member.id] = 0
@@ -358,12 +335,7 @@ async def clown(ctx):
 @commands.check(is_vanilla)
 @commands.has_role("Owner")
 @commands.bot_has_guild_permissions(add_reactions=True)
-@commands.check(is_maintainence)
-async def permclown(ctx):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def permclown(ctx, member : discord.Member):
     if member.id == 566904870951714826:
         await ctx.send("You tried to clown senpai???? UNO REVERSE YOU'RE NOW THE CLOWN")
         member = ctx.message.author
@@ -378,12 +350,7 @@ async def permclown(ctx):
 @commands.check(is_vanilla)
 @commands.has_role("Owner")
 @commands.bot_has_guild_permissions(add_reactions=True)
-@commands.check(is_maintainence)
-async def unclown(ctx):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def unclown(ctx, member : discord.Member):
     if member == ctx.message.author:
         return await ctx.send('lol u cant unclown urself get good')
     global clowns
@@ -426,7 +393,7 @@ async def clearduels(ctx):
 @bot.command()
 @commands.check(is_vanilla)
 @commands.has_permissions(administrator=True)
-async def promote(ctx, member):
+async def promote(ctx, member : discord.Member):
         for channel in ctx.guild.text_channels:
             if "ratings" in str(channel):
                 messages = await channel.history(limit=10).flatten()
@@ -537,15 +504,16 @@ async def invite(ctx, *args):
 
 @bot.command()
 @commands.guild_only()
-async def perms(ctx):
-    await ctx.send(f"Perms for {ctx.message.mentions[0].name} in {ctx.guild}")
+async def perms(ctx, member : discord.Member):
+    await ctx.send(f"Perms for {str(member)} in {ctx.guild}")
     perms = ""
-    for perm in ctx.message.mentions[0].guild_permissions:
+    for perm in member.guild_permissions:
         perms = f"{perms} {perm}"
     await ctx.send(perms)
 
 
 @bot.command()
+@commands.bot_has_guild_permissions(manage_messages=True, manage_webhooks=True)
 @commands.has_guild_permissions(administrator=True)
 async def antiez(ctx, setting):
     global ezMessageServers
@@ -560,15 +528,11 @@ async def antiez(ctx, setting):
 
 
 @bot.command()
-async def avatar(ctx, filler, format):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+async def avatar(ctx, member : discord.Member, format):
     try:
         await ctx.send(member.avatar_url_as(format=format, size=1024))
     except discord.InvalidArgument:
-        await ctx.send("format must be 'gif' (only if animated avatar), 'webp', 'png', 'jpg', 'jpeg'")
+        return await ctx.send("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 
 
 @bot.command()
@@ -629,9 +593,7 @@ async def closepoll(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_nicknames=True)
 @commands.has_permissions(manage_nicknames=True)
-async def nick(ctx, filler, *nick):
-        try:
-            member = ctx.message.mentions[0]
+async def nick(ctx, member : discord.Member, *nick):
             joinednick = ""
             if len(nick) == 0:
                 joinednick = member.name
@@ -644,10 +606,11 @@ async def nick(ctx, filler, *nick):
                     nick = member.nick
                 else:
                     nick = member.name
+                try:
+                    await member.edit(nick=joinednick)
+                except discord.HTTPException:
+                    return await ctx.send("Nickname must be 32 characters or fewer in length.")
                 await ctx.send(f"Changed {member.name}'s nickname from {nick} to {joinednick}")
-                await member.edit(nick=joinednick)
-        except IndexError:
-            await ctx.send("That is not a valid user")
 
 
 @bot.command()
@@ -658,11 +621,8 @@ async def ping(ctx):
 
 
 @bot.command()
-async def quote(ctx, member, *messagevar):
-    try:
-        member = ctx.message.mentions[0]
-    except IndexError:
-        return await ctx.send("Invalid member")
+@commands.bot_has_guild_permissions(manage_webhooks=True)
+async def quote(ctx, member : discord.Member, *messagevar):
     message = ""
     for m in messagevar:
         message = f"{message} {m}"
@@ -738,7 +698,7 @@ async def unlockevents(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
-async def move(ctx, member, *channel):
+async def move(ctx, member : discord.Member, *channel):
         joinedchannel = ""
         for arg in channel:
             joinedchannel = f"{joinedchannel}{arg} "
@@ -899,6 +859,7 @@ async def dc(ctx, args):
 
 
 @bot.command()
+@commands.guild_only()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def moveteams(ctx):
@@ -917,21 +878,17 @@ async def moveteams(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)
-async def eventban(ctx):
+async def eventban(ctx, member : discord.Member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
             return await ctx.send("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
-        try:
-            member = ctx.message.mentions[0]
-            if member.id == botmaster:
-                return await ctx.send("I would never ban senpai")
-            if role in member.roles:
-                await ctx.send("That user is already banned")
-            else:
-                await member.add_roles(role)
-                await ctx.send(f"Banned {str(member)} from events")
-        except IndexError:
-            await ctx.send("Invalid user")
+        if member.id == botmaster:
+            return await ctx.send("I would never ban senpai")
+        if role in member.roles:
+            await ctx.send("That user is already banned")
+        else:
+            await member.add_roles(role)
+            await ctx.send(f"Banned {str(member)} from events")
 
 
 @bot.command()
@@ -974,19 +931,16 @@ async def createteams(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)
-async def clearteam(ctx, team):
-        try:
-            if team in teams:
-                role = get(ctx.guild.roles, name=team)
-                if not role:
-                    return await ctx.send("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
-                for member in role.members:
-                    await member.remove_roles(role)
-                await ctx.send(f"Cleared {str(role)}")
-            else:
-                await ctx.send("Invalid team")
-        except IndexError:
-            await ctx.send("Invalid role")
+async def clearteam(ctx, team : discord.Role):
+    if team.name in teams:
+        role = get(ctx.guild.roles, name=team)
+        if not role:
+            return await ctx.send("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
+        for member in role.members:
+            await member.remove_roles(role)
+            await ctx.send(f"Cleared {str(role)}")
+    else:
+        await ctx.send("Invalid team")
 
 
 @bot.command()
@@ -1062,33 +1016,6 @@ async def closeteams(ctx):
 
 
 @bot.command()
-@commands.bot_has_guild_permissions(manage_roles=True)
-@commands.has_guild_permissions(manage_roles=True)
-async def checkteams(ctx):
-        await ctx.send("Checking all members to make sure they are not in more than one team")
-        participants = []
-        for team in teams:
-            role = get(ctx.guild.roles, name=team)
-            if not role:
-                return await ctx.send("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
-            for member in role.members:
-                participants.append(member)
-        PeopleWith2Teams = []
-        for participant in participants:
-            if participants.count(participant) > 1:
-                PeopleWith2Teams.append(participant)
-                participants.remove(participant)
-        if len(PeopleWith2Teams) == 0:
-            await ctx.send("Checked all members, everyone is in 1 team")
-        else:
-            for person in PeopleWith2Teams:
-                for role in person.roles:
-                    if role.name.startswith("Team"):
-                        await ctx.send(f"FOUND {person.name} WITH MORE THAN 1 TEAM. REMOVING THEM FROM {str(role)}")
-                        await person.remove_roles(role)
-
-
-@bot.command()
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def wipe(ctx):
@@ -1115,8 +1042,8 @@ async def wipe(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)
-async def setteam(ctx, team):
-        if team in teams:
+async def setteam(ctx, team : discord.Role):
+        if team.name in teams:
             role = get(ctx.guild.roles, name=team)
             if role.name in teams:
                 for roles in ctx.author.roles:
@@ -1711,10 +1638,16 @@ async def youtube(ctx, *channelarg):
 
 
 @bot.command()
-@commands.is_owner()
-async def remoteshutdown(ctx):
-    await ctx.send("Shutting down")
-    bot.close()
+async def speak(ctx, message):
+    tts = gtts.gTTS(message, lang="en")
+    tts.save("text.mp3")
+    if ctx.guild.voice_client:
+        vc = ctx.guild.voice_client
+    else:
+        voice_channel = get(ctx.guild.voice_channels, name="Voice Lounge")
+        vc = await voice_channel.connect()
+    vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: print('done', e))
 
 
-bot.run(os.environ.get("TOKEN"))
+#bot.run(os.environ.get("TOKEN"))
+bot.run("NzcxNTU0MTA2NzQxNDg5Njg0.X5tzwQ.2slhgjRcunWOGMnr-fv-CA7AZjQ")

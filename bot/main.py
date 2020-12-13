@@ -1649,5 +1649,4 @@ async def speak(ctx, message):
     vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: print('done', e))
 
 
-#bot.run(os.environ.get("TOKEN"))
-bot.run("NzcxNTU0MTA2NzQxNDg5Njg0.X5tzwQ.2slhgjRcunWOGMnr-fv-CA7AZjQ")
+bot.run(os.environ.get("TOKEN"))

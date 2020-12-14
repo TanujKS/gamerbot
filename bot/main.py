@@ -1671,6 +1671,7 @@ async def youtube(ctx, *channelarg):
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def speak(ctx, message):
+    discord.opus.load_opus()
     tts = gtts.gTTS(message, lang="en")
     tts.save("text.mp3")
     if ctx.guild.voice_client:

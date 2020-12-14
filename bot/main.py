@@ -30,6 +30,7 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
 clowns = []
+clownServers = [698735288947834900]
 blackListed = []
 tempClowns = {}
 bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two", "double": "eight_two", "3s": "four_three", "3v3v3v3": "four_three", "triples": "four_three", "4s": "four_four", "4v4v4v4": "four_four", "quadruples":"four_four", "4v4": "two_four",}
@@ -1684,7 +1685,10 @@ async def speak(ctx, *message):
         vc = await ctx.author.voice.channel.connect()
     else:
         return await ctx.send("You are not in a voice channel.")
-    vc.play(discord.FFmpegPCMAudio("text.mp3"))
+    try:
+        vc.play(discord.FFmpegPCMAudio("text.mp3"))
+    except discord.ClientException:
+        await ctx.send("There is already audio currently playing")
 
 
 bot.run(os.environ.get("TOKEN"))

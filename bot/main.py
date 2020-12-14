@@ -1,7 +1,10 @@
 #-----------------------------------------------------------------------INITIALIZATIONS----------------------------------------------------------------------
-import sys
-import ctypes
-import ctypes.util
+import discord
+from discord.ext import commands
+from discord.utils import get
+from discord import Webhook, AsyncWebhookAdapter
+from discord import FFmpegPCMAudio
+from discord import opus
 import os
 import time
 import datetime
@@ -11,20 +14,13 @@ import random
 import requests
 import asyncio
 from collections import OrderedDict
-import discord
-from discord.ext import commands
-from discord.utils import get
-from discord import Webhook, AsyncWebhookAdapter
-from discord import FFmpegPCMAudio
-from discord import opus
+import gtts
+from gtts import gTTS
+import ffmpeg
 from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
-import gtts
-from gtts import gTTS
-import ffmpeg
-
 
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
@@ -110,6 +106,12 @@ def write_roman(num):
                 break
     return "".join([a for a in roman_num(num)])
 
+def initguild(guild):
+    guildInfo[guild.id] = {}
+    guildInfo[guild.id]['antiez'] = False
+    guildInfo[guild.id]['teamLimit'] = 2
+    guildInfo[guild.id]['maximumTeams'] = 1
+    guildInfo[guild.id]['TTVCrole'] = "TTVC"
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
@@ -126,10 +128,7 @@ async def on_ready():
     get(bot.commands, name="skyblock").update(enabled=False)
     print("Guilds:")
     for guild in bot.guilds:
-        guildInfo[guild.id] = {}
-        guildInfo[guild.id]['antiez'] = False
-        guildInfo[guild.id]['teamLimit'] = 2
-        guildInfo[guild.id]['maximumTeams'] = 1
+        initguild(guild)
         print(guild.name)
 
 
@@ -138,9 +137,7 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-    guildInfo[guild.id]['antiez'] = False
-    guildInfo[guild.id]['teamLimit'] = 2
-    guildInfo[guild.id]['maximumTeams'] = 1
+    initguild(guild)
 
 
 @bot.event
@@ -148,9 +145,7 @@ async def on_guild_remove(guild):
     print(f"Left {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-    guildInfo[guild.id]['antiez'] = False
-    guildInfo[guild.id]['teamLimit'] = 2
-    guildInfo[guild.id]['maximumTeams'] = 1
+    guildInfo.pop(guild.id)
 
 
 @bot.event
@@ -326,7 +321,7 @@ async def disablecommand(ctx, commandName):
 @commands.is_owner()
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
-    command.update(enaled=True)
+    command.update(enabled=True)
     await ctx.send(f"Enabled command {command}")
 
 
@@ -509,6 +504,7 @@ async def settings(ctx, *setting):
         embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description="To edit a setting use '?settings setting on/off", color=0xff0000)
         embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez off")
         embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1")
+        embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings ttvcrole some_role")
     elif len(setting) == 2:
         if setting[0] == "antiez":
             if setting[1] == "on":
@@ -525,6 +521,11 @@ async def settings(ctx, *setting):
                 return await ctx.send("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
+        elif setting[0] == "ttvcrole":
+            if not get(ctx.guild.roles, name=setting[1]):
+                return await ctx.send('Invalid role')
+            guildInfo[ctx.guild.id]['ttvcrole'] = setting[1]
+            embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['ttvcrole']}", description=None, color=0xff0000)
         else:
             return await ctx.send("Invalid setting")
     else:
@@ -1670,10 +1671,12 @@ async def youtube(ctx, *channelarg):
 
 
 @bot.command()
-@commands.has_role("TTVC")
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def speak(ctx, *message):
+    role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['ttvcrole'])
+    if not role:
+        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['ttvcrole']} is required to use TTVC")
     fullmessage = ""
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"

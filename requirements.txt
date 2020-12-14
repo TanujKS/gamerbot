@@ -6,4 +6,3 @@ gtts
 ffmpeg-python
 ffmpeg
 pynacl
-opus

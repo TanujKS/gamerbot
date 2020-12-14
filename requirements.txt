@@ -3,5 +3,5 @@ mojang
 pytz
 youtube-data-api
 gtts
-ffmpeg
+ffmpeg-python
 pynacl

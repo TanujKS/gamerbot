@@ -1,5 +1,7 @@
 #-----------------------------------------------------------------------INITIALIZATIONS----------------------------------------------------------------------
 import sys
+import ctypes
+import ctypes.util
 import os
 import time
 import datetime
@@ -14,6 +16,7 @@ from discord.ext import commands
 from discord.utils import get
 from discord import Webhook, AsyncWebhookAdapter
 from discord import FFmpegPCMAudio
+from discord import opus
 from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
@@ -1671,7 +1674,17 @@ async def youtube(ctx, *channelarg):
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def speak(ctx, message):
-    discord.opus.load_opus()
+    print("ctypes - Find opus:")
+    a = ctypes.util.find_library('opus')
+    print(a)
+
+    print("Discord - Load Opus:")
+    b = discord.opus.load_opus(a)
+    print(b)
+
+    print("Discord - Is loaded:")
+    c = discord.opus.is_loaded()
+    print(c)
     tts = gtts.gTTS(message, lang="en")
     tts.save("text.mp3")
     if ctx.guild.voice_client:

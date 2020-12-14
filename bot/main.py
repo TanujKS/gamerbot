@@ -504,7 +504,7 @@ async def settings(ctx, *setting):
         embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description="To edit a setting use '?settings setting on/off", color=0xff0000)
         embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez off")
         embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1")
-        embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings ttvcrole some_role")
+        embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings TTVCrole some_role")
     elif len(setting) == 2:
         if setting[0] == "antiez":
             if setting[1] == "on":
@@ -521,11 +521,11 @@ async def settings(ctx, *setting):
                 return await ctx.send("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
-        elif setting[0] == "ttvcrole":
+        elif setting[0] == "TTVCrole":
             if not get(ctx.guild.roles, name=setting[1]):
                 return await ctx.send('Invalid role')
-            guildInfo[ctx.guild.id]['ttvcrole'] = setting[1]
-            embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['ttvcrole']}", description=None, color=0xff0000)
+            guildInfo[ctx.guild.id]['TTVCrole'] = setting[1]
+            embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         else:
             return await ctx.send("Invalid setting")
     else:
@@ -1674,9 +1674,9 @@ async def youtube(ctx, *channelarg):
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def speak(ctx, *message):
-    role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['ttvcrole'])
+    role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
-        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['ttvcrole']} is required to use TTVC")
+        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
     fullmessage = ""
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"

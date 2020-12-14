@@ -1672,8 +1672,11 @@ async def youtube(ctx, *channelarg):
 @commands.has_role("TTVC")
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
-async def speak(ctx, message):
-    tts = gtts.gTTS(message, lang="en")
+async def speak(ctx, *message):
+    fullmessage = ""
+    for messageVar in message:
+        fullmessage = f"{fullmessage} {messageVar}"
+    tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client

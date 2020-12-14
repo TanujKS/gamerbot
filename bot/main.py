@@ -506,6 +506,8 @@ async def settings(ctx, *setting):
         embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1")
         embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings TTVCrole some_role")
     elif len(setting) == 2:
+        if not ctx.author.guild_permissions.administrator:
+            return await ctx.send(f"You are missing Administrator permission(s) to run this command.")
         if setting[0] == "antiez":
             if setting[1] == "on":
                 guildInfo[ctx.guild.id]['antiez'] = True

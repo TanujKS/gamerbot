@@ -122,7 +122,6 @@ async def on_ready():
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
-    get(bot.commands, name="speak").update(enabled=False)
     get(bot.commands, name="skyblock").update(enabled=False)
     print("Guilds:")
     for guild in bot.guilds:
@@ -208,7 +207,7 @@ async def on_command_error(ctx, error):
         embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
         embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Error:", value=error, inline=False)
-        await reports.send(embed=embed)
+        await reports.send(bot.get_user(botmaster).mention, embed=embed)
         print(error)
 
 
@@ -1674,17 +1673,6 @@ async def youtube(ctx, *channelarg):
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def speak(ctx, message):
-    print("ctypes - Find opus:")
-    a = ctypes.util.find_library('opus')
-    print(a)
-
-    print("Discord - Load Opus:")
-    b = discord.opus.load_opus(a)
-    print(b)
-
-    print("Discord - Is loaded:")
-    c = discord.opus.is_loaded()
-    print(c)
     tts = gtts.gTTS(message, lang="en")
     tts.save("text.mp3")
     if ctx.guild.voice_client:

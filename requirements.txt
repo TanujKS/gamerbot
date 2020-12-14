@@ -2,6 +2,6 @@ discord.py
 mojang
 pytz
 youtube-data-api
-callofduty.py
 gtts
 ffmpeg
+pynacl

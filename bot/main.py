@@ -26,6 +26,7 @@ from callofduty import Mode, Platform, Title
 
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
+guildInfo = {}
 clowns = []
 blackListed = []
 tempClowns = {}
@@ -116,6 +117,7 @@ async def on_ready():
     reports = get(testingserver.channels, name="reports")
     print("Guilds:")
     for guild in bot.guilds:
+        guild
         print(guild.name)
 
 
@@ -175,7 +177,7 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.NoPrivateMessage) or isinstance(error, commands.BadArgument) or isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.UnexpectedQuoteError) or isinstance(error, commands.DisabledCommand):
+    if isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.NoPrivateMessage) or isinstance(error, commands.BadArgument) or isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.UnexpectedQuoteError) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.MissingPermissions) or isinstance(error, commands.MissingRole) or isinstance(error, commands.BotMissingPermissions):
         await ctx.send(error)
     elif isinstance(error, commands.CommandNotFound) or isinstance(error, commands.NotOwner) or isinstance(error, commands.CheckFailure):
         pass
@@ -1635,18 +1637,6 @@ async def youtube(ctx, *channelarg):
                     pass
     except asyncio.TimeoutError:
         pass
-
-
-@bot.command()
-async def speak(ctx, message):
-    tts = gtts.gTTS(message, lang="en")
-    tts.save("text.mp3")
-    if ctx.guild.voice_client:
-        vc = ctx.guild.voice_client
-    else:
-        voice_channel = get(ctx.guild.voice_channels, name="Voice Lounge")
-        vc = await voice_channel.connect()
-    vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: print('done', e))
 
 
 bot.run(os.environ.get("TOKEN"))

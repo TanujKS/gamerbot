@@ -34,7 +34,6 @@ bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two
 modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 botmaster = 566904870951714826
-ezMessageServers = [757430352636542997, 762444045233946644, 698735288947834900]
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
@@ -55,6 +54,12 @@ async def is_guild_owner(ctx):
         return ctx.guild.owner.id == ctx.author.id
     except AttributeError:
         pass
+
+def convertBooltoStr(bool):
+    if bool:
+        return "On"
+    if not bool:
+        return "Off"
 
 def checkstat(data, mode, stat):
     try:
@@ -115,9 +120,14 @@ async def on_ready():
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
+    get(bot.commands, name="speak").update(enabled=False)
+    get(bot.commands, name="skyblock").update(enabled=False)
     print("Guilds:")
     for guild in bot.guilds:
-        guild
+        guildInfo[guild.id] = {}
+        guildInfo[guild.id]['antiez'] = False
+        guildInfo[guild.id]['teamLimit'] = 2
+        guildInfo[guild.id]['maximumTeams'] = 1
         print(guild.name)
 
 
@@ -126,6 +136,9 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+    guildInfo[guild.id]['antiez'] = False
+    guildInfo[guild.id]['teamLimit'] = 2
+    guildInfo[guild.id]['maximumTeams'] = 1
 
 
 @bot.event
@@ -133,6 +146,9 @@ async def on_guild_remove(guild):
     print(f"Left {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+    guildInfo[guild.id]['antiez'] = False
+    guildInfo[guild.id]['teamLimit'] = 2
+    guildInfo[guild.id]['maximumTeams'] = 1
 
 
 @bot.event
@@ -143,9 +159,8 @@ async def on_message(message):
         if message.guild:
             if message.guild.name == "VanillaMC" and message.channel.id == 782708611603759164 and not message.author.bot and not message.author.guild_permissions.administrator and not message.content.startswith(",suggest"):
                 await message.delete()
-            messageList = message.content.lower()
-            messageList = messageList.split()
-            if ("ez" in messageList or "kys" in messageList) and message.guild.id in ezMessageServers:
+            messageList = message.content.lower().split()
+            if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()
                 for webhook in webhooks:
                     if webhook.user == bot.user:
@@ -203,7 +218,7 @@ async def on_reaction_add(reaction, user):
                 if str(reaction) in emojis:
                     team = teams[emojis.index(str(reaction))]
                     role = get(user.guild.roles, name=team)
-                    if len(role.members) >= 2:
+                    if len(role.members) >= guildInfo[reaction.message.guild.id]['teamLimit']:
                         return await reaction.remove(user)
                     for eachteam in teams:
                         if get(user.roles, name=eachteam):
@@ -417,8 +432,8 @@ async def promote(ctx, member : discord.Member):
 
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
-async def help(ctx, *args):
-    if len(args) <= 0:
+async def help(ctx, *category):
+    if len(category) <= 0:
         embed = discord.Embed(title="Categories", description="This is a list of all the types of commands I can do", color=0xff0000)
         embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name="VC Commands (?help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
@@ -428,7 +443,7 @@ async def help(ctx, *args):
         embed.add_field(name="Miscellaneous Commands (?help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name="APIs (?help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
-    elif args[0] == "VC":
+    elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
         embed.add_field(name="?mute (member or 'channel all' or 'server all')", value="Server mutes a member. 'channel all' mutes all people in the channel you are currently in while 'server all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
         embed.add_field(name="?unmute (member or 'channel all' or 'server all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
@@ -437,7 +452,8 @@ async def help(ctx, *args):
         embed.add_field(name="?dc (member or 'channel all' or 'server all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?move (member or 'channel all' or 'server all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
-    elif args[0] == "teams":
+        embed.add_field(name="?speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
+    elif category[0] == "teams":
         embed=discord.Embed(title="Team Commands", description="Commands I can do to manage your teams for game nights", color=0xff0000)
         embed.add_field(name="?createteams", value="Creates a team menu where people can react to join teams (max limit of 2 and member can only be in 1 team) (Requires permission Manage Roles)", inline=False)
         embed.add_field(name="?closeteams", value="Close a team menu so people can no longer react (Requires permission Manage Roles)", inline=False)
@@ -449,7 +465,7 @@ async def help(ctx, *args):
         embed.add_field(name="?eventunban (user or 'all')", value="Allows a user to join teams and use team text/voice channels (Requires permission Manage Roles)", inline=False)
         embed.add_field(name="?lockevents", value="Locks the team voice channels so that ONLY people with the team role can join", inline=False)
         embed.add_field(name="?unlockevents", value="Unlocks the team voice channels so that ANYONE can join them", inline=False)
-    elif args[0] == "misc":
+    elif category[0] == "misc":
         embed=discord.Embed(title="Miscellaneous Commands", description="All other commands I can do!", color=0xff0000)
         embed.add_field(name="?nick (user)", value="Changes the nickname of a member (Requires permission Manage Nicknames)", inline=False)
         embed.add_field(name="?poll (Poll) (*options)", value="Creates a poll where you can only vote once", inline=False)
@@ -460,11 +476,9 @@ async def help(ctx, *args):
         embed.add_field(name="?perms (@user)", value="Sends the server permissions for a certain member", inline=False)
         embed.add_field(name="?invite (*(max_age) (max_uses) (reason))", value="Generates a invite to the channel with the specified maximum age, uses, and reason. If no args are provided, it will default to infinite uses, infinite age, and no reason", inline=False)
         embed.add_field(name="?report", value="Report a problem to the bot developers", inline=False)
-        embed.add_field(name="?antiez ('on' or 'off')", value="A fun command taken from Hypixel, replaces all message that contain the word 'ez' or 'kys' with a random message taken right from Hypixel", inline=False)
-    elif args[0] == "games":
-        embed=discord.Embed(title="Game Commands", description="Mini-games I can play", color=0xff0000)
+        embed.add_field(name="?settings", value="Tweak settings for your guild", inline=False)
         embed.add_field(name="?rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
-    elif args[0] == "stats":
+    elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
         embed.add_field(name="?skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
@@ -475,7 +489,7 @@ async def help(ctx, *args):
         embed.add_field(name="?fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
         embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
         embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
-    elif args[0] == "apis":
+    elif category[0] == "apis":
         embed = discord.Embed(title="APIs used for statistics", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
         embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)
         embed.add_field(name="Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
@@ -484,6 +498,35 @@ async def help(ctx, *args):
         embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
         return await ctx.send("Invalid category")
+    await ctx.send(embed=embed)
+
+
+@bot.command()
+async def settings(ctx, *setting):
+    if len(setting) == 0:
+        embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description="To edit a setting use '?settings setting on/off", color=0xff0000)
+        embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez off")
+        embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1")
+    elif len(setting) == 2:
+        if setting[0] == "antiez":
+            if setting[1] == "on":
+                guildInfo[ctx.guild.id]['antiez'] = True
+            elif setting [1] == "off":
+                guildInfo[ctx.guild.id]['antiez'] = False
+            else:
+                return await ctx.send("Argument must be 'on' or 'off'")
+            embed = discord.Embed(title=f"Anti-EZ is now {convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", description=None, color=0xff0000)
+        elif setting[0] == "teamlimit":
+            try:
+                setting = int(setting[1])
+            except ValueError:
+                return await ctx.send("Argument must be a number")
+            guildInfo[ctx.guild.id]['teamLimit'] = setting
+            embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
+        else:
+            return await ctx.send("Invalid setting")
+    else:
+        return await ctx.send("Invalid arguments")
     await ctx.send(embed=embed)
 
 
@@ -512,21 +555,6 @@ async def perms(ctx, member : discord.Member):
     for perm in member.guild_permissions:
         perms = f"{perms} {perm}"
     await ctx.send(perms)
-
-
-@bot.command()
-@commands.bot_has_guild_permissions(manage_messages=True, manage_webhooks=True)
-@commands.has_guild_permissions(administrator=True)
-async def antiez(ctx, setting):
-    global ezMessageServers
-    if setting == "on":
-        ezMessageServers.append(ctx.guild.id)
-        await ctx.send("Enabled ez messages")
-    elif setting == "off":
-        ezMessageServers.remove(ctx.guild.id)
-        await ctx.send("Disabled ez messages")
-    else:
-        return await ctx.send("Mode must be 'on' or 'off'")
 
 
 @bot.command()
@@ -680,7 +708,7 @@ async def lockevents(ctx):
             perms = channel.overwrites_for(ctx.guild.default_role)
             perms.connect = False
             await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-            await channel.edit(user_limit=2)
+            await channel.edit(user_limit=guildInfo[ctx.guild.id]['teamLimit'])
         await ctx.send("Locked all voice channels")
 
 
@@ -733,14 +761,14 @@ async def move(ctx, member : discord.Member, *channel):
 @bot.command()
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
-async def mute(ctx, args):
-        if args == "channel all":
+async def mute(ctx, member):
+        if member == "channel all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {member.voice_channel.name}")
-        elif args == "server all":
+        elif member == "server all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=True)
@@ -759,14 +787,14 @@ async def mute(ctx, args):
 @bot.command()
 @commands.bot_has_guild_permissions(deafen_members=True)
 @commands.has_guild_permissions(deafen_members=True)
-async def deafen(ctx, args):
-        if args == "channel all":
+async def deafen(ctx, member):
+        if member == "channel all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {member.voice.channel.name}")
-        elif args == "server all":
+        elif member == "server all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=True)
@@ -785,14 +813,14 @@ async def deafen(ctx, args):
 @bot.command()
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
-async def unmute(ctx, args):
-        if args == "channel all":
+async def unmute(ctx, member):
+        if member == "channel all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {member.voice.channel.name}")
-        elif args == "server all":
+        elif member == "server all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=False)
@@ -811,14 +839,14 @@ async def unmute(ctx, args):
 @bot.command()
 @commands.bot_has_guild_permissions(deafen_members=True)
 @commands.has_guild_permissions(deafen_members=True)
-async def undeafen(ctx, args):
-        if args == "channel all":
+async def undeafen(ctx, member):
+        if member == "channel all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {member.voice.channel.name}")
-        if args == "server all":
+        if member == "server all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=False)
@@ -837,14 +865,14 @@ async def undeafen(ctx, args):
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
-async def dc(ctx, args):
-    if args == "channel all":
+async def dc(ctx, member):
+    if member == "channel all":
         if not ctx.author.voice:
             return await ctx.send("You are not in a voice channel")
         for member in ctx.author.voice.channel:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {member.voice.channel.name}")
-    elif args == "server all":
+    elif member == "server all":
         for voicechannel in ctx.guild.voice_channels:
             for member in voicechannel.members:
                 await member.move_to(None)
@@ -896,11 +924,11 @@ async def eventban(ctx, member : discord.Member):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)
-async def eventunban(ctx, args):
+async def eventunban(ctx, member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
             return await ctx.send("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
-        if args == "all":
+        if member == "all":
             for member in role.members:
                 await member.remove_roles(role)
                 await ctx.send(f"Unbanned {str(member)} from events")
@@ -1639,4 +1667,21 @@ async def youtube(ctx, *channelarg):
         pass
 
 
-bot.run(os.environ.get("TOKEN"))
+@bot.command()
+@commands.has_role("TTVC")
+@commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+@commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+async def speak(ctx, message):
+    tts = gtts.gTTS(message, lang="en")
+    tts.save("text.mp3")
+    if ctx.guild.voice_client:
+        vc = ctx.guild.voice_client
+    elif ctx.author.voice:
+        vc = await ctx.author.voice.channel.connect()
+    else:
+        return await ctx.send("You are not in a voice channel.")
+    vc.play(discord.FFmpegPCMAudio("text.mp3"))
+
+
+#bot.run(os.environ.get("TOKEN"))
+bot.run("NzcxNTU0MTA2NzQxNDg5Njg0.X5tzwQ.HvUkCmT0hj_kDU1D2pdnm3TGY5A")

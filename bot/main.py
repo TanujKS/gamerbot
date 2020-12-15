@@ -442,12 +442,12 @@ async def help(ctx, *category):
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
-        embed.add_field(name="?mute (member or 'channel all' or 'server all')", value="Server mutes a member. 'channel all' mutes all people in the channel you are currently in while 'server all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?unmute (member or 'channel all' or 'server all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?deafen (member or 'channel all' or 'server all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?undeafen (member or 'channel all' or 'server all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?dc (member or 'channel all' or 'server all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?move (member or 'channel all' or 'server all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name="?mute (member or 'channel-all' or 'server-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'server-all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
+        embed.add_field(name="?unmute (member or 'channel-all' or 'server-all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
+        embed.add_field(name="?deafen (member or 'channel-all' or 'server-all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name="?undeafen (member or 'channel-all' or 'server-all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name="?dc (member or 'channel-all' or 'server-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name="?move (member or 'channel-all' or 'server-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
     elif category[0] == "teams":
@@ -740,13 +740,13 @@ async def move(ctx, member : discord.Member, *channel):
         channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
         if not channel:
             return await ctx.send("That voice channel doest not exist.")
-        if member == "channel all":
+        if member == "channel-all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.move_to(channel)
             await ctx.send(f"Moved all in {member.voice.channel.name} to {channel.name}")
-        elif member == "server all":
+        elif member == "server-all":
             for voice_channel in ctx.guild.voice_channels:
                 for member in voice_channel.members:
                     await member.move_to(channel)
@@ -767,13 +767,13 @@ async def move(ctx, member : discord.Member, *channel):
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
 async def mute(ctx, member):
-        if member == "channel all":
+        if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {member.voice_channel.name}")
-        elif member == "server all":
+        elif member == "server-all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=True)
@@ -793,13 +793,13 @@ async def mute(ctx, member):
 @commands.bot_has_guild_permissions(deafen_members=True)
 @commands.has_guild_permissions(deafen_members=True)
 async def deafen(ctx, member):
-        if member == "channel all":
+        if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {member.voice.channel.name}")
-        elif member == "server all":
+        elif member == "server-all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=True)
@@ -819,13 +819,13 @@ async def deafen(ctx, member):
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
 async def unmute(ctx, member):
-        if member == "channel all":
+        if member == "channel-all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {member.voice.channel.name}")
-        elif member == "server all":
+        elif member == "server-all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=False)
@@ -845,13 +845,13 @@ async def unmute(ctx, member):
 @commands.bot_has_guild_permissions(deafen_members=True)
 @commands.has_guild_permissions(deafen_members=True)
 async def undeafen(ctx, member):
-        if member == "channel all":
+        if member == "channel-all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {member.voice.channel.name}")
-        if member == "server all":
+        if member == "server-all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=False)
@@ -871,13 +871,13 @@ async def undeafen(ctx, member):
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def dc(ctx, member):
-    if member == "channel all":
+    if member == "channel-all":
         if not ctx.author.voice:
             return await ctx.send("You are not in a voice channel")
         for member in ctx.author.voice.channel:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {member.voice.channel.name}")
-    elif member == "server all":
+    elif member == "server-all":
         for voicechannel in ctx.guild.voice_channels:
             for member in voicechannel.members:
                 await member.move_to(None)
@@ -1679,7 +1679,7 @@ async def speak(ctx, *message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
         return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
-    fullmessage = ""
+    fullmessage = f"{ctx.author.name} says "
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"
     tts = gtts.gTTS(fullmessage, lang="en")

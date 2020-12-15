@@ -26,7 +26,7 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
 clowns = []
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, asyncio.TimeoutError]
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 clownServers = [698735288947834900]
 blackListed = []

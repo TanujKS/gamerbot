@@ -1460,7 +1460,7 @@ async def skywars(ctx, player, *mode):
             joinedmode = f"{joinedmode}{x} "
         joinedmode = joinedmode[:-1]
         if joinedmode == "solos normal":
-            embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
+            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
             embed.add_field(name="Games Played:", value=(checkstat(data, "SkyWars", 'wins_solo')-checkstat(data, "SkyWars", 'wins_solo_insane'))+(checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
@@ -1471,7 +1471,7 @@ async def skywars(ctx, player, *mode):
             embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate((checkstat(data, "SkyWars", 'wins_solo')-checkstat(data, "SkyWars", 'wins_solo_insane')), checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
         elif joinedmode == "solos insane":
-            embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
+            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
             embed.add_field(name="Games Played:", value=checkstat(data, "SkyWars", 'wins_solo_insane')+checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
@@ -1482,7 +1482,7 @@ async def skywars(ctx, player, *mode):
             embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins_solo_insane'), checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
         elif joinedmode == "teams normal":
-            embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
+            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
             embed.add_field(name="Games Played:", value=(checkstat(data, "SkyWars", 'wins_teams')-checkstat(data, "SkyWars", 'wins_teams_insane'))+(checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
@@ -1493,7 +1493,7 @@ async def skywars(ctx, player, *mode):
             embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate((checkstat(data, "SkyWars", 'wins_teams')-checkstat(data, "SkyWars", 'wins_teams_insane')), checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
         elif joinedmode == "teams insane":
-            embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
+            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
             embed.add_field(name="Games Played:", value=checkstat(data, "SkyWars", 'wins_teams_insane')+checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
@@ -1503,6 +1503,8 @@ async def skywars(ctx, player, *mode):
             embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins_teams_insane'), inline=True)
             embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins_teams_insane'), checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
+        else:
+            return await ctx.send("Invalid mode")
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)

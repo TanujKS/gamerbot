@@ -26,6 +26,8 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
 clowns = []
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, asyncio.TimeoutError]
+passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 clownServers = [698735288947834900]
 blackListed = []
 tempClowns = {}
@@ -189,22 +191,23 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown) or isinstance(error, commands.NoPrivateMessage) or isinstance(error, commands.BadArgument) or isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.UnexpectedQuoteError) or isinstance(error, commands.DisabledCommand) or isinstance(error, commands.MissingPermissions) or isinstance(error, commands.MissingRole) or isinstance(error, commands.BotMissingPermissions):
-        await ctx.send(error)
-    elif isinstance(error, commands.CommandNotFound) or isinstance(error, commands.NotOwner) or isinstance(error, commands.CheckFailure):
-        pass
-    else:
-        await ctx.send("Error. This has been reported and will be reviewed shortly.")
-        embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
-        embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
-        embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
-        embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
-        embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
-        embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
-        embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
-        embed.add_field(name="Error:", value=error, inline=False)
-        await reports.send(bot.get_user(botmaster).mention, embed=embed)
-        print(error)
+    for e in raiseErrors:
+        if isinstance(error, e):
+            return await ctx.send(error)
+    for e in passErrors:
+        if isinstance(error, e):
+            return
+    await ctx.send("Error. This has been reported and will be reviewed shortly.")
+    embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
+    embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
+    embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
+    embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
+    embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
+    embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
+    embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
+    embed.add_field(name="Error:", value=error, inline=False)
+    await reports.send(bot.get_user(botmaster).mention, embed=embed)
+    print(error)
 
 
 @bot.event
@@ -622,31 +625,28 @@ async def closepoll(ctx):
         close = await ctx.send("React to the poll I must close with an ❌")
         def check(reaction, user):
             return user == ctx.author and str(reaction) == "❌"
-        try:
-            reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
-            dic = reaction.message.embeds[0].to_dict()
-            footer = dic['footer']['text']
-            footer = footer[8:]
-            title = f"(closed) {dic['title']}"
-            if str(user) == footer:
-                embed=discord.Embed(title=title, description=None, color=0xff0000)
-                await ctx.message.delete()
-                await close.delete()
-                x = 0
-                for field in reaction.message.embeds[0].fields:
-                    if not field.name in emojis and not field.name=="\u200b":
-                        eachreaction = reaction.message.reactions[x]
-                        if str(eachreaction) in emojis:
-                            embed.add_field(name=eachreaction.count-1, value="\u200b", inline=True)
-                            embed.add_field(name=f" person(s) voted {field.name}", value="\u200b", inline=True)
-                            embed.add_field(name="\u200b", value="\u200b", inline=True)
-                        x = x + 1
-                await reaction.message.edit(embed=embed)
-                await reaction.remove(user)
-            else:
-                await ctx.send(f"Only {dic} can close that poll")
-        except asyncio.TimeoutError:
-            await ctx.send('Did not receive any reaction')
+        reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
+        dic = reaction.message.embeds[0].to_dict()
+        footer = dic['footer']['text']
+        footer = footer[8:]
+        title = f"(closed) {dic['title']}"
+        if str(user) == footer:
+            embed=discord.Embed(title=title, description=None, color=0xff0000)
+            await ctx.message.delete()
+            await close.delete()
+            x = 0
+            for field in reaction.message.embeds[0].fields:
+                if not field.name in emojis and not field.name=="\u200b":
+                    eachreaction = reaction.message.reactions[x]
+                    if str(eachreaction) in emojis:
+                        embed.add_field(name=eachreaction.count-1, value="\u200b", inline=True)
+                        embed.add_field(name=f" person(s) voted {field.name}", value="\u200b", inline=True)
+                        embed.add_field(name="\u200b", value="\u200b", inline=True)
+                    x = x + 1
+            await reaction.message.edit(embed=embed)
+            await reaction.remove(user)
+        else:
+            await ctx.send(f"Only {dic} can close that poll")
 
 
 @bot.command()
@@ -709,10 +709,7 @@ async def report(ctx):
     await ctx.send("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel
-    try:
-        message = await bot.wait_for('message', timeout=180, check=check)
-    except asyncio.TimeoutError:
-        return await ctx.send("Did not receive any response")
+    message = await bot.wait_for('message', timeout=180, check=check)
     embed = discord.Embed(title="Report", description=None, color=0xff0000)
     embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
     embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
@@ -1019,7 +1016,6 @@ async def clearteams(ctx):
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def setup(ctx):
-        try:
             await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
             def check(m):
                 return m.channel == ctx.channel and m.author == ctx.author
@@ -1054,8 +1050,6 @@ async def setup(ctx):
                 perms.connect = False
                 await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
             await ctx.send("Your server is setup! \nIMPORTANT: DO NOT change the name of the voicechannels or the roles that I created it may mess up certain commands. ")
-        except asyncio.TimeoutError:
-            await ctx.send('Did not receive any message')
 
 
 @bot.command()
@@ -1065,13 +1059,10 @@ async def closeteams(ctx):
         close = await ctx.send("React to the message I must close")
         def check(reaction, user):
             return user == ctx.author and reaction.message.content == "React to get into your teams"
-        try:
-            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
-            await close.delete()
-            await ctx.message.delete()
-            await reaction.message.edit(content="Teams are now closed.")
-        except asyncio.TimeoutError:
-            await ctx.send('Did not receive any reaction')
+        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+        await close.delete()
+        await ctx.message.delete()
+        await reaction.message.edit(content="Teams are now closed.")
 
 
 @bot.command()
@@ -1137,19 +1128,13 @@ async def rps(ctx, member):
         await dm.send("Please choose from `rock`, `paper`, or `scissors`")
         def check(m):
             return m.author == ctx.author and m.guild == None and m.content in moves
-        try:
-            move1 = await bot.wait_for('message', timeout = 60.0, check=check)
-        except asyncio.TimeoutError:
-            return await ctx.send("They didn't respond in time :(")
+        move1 = await bot.wait_for('message', timeout = 60.0, check=check)
         await ctx.send(f"{member.mention} DM me your move")
         dm = await member.create_dm()
         await dm.send("Please choose from `rock`, `paper`, or `scissors`")
         def check(m):
             return m.author == member and m.guild == None and m.content in moves
-        try:
-            move2 = await bot.wait_for('message', timeout = 60.0, check=check)
-        except asyncio.TimeoutError:
-            return await ctx.send("They didn't respond in time")
+        move2 = await bot.wait_for('message', timeout = 60.0, check=check)
     if move1.content == move2.content:
         embedVar = discord.Embed(title=f"{str(move1.author)} and {str(move2.author)} Tie! ", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0xfbff00)
     if move1.content == "rock" and move2.content == "scissors":
@@ -1680,21 +1665,18 @@ async def youtube(ctx, *channelarg):
         return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
-    try:
-        seemore = await bot.wait_for('message', timeout=30, check=check)
-        for item in data['items']:
-            if item != data['items'][0]:
-                try:
-                    embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
-                    embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
-                    embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
-                    embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
-                    embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
-                    await ctx.send(embed=embed)
-                except discord.HTTPException:
-                    pass
-    except asyncio.TimeoutError:
-        pass
+    seemore = await bot.wait_for('message', timeout=30, check=check)
+    for item in data['items']:
+        if item != data['items'][0]:
+            try:
+                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
+                embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
+                embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
+                embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
+                embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
+                await ctx.send(embed=embed)
+            except discord.HTTPException:
+                pass
 
 #COMING SOON
 #QUEUE FOR SPEAK

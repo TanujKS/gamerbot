@@ -165,6 +165,7 @@ async def on_message(message):
                     webhook = webhooks[0]
                 else:
                     webhook = await message.channel.create_webhook(name="ezbot")
+                print(f"Using webhook {webhook.name}")
                 if message.author.nick:
                     username = message.author.nick
                 else:

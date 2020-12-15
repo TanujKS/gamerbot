@@ -536,6 +536,30 @@ async def settings(ctx, *setting):
 
 
 @bot.command()
+@commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+@commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+async def speak(ctx, *message):
+    role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
+    if not role:
+        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
+    fullmessage = f"{ctx.author.name} says "
+    for messageVar in message:
+        fullmessage = f"{fullmessage} {messageVar}"
+    tts = gtts.gTTS(fullmessage, lang="en")
+    tts.save("text.mp3")
+    if ctx.guild.voice_client:
+        vc = ctx.guild.voice_client
+    elif ctx.author.voice:
+        vc = await ctx.author.voice.channel.connect()
+    else:
+        return await ctx.send("You are not in a voice channel.")
+    try:
+        vc.play(discord.FFmpegPCMAudio("text.mp3"))
+    except discord.ClientException:
+        await ctx.send("There is already audio currently playing")
+
+
+@bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)
 async def invite(ctx, *args):
@@ -1190,10 +1214,11 @@ async def changeprofile(ctx):
     except LoginError:
         return await user.channel.send("Invalid user or password")
     if account.is_fully_authenticated:
-        await user.channel.send(f"Authenticated, security challenges are not required. Let's head back to {str(ctx.channel)}")
+        await user.channel.send(f"Authenticated, security challenges are not required. Let's head back to {ctx.channel.mention}")
     else:
         await user.channel.send("Please fill out the security questions")
         answers = []
+        print(account.security_challenges)
         for question in account.security_challenges:
             await ctx.send(question)
             answer = await bot.wait_for('message', timeout = 60.0, check=check)
@@ -1671,29 +1696,8 @@ async def youtube(ctx, *channelarg):
     except asyncio.TimeoutError:
         pass
 
-
-@bot.command()
-@commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
-@commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
-async def speak(ctx, *message):
-    role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
-    if not role:
-        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
-    fullmessage = f"{ctx.author.name} says "
-    for messageVar in message:
-        fullmessage = f"{fullmessage} {messageVar}"
-    tts = gtts.gTTS(fullmessage, lang="en")
-    tts.save("text.mp3")
-    if ctx.guild.voice_client:
-        vc = ctx.guild.voice_client
-    elif ctx.author.voice:
-        vc = await ctx.author.voice.channel.connect()
-    else:
-        return await ctx.send("You are not in a voice channel.")
-    try:
-        vc.play(discord.FFmpegPCMAudio("text.mp3"))
-    except discord.ClientException:
-        await ctx.send("There is already audio currently playing")
+#COMING SOON
+#QUEUE FOR SPEAK
 
 
 bot.run(os.environ.get("TOKEN"))

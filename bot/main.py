@@ -161,14 +161,15 @@ async def on_message(message):
             messageList = message.content.lower().split()
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()
-                for webhook in webhooks:
-                    if webhook.user == bot.user:
-                        if message.author.nick:
-                            username = message.author.nick
-                        else:
-                            username = message.author.name
-                        await webhook.send(f"{ezmessages[random.randint(0, len(ezmessages))-1]}", username=username, avatar_url=message.author.avatar_url)
-                        return await message.delete()
+                #for webhook in webhooks:
+                webhook = webhooks[0]
+                if webhook.user == bot.user:
+                    if message.author.nick:
+                        username = message.author.nick
+                    else:
+                        username = message.author.name
+                    await webhook.send(f"{ezmessages[random.randint(0, len(ezmessages))-1]}", username=username, avatar_url=message.author.avatar_url)
+                    return await message.delete()
                 webhook = await message.channel.create_webhook(name="ezbot")
                 if message.author.nick:
                     username = message.author.nick

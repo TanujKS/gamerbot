@@ -1676,5 +1676,7 @@ async def youtube(ctx, *channelarg):
 #COMING SOON
 #QUEUE FOR SPEAK
 
-
+@bot.command()
+async def raiseerror(ctx):
+    raise TimeoutError
 bot.run(os.environ.get("TOKEN"))

@@ -151,6 +151,41 @@ async def on_guild_remove(guild):
 
 
 @bot.event
+async def on_message_edit(before, message):
+    if message.author.id != bot.user.id:
+        if not message.author.id in blackListed:
+            await bot.process_commands(message)
+        if message.guild:
+            if message.guild.name == "VanillaMC" and message.channel.id == 782708611603759164 and not message.author.bot and not message.author.guild_permissions.administrator and not message.content.startswith(",suggest"):
+                await message.delete()
+            messageList = message.content.lower().split()
+            if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
+                webhooks = await message.channel.webhooks()
+                if webhooks:
+                    webhook = get(webhooks, name="ezbot")
+                else:
+                    webhook = await message.channel.create_webhook(name="ezbot")
+                print(f"Using webhook {webhook.name}")
+                if message.author.nick:
+                    username = message.author.nick
+                else:
+                    username = message.author.name
+                await webhook.send(ezmessages[random.randint(0, len(ezmessages))-1], username=username, avatar_url=message.author.avatar_url)
+                return await message.delete()
+            if message.author.id in clowns and message.guild.id in clownServers:
+                await message.add_reaction("🤡")
+            elif message.author.id in tempClowns and message.guild.id in clownServers:
+                await message.add_reaction("🤡")
+                tempClowns.update({message.author.id: tempClowns[message.author.id]+1})
+                if tempClowns[message.author.id] == 5:
+                    tempClowns.pop(message.author.id)
+            if "arman" in message.content.lower() and message.guild.id == 698735288947834900:
+                await message.add_reaction("👑")
+            if ("prince" in message.content.lower() or "duck" in message.content.lower()) and message.guild.id == 698735288947834900:
+                await message.add_reaction("🦆")
+
+
+@bot.event
 async def on_message(message):
     if message.author.id != bot.user.id:
         if not message.author.id in blackListed:

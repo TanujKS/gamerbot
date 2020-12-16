@@ -224,7 +224,8 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.commands.CommandInvokeError)
+    if "TimeoutError" in str(error):
+        return await ctx.send("Timed out.")
     for e in raiseErrors:
         if isinstance(error, e):
             return await ctx.send(error)

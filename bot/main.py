@@ -590,12 +590,17 @@ async def speak(ctx, *message):
         vc = await ctx.author.voice.channel.connect()
     else:
         return await ctx.send("You are not in a voice channel.")
-    moveon = False
     for fullmessage in guildInfo[ctx.guild.id]['queue']:
+        global moveon
+        moveon = False
         while not moveon:
             tts = gtts.gTTS(fullmessage, lang="en")
             tts.save("text.mp3")
-            vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: moveon = True)
+            vc.play(discord.FFmpegPCMAudio("text.mp3"), after=moveonfunc())
+
+def moveonfunc():
+    global moveon
+    moveon = True
 
 @bot.command()
 async def queue(ctx):

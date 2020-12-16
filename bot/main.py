@@ -26,7 +26,7 @@ bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
 clowns = []
-raiseErrors = [commands.errors.CommandInvokeError, commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 clownServers = [698735288947834900]
 blackListed = []
@@ -224,6 +224,7 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
+    if isinstance(error, commands.commands.CommandInvokeError)
     for e in raiseErrors:
         if isinstance(error, e):
             return await ctx.send(error)
@@ -788,7 +789,7 @@ async def unlockevents(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
-async def move(ctx, member : discord.Member, *channel):
+async def move(ctx, member, *channel):
         joinedchannel = ""
         for arg in channel:
             joinedchannel = f"{joinedchannel}{arg} "
@@ -825,7 +826,7 @@ async def mute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
-            for member in ctx.author.voice.channel:
+            for member in ctx.author.voice.channel.members:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {member.voice_channel.name}")
         elif member == "server-all":
@@ -851,7 +852,7 @@ async def deafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
-            for member in ctx.author.voice.channel:
+            for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {member.voice.channel.name}")
         elif member == "server-all":
@@ -877,7 +878,7 @@ async def unmute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
-            for member in ctx.author.voice.channel:
+            for member in ctx.author.voice.channel.members:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {member.voice.channel.name}")
         elif member == "server-all":
@@ -903,7 +904,7 @@ async def undeafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
                 return await ctx.send("You are not in a voice channel")
-            for member in ctx.author.voice.channel:
+            for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {member.voice.channel.name}")
         if member == "server-all":
@@ -929,7 +930,7 @@ async def dc(ctx, member):
     if member == "channel-all":
         if not ctx.author.voice:
             return await ctx.send("You are not in a voice channel")
-        for member in ctx.author.voice.channel:
+        for member in ctx.author.voice.channel.members:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {member.voice.channel.name}")
     elif member == "server-all":

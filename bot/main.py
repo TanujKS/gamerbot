@@ -596,6 +596,7 @@ async def speak(ctx, *message):
         while not moveon:
             tts = gtts.gTTS(fullmessage, lang="en")
             tts.save("text.mp3")
+            guildInfo[ctx.guild.id]['queue'].remove(fullmessage)
             vc.play(discord.FFmpegPCMAudio("text.mp3"), after=moveonfunc())
 
 def moveonfunc():

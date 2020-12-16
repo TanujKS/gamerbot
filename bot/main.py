@@ -232,7 +232,6 @@ async def on_command_error(ctx, error):
     for e in passErrors:
         if isinstance(error, e):
             return
-    await ctx.send(type(error))
     await ctx.send("Error. This has been reported and will be reviewed shortly.")
     embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
     embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)

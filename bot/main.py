@@ -583,19 +583,20 @@ async def speak(ctx, *message):
     fullmessage = f"{ctx.author.name} says "
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"
-    tts = gtts.gTTS(fullmessage, lang="en")
-    tts.save("text.mp3")
+    guildInfo[ctx.guild.id]['queue'].append(fullmessage)
+    print(f"Queued {guildInfo[ctx.guild.id]['queue']}")
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
         vc = await ctx.author.voice.channel.connect()
     else:
         return await ctx.send("You are not in a voice channel.")
-    try:
+    for fullmessage in guildInfo[ctx.guild.id]['queue']:
+        tts = gtts.gTTS(fullmessage, lang="en")
+        tts.save("text.mp3")
         vc.play(discord.FFmpegPCMAudio("text.mp3"))
-    except discord.ClientException:
-        await ctx.send("There is already audio currently playing")
-
+        guildInfo[ctx.guild.id]['queue'].remove(fullmessage)
+        print(f"Played {guildInfo[ctx.guild.id]['queue']}")
 
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
@@ -1715,10 +1716,5 @@ async def youtube(ctx, *channelarg):
             except discord.HTTPException:
                 pass
 
-#COMING SOON
-#QUEUE FOR SPEAK
 
-@bot.command()
-async def raiseerror(ctx):
-    raise asyncio.TimeoutError
 bot.run(os.environ.get("TOKEN"))

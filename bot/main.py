@@ -584,27 +584,20 @@ async def speak(ctx, *message):
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"
     guildInfo[ctx.guild.id]['queue'].append(fullmessage)
-    print(f"Queued {guildInfo[ctx.guild.id]['queue']}")
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
         vc = await ctx.author.voice.channel.connect()
     else:
         return await ctx.send("You are not in a voice channel.")
+    moveon = False
     for fullmessage in guildInfo[ctx.guild.id]['queue']:
-        tts = gtts.gTTS(fullmessage, lang="en")
-        tts.save("text.mp3")
-        vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: print('done', e))
-        guildInfo[ctx.guild.id]['queue'].remove(fullmessage)
-        print(f"Played {guildInfo[ctx.guild.id]['queue']}")
+        while not moveon:
+            tts = gtts.gTTS(fullmessage, lang="en")
+            tts.save("text.mp3")
+            vc.play(discord.FFmpegPCMAudio("text.mp3", after=lambda e: moveon=True))
 
 
-@bot.command()
-@commands.has_guild_permissions(administrator=True)
-async def clearqueue(ctx):
-    guildInfo[ctx.guild.id]['queue'].clear()
-    await ctx.send("Cleared queue")
-    print(guildInfo[ctx.guild.id]['queue'])
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

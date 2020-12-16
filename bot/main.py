@@ -595,7 +595,7 @@ async def speak(ctx, *message):
         while not moveon:
             tts = gtts.gTTS(fullmessage, lang="en")
             tts.save("text.mp3")
-            vc.play(discord.FFmpegPCMAudio("text.mp3", after=lambda e: moveon=True))
+            vc.play(discord.FFmpegPCMAudio("text.mp3", after=lambda moveon : moveon=True)
 
 
 @bot.command()

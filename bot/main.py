@@ -594,11 +594,17 @@ async def speak(ctx, *message):
     for fullmessage in guildInfo[ctx.guild.id]['queue']:
         tts = gtts.gTTS(fullmessage, lang="en")
         tts.save("text.mp3")
-        vc.play(discord.FFmpegPCMAudio("text.mp3"), after=print("done"))
+        vc.play(discord.FFmpegPCMAudio("text.mp3"), after="done")
         guildInfo[ctx.guild.id]['queue'].remove(fullmessage)
         print(f"Played {guildInfo[ctx.guild.id]['queue']}")
 
 
+@bot.command()
+@commands.has_guild_permissions(administrator=True)
+async def clearqueue(ctx):
+    guildInfo[ctx.guild.id]['queue'].clear()
+    await ctx.send("Cleared queue")
+    print(guildInfo[ctx.guild.id]['queue'])
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

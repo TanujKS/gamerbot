@@ -597,7 +597,13 @@ async def speak(ctx, *message):
             tts.save("text.mp3")
             vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: moveon = True)
 
+@bot.command()
+async def queue(ctx):
+    await ctx.send(guildInfo[ctx.guild.id]['queue'])
 
+@bot.command()
+async def clearqueue(ctx):
+    guildInfo[ctx.guild.id]['queue'].clear()
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

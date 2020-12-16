@@ -114,7 +114,6 @@ def initguild(guild):
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    guildInfo[guild.id]['queue'] = []
 
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
@@ -185,6 +184,10 @@ async def on_message_edit(before, message):
                 await message.add_reaction("👑")
             if ("prince" in message.content.lower() or "duck" in message.content.lower()) and message.guild.id == 698735288947834900:
                 await message.add_reaction("🦆")
+            if "rylina" in message.content.lower() or "rylee" in message.content.lower() and message.guild.id == 698735288947834900:
+                await message.add_reaction("😎")
+            if "coolkid" in message.content.lower() and message.guild.id == 698735288947834900:
+                await message.add_reaction("🆒")
 
 
 @bot.event
@@ -600,13 +603,6 @@ async def speak(ctx, *message):
             pass
 
 
-@bot.command()
-async def queue(ctx):
-    await ctx.send(guildInfo[ctx.guild.id]['queue'])
-
-@bot.command()
-async def clearqueue(ctx):
-    guildInfo[ctx.guild.id]['queue'].clear()
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

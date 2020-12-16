@@ -594,7 +594,7 @@ async def speak(ctx, *message):
     for fullmessage in guildInfo[ctx.guild.id]['queue']:
         tts = gtts.gTTS(fullmessage, lang="en")
         tts.save("text.mp3")
-        vc.play(discord.FFmpegPCMAudio("text.mp3"), after="done")
+        vc.play(discord.FFmpegPCMAudio("text.mp3"), after=lambda e: print('done', e))
         guildInfo[ctx.guild.id]['queue'].remove(fullmessage)
         print(f"Played {guildInfo[ctx.guild.id]['queue']}")
 

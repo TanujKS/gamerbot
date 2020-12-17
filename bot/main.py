@@ -637,7 +637,7 @@ async def avatar(ctx, member : discord.Member, *format):
     try:
         await ctx.send(member.avatar_url_as(format=format, size=1024))
     except discord.InvalidArgument:
-        raise discord.InvalidArgument("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
+        return await ctx.send("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 
 
 @bot.command()

@@ -806,7 +806,7 @@ async def move(ctx, member, *channel):
             for member in ctx.author.voice.channel.members:
                 await member.move_to(channel)
             await ctx.send(f"Moved all in {ctx.author.voice.channel.name} to {channel.name}")
-        elif member == "server-all":
+        elif member == "all":
             for voice_channel in ctx.guild.voice_channels:
                 for member in voice_channel.members:
                     await member.move_to(channel)
@@ -827,13 +827,14 @@ async def move(ctx, member, *channel):
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
 async def mute(ctx, member):
+        print(member)
         if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {ctx.author.voice.channel.name}")
-        elif member == "server-all":
+        elif member == "all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=True)
@@ -859,7 +860,7 @@ async def deafen(ctx, member):
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {ctx.author.voice.channel.name}")
-        elif member == "server-all":
+        elif member == "all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=True)
@@ -885,7 +886,7 @@ async def unmute(ctx, member):
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {ctx.author.voice.channel.name}")
-        elif member == "server-all":
+        elif member == "all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(mute=False)
@@ -911,7 +912,7 @@ async def undeafen(ctx, member):
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {ctx.author.voice.channel.name}")
-        if member == "server-all":
+        if member == "all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     await member.edit(deafen=False)
@@ -937,7 +938,7 @@ async def dc(ctx, member):
         for member in ctx.author.voice.channel.members:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {ctx.author.voice.channel.name}")
-    elif member == "server-all":
+    elif member == "all":
         for voicechannel in ctx.guild.voice_channels:
             for member in voicechannel.members:
                 await member.move_to(None)

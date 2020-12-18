@@ -827,7 +827,6 @@ async def move(ctx, member, *channel):
 @commands.bot_has_guild_permissions(mute_members=True)
 @commands.has_guild_permissions(mute_members=True)
 async def mute(ctx, member):
-        print(member)
         if member == "channel-all":
             if not ctx.author.voice.channel:
                 return await ctx.send("You are not in a voice channel")

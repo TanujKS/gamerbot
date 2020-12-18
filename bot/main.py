@@ -480,12 +480,12 @@ async def help(ctx, *category):
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
-        embed.add_field(name="?mute (member or 'channel-all' or 'server-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'server-all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?unmute (member or 'channel-all' or 'server-all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?deafen (member or 'channel-all' or 'server-all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?undeafen (member or 'channel-all' or 'server-all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?dc (member or 'channel-all' or 'server-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?move (member or 'channel-all' or 'server-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name="?mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
+        embed.add_field(name="?unmute (member or 'all' or 'channel-all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
+        embed.add_field(name="?deafen (member or 'all' or 'channel-all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name="?undeafen (member or 'all' or 'channel-all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name="?dc (member or 'all' or 'channel-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name="?move (member or 'all' or 'channel-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
     elif category[0] == "teams":

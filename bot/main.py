@@ -763,34 +763,6 @@ async def report(ctx):
 
 #------------------------------------------------------------------------------VOICE CHANNEL MANAGEMENT--------------------------------------------------------------------------------------
 @bot.command()
-@commands.bot_has_guild_permissions(manage_channels=True)
-@commands.has_permissions(manage_channels=True)
-async def lockevents(ctx):
-        for team in teams:
-            channel = get(ctx.guild.voice_channels, name=team)
-            if not channel:
-                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
-            perms = channel.overwrites_for(ctx.guild.default_role)
-            perms.connect = False
-            await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-            await channel.edit(user_limit=guildInfo[ctx.guild.id]['teamLimit'])
-        await ctx.send("Locked all voice channels")
-
-
-@bot.command()
-@commands.bot_has_guild_permissions(manage_channels=True)
-@commands.has_guild_permissions(manage_channels=True)
-async def unlockevents(ctx):
-        for team in teams:
-            voicechannel = get(ctx.guild.voice_channels, name=team)
-            if not voicechannel:
-                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
-            await voicechannel.set_permissions(ctx.guild.default_role, connect=True)
-            await voicechannel.edit(user_limit=None)
-        await ctx.send("Unlocked all voice channels")
-
-
-@bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def move(ctx, member, *channel):
@@ -954,7 +926,6 @@ async def dc(ctx, member):
 
 
 @bot.command()
-@commands.guild_only()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def moveteams(ctx):
@@ -969,7 +940,67 @@ async def moveteams(ctx):
         await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
 
 
+@bot.command()
+@commands.bot_has_guild_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
+async def lock(ctx, *channel):
+    joinedchannel = ""
+    for arg in channel:
+        joinedchannel = f"{joinedchannel}{arg} "
+    channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
+    if not channel:
+        return await ctx.send("That voice channel doest not exist.")
+    perms = channel.overwrites_for(ctx.guild.default_role)
+    perms.connect = False
+    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+    await ctx.send(f"Locked {channel.name}")
+
+
+@bot.command()
+@commands.bot_has_guild_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
+async def unlock(ctx, *channel):
+    joinedchannel = ""
+    for arg in channel:
+        joinedchannel = f"{joinedchannel}{arg} "
+    channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
+    if not channel:
+        return await ctx.send("That voice channel doest not exist.")
+    perms = channel.overwrites_for(ctx.guild.default_role)
+    perms.connect = True
+    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+    await ctx.send(f"Unlocked {channel.name}")
+
+
 #------------------------------------------------------------------------------TEAM/EVENT MANAGEMENT--------------------------------------------------------------------------------------
+@bot.command()
+@commands.bot_has_guild_permissions(manage_channels=True)
+@commands.has_permissions(manage_channels=True)
+async def lockevents(ctx):
+        for team in teams:
+            channel = get(ctx.guild.voice_channels, name=team)
+            if not channel:
+                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+            perms = channel.overwrites_for(ctx.guild.default_role)
+            perms.connect = False
+            await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+            await channel.edit(user_limit=guildInfo[ctx.guild.id]['teamLimit'])
+        await ctx.send("Locked all voice channels")
+
+
+@bot.command()
+@commands.bot_has_guild_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
+async def unlockevents(ctx):
+        for team in teams:
+            voicechannel = get(ctx.guild.voice_channels, name=team)
+            if not voicechannel:
+                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+            await voicechannel.set_permissions(ctx.guild.default_role, connect=True)
+            await voicechannel.edit(user_limit=None)
+        await ctx.send("Unlocked all voice channels")
+
+
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)

@@ -469,7 +469,7 @@ async def promote(ctx, member : discord.Member):
 @commands.check(is_vanilla)
 @commands.has_permissions(administrator=True)
 async def lockvanilla(ctx):
-    await lock(ctx, "VanillaMC Voice")
+    await lock(ctx, "VanillaMC Voice Lounge")
     for i in range(1, 6):
         channel = f"VanillaMC Voice {i}"
         await lock(ctx, channel)
@@ -481,7 +481,7 @@ async def lockvanilla(ctx):
 async def unlockvanilla(ctx):
     await unlock(ctx, "VanillaMC Voice")
     for i in range(1, 6):
-        await unlock(ctx, f"VanillaMC Voice {i}")
+        await unlock(ctx, f"VanillaMC Voice #{i}")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):

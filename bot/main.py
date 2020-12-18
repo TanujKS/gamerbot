@@ -121,9 +121,7 @@ def initguild(guild):
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
 @bot.event
 async def on_ready():
-    print(f"Bot connected with {bot.user}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
-    await bot.change_presence(activity=game)
+    print(f"Bot connected with {bot.user} ID:{bot.user.id}")
     global testingserver
     global reports
     testingserver = bot.get_guild(763824152493686795)
@@ -162,9 +160,8 @@ async def on_message_edit(before, message):
             messageList = message.content.lower().split()
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()
-                if webhooks:
-                    webhook = get(webhooks, name="ezbot")
-                else:
+                webhook = get(webhooks, name="ezbot")
+                if not webhook:
                     webhook = await message.channel.create_webhook(name="ezbot")
                 print(f"Using webhook {webhook.name}")
                 if message.author.nick:
@@ -1709,7 +1706,10 @@ async def youtube(ctx, *channelarg):
         return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
-    seemore = await bot.wait_for('message', timeout=30, check=check)
+    try:
+        seemore = await bot.wait_for('message', timeout=30, check=check)
+    except asyncio.TimeoutError:
+        pass
     for item in data['items']:
         if item != data['items'][0]:
             try:

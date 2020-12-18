@@ -586,7 +586,6 @@ async def speak(ctx, *message):
     fullmessage = f"{ctx.author.name} says "
     for messageVar in message:
         fullmessage = f"{fullmessage} {messageVar}"
-    guildInfo[ctx.guild.id]['queue'].append(fullmessage)
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:

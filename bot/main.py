@@ -449,8 +449,10 @@ async def promote(ctx, member : discord.Member):
         for channel in ctx.guild.text_channels:
             if "ratings" in str(channel):
                 messages = await channel.history(limit=10).flatten()
+                print(member.id)
                 for message in messages:
-                    if member in message.content:
+                    print(message.content)
+                    if member.id in message.content:
                         if messages.index(message) < len(messages) - 2:
                             message1above = messages[messages.index(message)+1]
                             content = message.content[:4] + message1above.content[4:]

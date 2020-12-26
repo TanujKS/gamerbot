@@ -193,7 +193,7 @@ async def on_message_edit(before, message):
 
 @bot.event
 async def on_message(message):
-    if message.author.id != bot.user.id:
+    if not message.author.bot:
         if not message.author.id in blackListed:
             await bot.process_commands(message)
         if message.guild:
@@ -203,7 +203,6 @@ async def on_message(message):
                 webhook = get(webhooks, name="ezbot")
                 if not webhook:
                     webhook = await message.channel.create_webhook(name="ezbot")
-                print(f"Using webhook {webhook.name}")
                 if message.author.nick:
                     username = message.author.nick
                 else:

@@ -450,13 +450,14 @@ async def promote(ctx, member : discord.Member):
             if "ratings" in str(channel):
                 messages = await channel.history(limit=10).flatten()
                 for message in messages:
-                    if member in message.content or member.replace("!", "") in message.content:
+                    if member in message.content:
                         if messages.index(message) < len(messages) - 2:
                             message1above = messages[messages.index(message)+1]
                             content = message.content[:4] + message1above.content[4:]
                             content1 = message1above.content[:4] + message.content[4:]
                             await message.edit(content=content)
                             await message1above.edit(content=content1)
+                            await ctx.send(f"Promoted {str(member)}")
                             return
                         else:
                             return

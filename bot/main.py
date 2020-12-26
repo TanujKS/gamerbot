@@ -42,6 +42,36 @@ YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
 
+def skyblockCheck(m):
+    return m.author == ctx.author and m.channel == ctx.channel and m.content in profiles
+
+def ytCheck(m):
+    return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
+
+def changeProfileCheck(m):
+    return m.channel == dm and m.author == ctx.author
+
+def rpsCheck2(m):
+    return m.author == member and m.guild == None and m.content in moves
+
+def rpsCheck1(m):
+    return m.author == ctx.author and m.guild == None and m.content in moves
+
+def rpsBotCheck(m):
+    return m.author == ctx.author and m.channel == ctx.channel and m.content in moves
+
+def wipeCheck(m):
+    return m.channel == ctx.channel and m.author == ctx.author and (m.content == "n" or m.content == "y")
+
+def check(m):
+    return m.channel == ctx.channel and m.author == ctx.author
+
+def closeTeamsCheck(reaction, user):
+    return user == ctx.author and reaction.message.content == "React to get into your teams"
+
+def closePollCheck(reaction, user):
+    return user == ctx.author and str(reaction) == "❌"
+
 async def is_guild_owner(ctx):
     try:
         return ctx.guild.owner.id == ctx.author.id
@@ -529,9 +559,7 @@ async def poll(ctx, poll, *options):
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def closepoll(ctx):
         close = await ctx.send("React to the poll I must close with an ❌")
-        def check(reaction, user):
-            return user == ctx.author and str(reaction) == "❌"
-        reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=closePollCheck)
         dic = reaction.message.embeds[0].to_dict()
         footer = dic['footer']['text']
         footer = footer[8:]
@@ -613,8 +641,6 @@ async def quote(ctx, member : discord.Member, *messagevar):
 @commands.cooldown(1, 600, commands.BucketType.guild)
 async def report(ctx):
     await ctx.send("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel
     message = await bot.wait_for('message', timeout=180, check=check)
     embed = discord.Embed(title="Report", description=None, color=0xff0000)
     embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
@@ -954,8 +980,6 @@ async def clearteams(ctx):
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def setup(ctx):
             await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
-            def check(m):
-                return m.channel == ctx.channel and m.author == ctx.author
             msg = await bot.wait_for('message', check=check)
             await ctx.send(f"Setting up your server for {msg.content} Events")
             category = await ctx.guild.create_category(msg.content + " Events")
@@ -994,9 +1018,7 @@ async def setup(ctx):
 @commands.has_guild_permissions(manage_messages=True)
 async def closeteams(ctx):
         close = await ctx.send("React to the message I must close")
-        def check(reaction, user):
-            return user == ctx.author and reaction.message.content == "React to get into your teams"
-        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=closeTeamsCheck)
         await close.delete()
         await ctx.message.delete()
         await reaction.message.edit(content="Teams are now closed.")
@@ -1006,10 +1028,8 @@ async def closeteams(ctx):
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def wipe(ctx):
-        def check(m):
-            return m.channel == ctx.channel and m.author == ctx.author and (m.content == "n" or m.content == "y")
         await ctx.send("Are you sure you want to wipe the server of all event channels? This will delete ALL channels and ALL roles I have created (y/n)")
-        response = await bot.wait_for('message', timeout=60, check=check)
+        response = await bot.wait_for('message', timeout=60, check=wipeCheck)
         if response.content == "y":
             for category in ctx.guild.categories:
                 if "Events" in str(category):
@@ -1052,9 +1072,7 @@ async def setteam(ctx, team : discord.Role):
 async def rps(ctx, member):
     if member == "bot":
         await ctx.send("Please choose from `rock`, `paper`, or `scissors`")
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel and m.content in moves
-        move1 = await bot.wait_for('message', timeout = 60.0, check=check)
+        move1 = await bot.wait_for('message', timeout = 60.0, check=rpsBotCheck)
         botmove = moves[random.randint(0,2)]
         move2 = await ctx.send(botmove)
     else:
@@ -1063,15 +1081,11 @@ async def rps(ctx, member):
         await ctx.send(f"{ctx.author.mention} DM me your move")
         dm = await ctx.author.create_dm()
         await dm.send("Please choose from `rock`, `paper`, or `scissors`")
-        def check(m):
-            return m.author == ctx.author and m.guild == None and m.content in moves
-        move1 = await bot.wait_for('message', timeout = 60.0, check=check)
+        move1 = await bot.wait_for('message', timeout = 60.0, check=rpsCheck1)
         await ctx.send(f"{member.mention} DM me your move")
         dm = await member.create_dm()
         await dm.send("Please choose from `rock`, `paper`, or `scissors`")
-        def check(m):
-            return m.author == member and m.guild == None and m.content in moves
-        move2 = await bot.wait_for('message', timeout = 60.0, check=check)
+        move2 = await bot.wait_for('message', timeout = 60.0, check=rpsCheck2)
     if move1.content == move2.content:
         embedVar = discord.Embed(title=f"{str(move1.author)} and {str(move2.author)} Tie! ", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0xfbff00)
     if move1.content == "rock" and move2.content == "scissors":
@@ -1122,15 +1136,14 @@ async def skin(ctx, player):
 
 
 @bot.command()
+@commands.is_owner()
 async def changeprofile(ctx):
-    await ctx.send("To sign in and edit your Minecraft account, please DM your login credentials \n**THIS DOES NOT GET SAVED INTO ANY OF THE BOTS FILES**")
+    await ctx.send("To sign in and edit your Minecraft account, please DM your login credentials")
     dm = await ctx.author.create_dm()
     await dm.send("Please type your email for your Mojang account")
-    def check(m):
-        return m.channel == dm and m.author == ctx.author
-    user = await bot.wait_for('message', timeout = 60.0, check=check)
+    user = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
     await user.channel.send("Ok thanks! Now can I get your password?")
-    password = await bot.wait_for('message', timeout = 60.0, check=check)
+    password = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
     try:
         account = MojangUser(user.content, password.content)
     except LoginError:
@@ -1143,15 +1156,13 @@ async def changeprofile(ctx):
         print(account.security_challenges)
         for question in account.security_challenges:
             await ctx.send(question)
-            answer = await bot.wait_for('message', timeout = 60.0, check=check)
+            answer = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
             answers.append(answers.content)
         try:
             account.answer_security_challenges(answers)
         except SecurityAnswerError:
             return await user.channel.send("A security answer was answered incorrectly.")
     await ctx.send(f"Ok {ctx.author.mention} we've signed into your account")
-    def check(m):
-        return m.channel == ctx.channel and m.author == ctx.author
     exploring = True
     while exploring:
         await ctx.send("What would you like to change? Choose from: `change name`, `change skin`, or `cancel`")
@@ -1489,10 +1500,9 @@ async def duels(ctx, player, *mode):
     await ctx.send(embed=embed)
 
 
-@bot.command(aliases=["sb"])
+#@bot.command(aliases=["sb"])
+#@commands.is_owner()
 async def skyblock(ctx, player):
-    if ctx.author.id != botmaster:
-        return await ctx.send("This command is not ready yet. Sorry :(")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send("That player does not exist")
@@ -1500,11 +1510,9 @@ async def skyblock(ctx, player):
     message = ""
     for profile in profiles:
         message = f"{message}\n{profiles[profile]['cute_name']}"
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel and m.content in profiles
     await ctx.send("Which profile would you like stats for?")
     await ctx.send(message)
-    response = await bot.wait_for('message', timeout=120, check=check)
+    response = await bot.wait_for('message', timeout=120, check=skyblockCheck)
     await ctx.send(f"Stats for {response.content}")
     #sbData = requests.get("https://api.slothpixel.me/api/skyblock/profiles/princeoftoxicity").json()
     #sbData = sbData['members'][data['player']['uuid']]
@@ -1602,10 +1610,8 @@ async def youtube(ctx, *channelarg):
         await ctx.send(embed=embed)
     except discord.HTTPException:
         return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:
-        seemore = await bot.wait_for('message', timeout=30, check=check)
+        seemore = await bot.wait_for('message', timeout=30, check=ytCheck)
     except asyncio.TimeoutError:
         pass
     for item in data['items']:

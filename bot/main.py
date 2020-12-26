@@ -148,7 +148,6 @@ async def on_ready():
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
-    get(bot.commands, name="skyblock").update(enabled=False)
     print("Guilds:")
     for guild in bot.guilds:
         initguild(guild)

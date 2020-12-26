@@ -25,12 +25,9 @@ from mojang.exceptions import LoginError
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
-clowns = []
 raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
-clownServers = [698735288947834900]
 blackListed = []
-tempClowns = {}
 bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two", "double": "eight_two", "3s": "four_three", "3v3v3v3": "four_three", "triples": "four_three", "4s": "four_four", "4v4v4v4": "four_four", "quadruples":"four_four", "4v4": "two_four",}
 modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
@@ -44,11 +41,6 @@ TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
-async def is_vanilla(ctx):
-    try:
-        return ctx.guild.id == 698735288947834900
-    except AttributeError:
-        pass
 
 async def is_guild_owner(ctx):
     try:
@@ -177,14 +169,6 @@ async def on_message_edit(before, message):
                 tempClowns.update({message.author.id: tempClowns[message.author.id]+1})
                 if tempClowns[message.author.id] == 5:
                     tempClowns.pop(message.author.id)
-            if "arman" in message.content.lower() and message.guild.id == 698735288947834900:
-                await message.add_reaction("👑")
-            if ("prince" in message.content.lower() or "duck" in message.content.lower()) and message.guild.id == 698735288947834900:
-                await message.add_reaction("🦆")
-            if "rylina" in message.content.lower() or "rylee" in message.content.lower() and message.guild.id == 698735288947834900:
-                await message.add_reaction("😎")
-            if "coolkid" in message.content.lower() and message.guild.id == 698735288947834900:
-                await message.add_reaction("🆒")
 
 
 @bot.event
@@ -216,10 +200,6 @@ async def on_message(message):
                 tempClowns.update({message.author.id: tempClowns[message.author.id]+1})
                 if tempClowns[message.author.id] == 5:
                     tempClowns.pop(message.author.id)
-            if "arman" in message.content.lower() and message.guild.id == 698735288947834900:
-                await message.add_reaction("👑")
-            if ("prince" in message.content.lower() or "duck" in message.content.lower()) and message.guild.id == 698735288947834900:
-                await message.add_reaction("🦆")
 
 
 @bot.event
@@ -370,121 +350,6 @@ async def guilds(ctx):
         await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
 
 
-#------------------------------------------------------------------------------VANILLAMC ONLY--------------------------------------------------------------------------------------
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_role("Super Donator")
-@commands.bot_has_guild_permissions(add_reactions=True)
-@commands.cooldown(1, 900, commands.BucketType.user)
-async def clown(ctx, member : discord.Member):
-    if member.id in tempClowns:
-        return await ctx.send(f"{member.name} is already a clown")
-    tempClowns[member.id] = 0
-    await ctx.send(f"{member.mention} is now a clown for the next 5 messages")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_role("Owner")
-@commands.bot_has_guild_permissions(add_reactions=True)
-async def permclown(ctx, member : discord.Member):
-    if member.id == 566904870951714826:
-        await ctx.send("You tried to clown senpai???? UNO REVERSE YOU'RE NOW THE CLOWN")
-        member = ctx.message.author
-    global clowns
-    if member.id in clowns:
-        return await ctx.send(f"{member.name} is already a clown")
-    clowns.append(member.id)
-    await ctx.send(f"{member.mention} is now a clown")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_role("Owner")
-@commands.bot_has_guild_permissions(add_reactions=True)
-async def unclown(ctx, member : discord.Member):
-    if member == ctx.message.author:
-        return await ctx.send('lol u cant unclown urself get good')
-    global clowns
-    if not member.id in clowns:
-        return await ctx.send(f"{member.name} is not a clown")
-    clowns.remove(member.id)
-    await ctx.send(f"{member.mention} is no longer a clown")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.is_owner()
-async def clownlist(ctx):
-    message = ""
-    for x in clowns:
-        message = f"{message}\n{get(ctx.guild.members, id=x)}"
-    await ctx.send(f"List of permanent clowns: {message}")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_permissions(manage_roles=True)
-async def duel(ctx):
-    role = get(ctx.guild.roles, name='Hypixel Dueler')
-    for member in ctx.message.mentions:
-        await member.add_roles(role)
-        await ctx.send(f"{str(member)} is now a Dueler")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_permissions(manage_roles=True)
-async def clearduels(ctx):
-    role = get(ctx.guild.roles, name="Hypixel Dueler")
-    for member in role.members:
-        await member.remove_roles(role)
-    await ctx.send("Removed all duelers")
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_permissions(administrator=True)
-async def promote(ctx, member : discord.Member):
-        for channel in ctx.guild.text_channels:
-            if "ratings" in str(channel):
-                messages = await channel.history(limit=10).flatten()
-                print(member.id)
-                for message in messages:
-                    print(message.content)
-                    if member.id in message.content:
-                        if messages.index(message) < len(messages) - 2:
-                            message1above = messages[messages.index(message)+1]
-                            content = message.content[:4] + message1above.content[4:]
-                            content1 = message1above.content[:4] + message.content[4:]
-                            await message.edit(content=content)
-                            await message1above.edit(content=content1)
-                            await ctx.send(f"Promoted {str(member)}")
-                            return
-                        else:
-                            return
-                message = messages[0]
-                content = message.content[:3] + ctx.message.mentions[0].mention
-                return await message.edit(content=content)
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_permissions(administrator=True)
-async def lockvanilla(ctx):
-    await lock(ctx, "VanillaMC Voice Lounge")
-    for i in range(1, 6):
-        channel = f"VanillaMC Voice {i}"
-        await lock(ctx, channel)
-
-
-@bot.command()
-@commands.check(is_vanilla)
-@commands.has_permissions(administrator=True)
-async def unlockvanilla(ctx):
-    await unlock(ctx, "VanillaMC Voice")
-    for i in range(1, 6):
-        await unlock(ctx, f"VanillaMC Voice #{i}")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):

@@ -200,9 +200,8 @@ async def on_message(message):
             messageList = message.content.lower().split()
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()
-                if webhooks:
-                    webhook = get(webhooks, name="ezbot")
-                else:
+                webhook = get(webhooks, name="ezbot")
+                if not webhook:
                     webhook = await message.channel.create_webhook(name="ezbot")
                 print(f"Using webhook {webhook.name}")
                 if message.author.nick:

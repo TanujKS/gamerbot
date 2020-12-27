@@ -42,42 +42,6 @@ YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
 
-def skyblockCheck(m):
-    return m.author == ctx.author and m.channel == ctx.channel and m.content in profiles
-
-def ytCheck(m):
-    return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
-
-def changeProfileCheck(m):
-    return m.channel == dm and m.author == ctx.author
-
-def rpsCheck2(m):
-    return m.author == member and m.guild == None and m.content in moves
-
-def rpsCheck1(m):
-    return m.author == ctx.author and m.guild == None and m.content in moves
-
-def rpsBotCheck(m):
-    return m.author == ctx.author and m.channel == ctx.channel and m.content in moves
-
-def wipeCheck(m):
-    return m.channel == ctx.channel and m.author == ctx.author and (m.content == "n" or m.content == "y")
-
-def check(m):
-    return m.channel == ctx.channel and m.author == ctx.author
-
-def closeTeamsCheck(reaction, user):
-    return user == ctx.author and reaction.message.content == "React to get into your teams"
-
-def closePollCheck(reaction, user):
-    return user == ctx.author and str(reaction) == "❌"
-
-async def is_guild_owner(ctx):
-    try:
-        return ctx.guild.owner.id == ctx.author.id
-    except AttributeError:
-        pass
-
 def convertBooltoStr(bool):
     if bool:
         return "On"
@@ -136,6 +100,7 @@ def initguild(guild):
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
+    guildInfo[guild.id]['eventLogs'] = False
 
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
@@ -555,6 +520,8 @@ async def poll(ctx, poll, *options):
 @bot.command()
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def closepoll(ctx):
+        def closePollCheck(reaction, user):
+            return user == ctx.author and str(reaction) == "❌"
         close = await ctx.send("React to the poll I must close with an ❌")
         reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=closePollCheck)
         dic = reaction.message.embeds[0].to_dict()
@@ -637,6 +604,8 @@ async def quote(ctx, member : discord.Member, *messagevar):
 @bot.command()
 @commands.cooldown(1, 600, commands.BucketType.guild)
 async def report(ctx):
+    def check(m):
+        return m.channel == ctx.channel and m.author == ctx.author
     await ctx.send("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
     message = await bot.wait_for('message', timeout=180, check=check)
     embed = discord.Embed(title="Report", description=None, color=0xff0000)
@@ -976,44 +945,48 @@ async def clearteams(ctx):
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def setup(ctx):
-            await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
-            msg = await bot.wait_for('message', check=check)
-            await ctx.send(f"Setting up your server for {msg.content} Events")
-            category = await ctx.guild.create_category(msg.content + " Events")
-            announcement = await ctx.guild.create_text_channel(f"{msg.content}-announcement", overwrites=None, category=category)
-            rules = await ctx.guild.create_text_channel(f"{msg.content}-rules", overwrites=None, category=category)
-            logs = await ctx.guild.create_text_channel(f"{msg.content}-bot-logs", overwrites=None, category=category)
-            await announcement.set_permissions(ctx.guild.default_role, send_messages=False)
-            await rules.set_permissions(ctx.guild.default_role, send_messages=False)
-            await logs.set_permissions(ctx.guild.default_role, send_messages=False)
-            lounge = await ctx.guild.create_text_channel(f"{msg.content}-lounge", overwrites=None, category=category)
-            banned = await ctx.guild.create_role(name="Banned from event")
-            perms = lounge.overwrites_for(banned)
-            perms.send_messages = False
-            await lounge.set_permissions(banned, overwrite=perms)
-            channel1 = await ctx.guild.create_voice_channel(f"{msg.content} Events", overwrites=None, category=category)
-            perms = channel1.overwrites_for(banned)
-            perms.connect = False
-            await channel1.set_permissions(banned, overwrite=perms)
-            perms1 = channel1.overwrites_for(ctx.guild.default_role)
-            perms1.connect = True
-            await channel1.set_permissions(ctx.guild.default_role, overwrite=perms1)
-            for team in teams:
-                role = await ctx.guild.create_role(name=team)
-                channel = await ctx.guild.create_voice_channel(team, overwrites=None, category=category, user_limit=2)
-                perms = channel.overwrites_for(role)
-                perms.connect = True
-                await channel.set_permissions(role, overwrite=perms)
-                perms = channel.overwrites_for(ctx.guild.default_role)
-                perms.connect = False
-                await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-            await ctx.send("Your server is setup! \nIMPORTANT: DO NOT change the name of the voicechannels or the roles that I created it may mess up certain commands. ")
+    def check(m):
+        return m.channel == ctx.channel and m.author == ctx.author
+    await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
+    msg = await bot.wait_for('message', check=check)
+    await ctx.send(f"Setting up your server for {msg.content} Events")
+    category = await ctx.guild.create_category(msg.content + " Events")
+    announcement = await ctx.guild.create_text_channel(f"{msg.content}-announcement", overwrites=None, category=category)
+    rules = await ctx.guild.create_text_channel(f"{msg.content}-rules", overwrites=None, category=category)
+    logs = await ctx.guild.create_text_channel(f"{msg.content}-event-logs", overwrites=None, category=category)
+    await announcement.set_permissions(ctx.guild.default_role, send_messages=False)
+    await rules.set_permissions(ctx.guild.default_role, send_messages=False)
+    await logs.set_permissions(ctx.guild.default_role, send_messages=False)
+    lounge = await ctx.guild.create_text_channel(f"{msg.content}-lounge", overwrites=None, category=category)
+    banned = await ctx.guild.create_role(name="Banned from event")
+    perms = lounge.overwrites_for(banned)
+    perms.send_messages = False
+    await lounge.set_permissions(banned, overwrite=perms)
+    channel1 = await ctx.guild.create_voice_channel(f"{msg.content} Events", overwrites=None, category=category)
+    perms = channel1.overwrites_for(banned)
+    perms.connect = False
+    await channel1.set_permissions(banned, overwrite=perms)
+    perms1 = channel1.overwrites_for(ctx.guild.default_role)
+    perms1.connect = True
+    await channel1.set_permissions(ctx.guild.default_role, overwrite=perms1)
+    for team in teams:
+        role = await ctx.guild.create_role(name=team)
+        channel = await ctx.guild.create_voice_channel(team, overwrites=None, category=category, user_limit=2)
+        perms = channel.overwrites_for(role)
+        perms.connect = True
+        await channel.set_permissions(role, overwrite=perms)
+        perms = channel.overwrites_for(ctx.guild.default_role)
+        perms.connect = False
+        await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+    await ctx.send("Your server is setup! \nIMPORTANT: DO NOT change the name of the voicechannels or the roles that I created it may mess up certain commands. ")
 
 
 @bot.command()
 @commands.bot_has_guild_permissions(manage_messages=True)
 @commands.has_guild_permissions(manage_messages=True)
 async def closeteams(ctx):
+        def closeTeamsCheck(reaction, user):
+            return user == ctx.author and reaction.message.content == "React to get into your teams"
         close = await ctx.send("React to the message I must close")
         reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=closeTeamsCheck)
         await close.delete()
@@ -1025,6 +998,8 @@ async def closeteams(ctx):
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
 async def wipe(ctx):
+        def wipeCheck(m):
+            return m.channel == ctx.channel and m.author == ctx.author and (m.content == "n" or m.content == "y")
         await ctx.send("Are you sure you want to wipe the server of all event channels? This will delete ALL channels and ALL roles I have created (y/n)")
         response = await bot.wait_for('message', timeout=60, check=wipeCheck)
         if response.content == "y":
@@ -1068,11 +1043,17 @@ async def setteam(ctx, team : discord.Role):
 @commands.guild_only()
 async def rps(ctx, member):
     if member == "bot":
+        def rpsBotCheck(m):
+            return m.author == ctx.author and m.channel == ctx.channel and m.content in moves
         await ctx.send("Please choose from `rock`, `paper`, or `scissors`")
         move1 = await bot.wait_for('message', timeout = 60.0, check=rpsBotCheck)
         botmove = moves[random.randint(0,2)]
         move2 = await ctx.send(botmove)
     else:
+        def rpsCheck2(m):
+            return m.author == member and m.guild == None and m.content in moves
+        def rpsCheck1(m):
+            return m.author == ctx.author and m.guild == None and m.content in moves
         member = ctx.message.mentions[0]
         await ctx.send(f"{member.mention}! {ctx.author.mention} challenges you to rock paper scissors!")
         await ctx.send(f"{ctx.author.mention} DM me your move")
@@ -1138,6 +1119,8 @@ async def changeprofile(ctx):
     await ctx.send("To sign in and edit your Minecraft account, please DM your login credentials")
     dm = await ctx.author.create_dm()
     await dm.send("Please type your email for your Mojang account")
+    def changeProfileCheck(m):
+        return m.channel == dm and m.author == ctx.author
     user = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
     await user.channel.send("Ok thanks! Now can I get your password?")
     password = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
@@ -1163,6 +1146,8 @@ async def changeprofile(ctx):
     exploring = True
     while exploring:
         await ctx.send("What would you like to change? Choose from: `change name`, `change skin`, or `cancel`")
+        def check(m):
+            return m.channel == ctx.channel and m.author == ctx.author
         msg = await bot.wait_for('message', timeout = 60.0, check=check)
         if msg.content == "cancel":
             await ctx.send("Ok, we've signed out of your account")
@@ -1509,6 +1494,8 @@ async def skyblock(ctx, player):
         message = f"{message}\n{profiles[profile]['cute_name']}"
     await ctx.send("Which profile would you like stats for?")
     await ctx.send(message)
+    def skyblockCheck(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content in profiles
     response = await bot.wait_for('message', timeout=120, check=skyblockCheck)
     await ctx.send(f"Stats for {response.content}")
     #sbData = requests.get("https://api.slothpixel.me/api/skyblock/profiles/princeoftoxicity").json()
@@ -1607,6 +1594,8 @@ async def youtube(ctx, *channelarg):
         await ctx.send(embed=embed)
     except discord.HTTPException:
         return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
+    def ytCheck(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:
         seemore = await bot.wait_for('message', timeout=30, check=ytCheck)
     except asyncio.TimeoutError:

@@ -1577,6 +1577,7 @@ async def youtube(ctx, *channelarg):
     channel = channel.replace(" ", "%20")
     channel = channel[3:]
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
+    print(data)
     if not data['items']:
         return await ctx.send("Invalid channel")
     channel_id = ((data['items'])[0]['snippet']['channelId'])

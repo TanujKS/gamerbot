@@ -487,6 +487,7 @@ async def perms(ctx, member : discord.Member):
 
 @bot.command()
 async def avatar(ctx, member : discord.Member, *format):
+    print(format)
     if not format:
         format = "png"
     try:
@@ -1577,8 +1578,11 @@ async def youtube(ctx, *channelarg):
     channel = channel.replace(" ", "%20")
     channel = channel[3:]
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
-    if data['error']:
-        return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
+    try:
+        data['items']
+    except KeyError:
+        if data['error']:
+            return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
     if not data['items']:
         return await ctx.send("Invalid channel")
     channel_id = ((data['items'])[0]['snippet']['channelId'])

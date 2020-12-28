@@ -445,7 +445,7 @@ async def speak(ctx, *message):
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
-        vc = await ctx.author.voice.channel.connect()
+        vc = await ctx.author.voice.channel.connect(timeout=60.0)
     else:
         return await ctx.send("You are not in a voice channel.")
     tts = gtts.gTTS(fullmessage, lang="en")

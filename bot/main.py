@@ -487,11 +487,10 @@ async def perms(ctx, member : discord.Member):
 
 @bot.command()
 async def avatar(ctx, member : discord.Member, *format):
-    print(format)
     if not format:
         format = "png"
     try:
-        await ctx.send(member.avatar_url_as(format=format, size=1024))
+        await ctx.send(member.avatar_url_as(format=format[0], size=1024))
     except discord.InvalidArgument:
         return await ctx.send("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 

@@ -326,7 +326,7 @@ async def guilds(ctx):
 
 @bot.command()
 @commands.is_owner()
-async def commands(ctx):
+async def commandlist(ctx):
     message = ""
     for command in bot.commands:
         message = f"{message} \n{command}"

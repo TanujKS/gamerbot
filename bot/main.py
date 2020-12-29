@@ -32,6 +32,7 @@ bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two
 modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 botmaster = 566904870951714826
+socialMediaLinks = {}
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
@@ -41,6 +42,12 @@ TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
+
+def convertPermtoEmoji(member, perm):
+    if getattr(member.guild_permissions, perm) is True:
+        return "✅"
+    if getattr(member.guild_permissions, perm) is False:
+        return "❌"
 
 def convertBooltoStr(bool):
     if bool:
@@ -382,6 +389,7 @@ async def help(ctx, *category):
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
+        embed.add_field(name="?mcverify (your_minecraft_username)", value="Allows you to link your Discord account to your Minecraft account using the Hypixel Social Media Link system", inline=False)
         embed.add_field(name="?skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
         embed.add_field(name="?hypixel (minecraft_player)", value="Shows Hypixel stats about a Minecraft player", inline=False)
         embed.add_field(name="?bedwars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Bedwars player \nOptional modes are: solos, doubles, 3v3v3v3, 4v4v4v4, 4v4", inline=False)
@@ -488,7 +496,7 @@ async def perms(ctx, member : discord.Member):
     await ctx.send(f"Perms for {str(member)} in {ctx.guild}")
     perms = ""
     for perm in member.guild_permissions:
-        perms = f"{perms} {perm}"
+        perms = f"{perms}\n{(perm[0].replace('_', ' ')).title()} {convertPermtoEmoji(member, perm[0])}"
     await ctx.send(perms)
 
 
@@ -631,34 +639,31 @@ async def report(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
-async def move(ctx, member, *channel):
-        joinedchannel = ""
-        for arg in channel:
-            joinedchannel = f"{joinedchannel}{arg} "
-        channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
-        if not channel:
-            return await ctx.send("That voice channel doest not exist.")
-        if member == "channel-all":
-            if not ctx.author.voice:
-                return await ctx.send("You are not in a voice channel")
-            for member in ctx.author.voice.channel.members:
+async def move(ctx, member, *, channel):
+    channel = get(ctx.guild.voice_channels, name=channel)
+    if not channel:
+        return await ctx.send("That voice channel doest not exist.")
+    if member == "channel-all":
+        if not ctx.author.voice:
+            return await ctx.send("You are not in a voice channel")
+        for member in ctx.author.voice.channel.members:
+            await member.move_to(channel)
+        await ctx.send(f"Moved all in {ctx.author.voice.channel.name} to {channel.name}")
+    elif member == "all":
+        for voice_channel in ctx.guild.voice_channels:
+            for member in voice_channel.members:
                 await member.move_to(channel)
-            await ctx.send(f"Moved all in {ctx.author.voice.channel.name} to {channel.name}")
-        elif member == "all":
-            for voice_channel in ctx.guild.voice_channels:
-                for member in voice_channel.members:
-                    await member.move_to(channel)
-            await ctx.send(f"Moved all members to {channel.name}")
-        else:
-            try:
-                member = ctx.message.mentions[0]
-            except IndexError:
-                return await ctx.send("Invalid member")
-            try:
-                await member.edit(voice_channel=channel)
-                await ctx.send(f"Moved {str(member)} to {str(channel)}")
-            except discord.errors.HTTPException:
-                await ctx.send("That member is not in a VC")
+        await ctx.send(f"Moved all members to {channel.name}")
+    else:
+        try:
+            member = ctx.message.mentions[0]
+        except IndexError:
+            return await ctx.send("Invalid member")
+        try:
+            await member.edit(voice_channel=channel)
+            await ctx.send(f"Moved {str(member)} to {str(channel)}")
+        except discord.errors.HTTPException:
+            await ctx.send("That member is not in a VC")
 
 
 @bot.command()
@@ -1090,10 +1095,22 @@ async def rps(ctx, member):
 #-------------------------------------------------------------------------------STATS-----------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------MINECRAFT--------------------------------------------------------------------------------------------
 @bot.command(aliases=['mc'])
-async def minecraft(ctx, player):
+async def minecraft(ctx, *player):
+    if len(player) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        return await ctx.send("That player does not exist")
+        return await ctx.send(f"{player} does not exist")
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
@@ -1113,11 +1130,31 @@ async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel and cannot verify their account")
-    print(data['socialMedia']['links']['DISCORD'])
+    try:
+        data['player']['socialMedia']['links']['DISCORD']
+    except KeyError:
+        return await ctx.send(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+    if data['player']['socialMedia']['links']['DISCORD'] == str(ctx.author):
+        await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
+        socialMediaLinks[ctx.author.id] = data['player']['displayname']
+    else:
+        await ctx.send(f"{data['player']['displayname']} is linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
 @bot.command()
-async def skin(ctx, player):
+async def skin(ctx, *player):
+    if len(player) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         return await ctx.send("That player does not exist")
@@ -1207,7 +1244,19 @@ async def changeprofile(ctx):
 
 
 @bot.command()
-async def hypixel(ctx, player):
+async def hypixel(ctx, *player):
+    if len(player) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
@@ -1295,11 +1344,23 @@ async def hypixel(ctx, player):
 
 
 @bot.command(aliases=['bw'])
-async def bedwars(ctx, player, *mode):
+async def bedwars(ctx, *player_and_mode):
+    if len(player_and_mode) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player_and_mode[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Bedwars")
-    if len(mode) == 0:
+    if len(player_and_mode) < 2:
             try:
                 level = data['player']['achievements']['bedwars_level']
             except KeyError:
@@ -1324,9 +1385,9 @@ async def bedwars(ctx, player, *mode):
             embed.add_field(name="Beds Lost:", value=checkstat(data, "Bedwars", "beds_lost_bedwars"), inline=True)
             embed.add_field(name="B/L Rate:", value=getrate(checkstat(data, "Bedwars", "beds_broken_bedwars"), checkstat(data, "Bedwars", "beds_lost_bedwars")), inline=True)
     else:
-        if mode[0] in bedwarsModes:
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {mode[0].capitalize()} Bedwars Profile", description=f"{mode[0].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
-            mode = bedwarsModes[mode[0]]
+        if player_and_mode[1] in bedwarsModes:
+            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
+            mode = bedwarsModes[player_and_mode[1]]
         else:
             return await ctx.send("Invalid Mode")
         embed.add_field(name="Games Played:", value=checkstat(data, 'Bedwars', f'{mode}_games_played_bedwars'), inline=True)
@@ -1347,11 +1408,23 @@ async def bedwars(ctx, player, *mode):
 
 
 @bot.command(aliases=["sw"])
-async def skywars(ctx, player, *mode):
+async def skywars(ctx, *player_and_mode):
+    if len(player_and_mode) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player_and_mode[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
-    if len(mode) == 0:
+    if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Coins:", value=checkstat(data, "SkyWars", 'coins'), inline=True)
         embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
@@ -1367,8 +1440,9 @@ async def skywars(ctx, player, *mode):
         embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins'), checkstat(data, "SkyWars", 'losses')), inline=True)
     else:
         joinedmode = ""
-        for x in mode:
-            joinedmode = f"{joinedmode}{x} "
+        for x in player_and_mode:
+            if x != player_and_mode[0]:
+                joinedmode = f"{joinedmode}{x} "
         joinedmode = joinedmode[:-1]
         if joinedmode == "solos normal":
             embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
@@ -1422,11 +1496,23 @@ async def skywars(ctx, player, *mode):
 
 
 @bot.command()
-async def duels(ctx, player, *mode):
+async def duels(ctx, *player_and_mode):
+    if len(player_and_mode) == 0:
+        member = ctx.author
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    else:
+        member = None
+        player = player_and_mode[0]
+    if member:
+        if member.id in socialMediaLinks:
+            player = socialMediaLinks[member.id]
+        else:
+            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Duels")
-    if len(mode) == 0:
+    if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=checkstat(data, "Duels", 'wins')+checkstat(data, "Duels", 'losses'), inline=True)
         embed.add_field(name="Winstreak:", value=checkstat(data, "Duels", 'current_winstreak'), inline=True)
@@ -1448,8 +1534,9 @@ async def duels(ctx, player, *mode):
         embed.add_field(name="Melee H/S Rate:", value=getrate(checkstat(data, "Duels", 'melee_hits'), checkstat(data, "Duels", 'melee_swings')), inline=True)
     else:
         joinedmode = ""
-        for x in mode:
-            joinedmode = f"{joinedmode}{x} "
+        for x in player_and_mode:
+            if x != player_and_mode[0]:
+                joinedmode = f"{joinedmode}{x} "
         mode = (joinedmode[:-1]).lower()
         if not mode in modes:
             return await ctx.send("Invalid mode")

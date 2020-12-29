@@ -324,6 +324,13 @@ async def guilds(ctx):
         await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
 
 
+@bot.command()
+@commands.is_owner()
+async def commands(ctx):
+    message = ""
+    for command in bot.commands:
+        message = f"{message} \n{command}"
+    await ctx.send(message)
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):

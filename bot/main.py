@@ -488,7 +488,7 @@ async def perms(ctx, member : discord.Member):
 @bot.command()
 async def avatar(ctx, member : discord.Member, *format):
     if not format:
-        format = "png"
+        format = ["png"]
     try:
         await ctx.send(member.avatar_url_as(format=format[0], size=1024))
     except discord.InvalidArgument:
@@ -1100,6 +1100,13 @@ async def minecraft(ctx, player):
     embed.add_field(name="Past Usernames (From oldest down to latest):", value=history, inline=False)
     await ctx.send(embed=embed)
 
+
+@bot.command()
+async def mcverify(ctx, player):
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    if not data['player']:
+        return await ctx.send(f"{player} has not played Hypixel and cannot verify their account")
+    print(data['player']['socialMedia'])
 
 @bot.command()
 async def skin(ctx, player):

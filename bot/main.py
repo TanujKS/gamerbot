@@ -298,7 +298,7 @@ async def blacklisted(ctx):
 @commands.is_owner()
 async def remoteshutdown(ctx):
     await ctx.send("Shutting down")
-    bot.close()
+    await bot.close()
 
 
 @bot.command()
@@ -1113,8 +1113,7 @@ async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel and cannot verify their account")
-    print(data['player']['socialMedia'])
-
+    print(data)
 @bot.command()
 async def skin(ctx, player):
     uuid = MojangAPI.get_uuid(player)

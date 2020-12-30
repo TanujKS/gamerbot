@@ -25,14 +25,15 @@ from mojang.exceptions import LoginError
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 guildInfo = {}
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError, discord.Forbidden]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 blackListed = []
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
-modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
+skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
+duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 botmaster = 566904870951714826
-socialMediaLinks = {}
+socialMediaLinks = {566904870951714826: "tanju_shorty", 363868117778169869: "pimpgrease", 658179258182795315: "TheDeadZombie"}
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
@@ -187,7 +188,7 @@ async def on_message(message):
                 return await message.delete()
 
 
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     if "TimeoutError" in str(error):
         return await ctx.send("Timed out.")
@@ -276,6 +277,12 @@ async def on_reaction_remove(reaction, user):
 
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
+@bot.command()
+@commands.is_owner()
+async def linklist(ctx):
+    await ctx.send(socialMediaLinks)
+
+
 @bot.command()
 @commands.is_owner()
 async def blacklist(ctx, member : discord.Member):
@@ -573,22 +580,23 @@ async def closepoll(ctx):
 @commands.bot_has_guild_permissions(manage_nicknames=True)
 @commands.has_permissions(manage_nicknames=True)
 async def nick(ctx, member : discord.Member, *nick):
-            joinednick = ""
-            if len(nick) == 0:
-                joinednick = member.name
-                await ctx.send(f"Changed {member.name}'s nickname from {member.nick} to {joinednick}")
-                await member.edit(nick=None)
-            else:
-                joinednick = " ".join(nick)
-                if member.nick:
-                    nick = member.nick
-                else:
-                    nick = member.name
-                try:
-                    await member.edit(nick=joinednick)
-                except discord.HTTPException:
-                    return await ctx.send("Nickname must be 32 characters or fewer in length.")
-                await ctx.send(f"Changed {member.name}'s nickname from {nick} to {joinednick}")
+    if member.nick:
+        oldNick = member.nick
+    else:
+        oldNick = member.name
+    if len(nick) == 0:
+        nick = None
+    else:
+        nick = " ".join(nick)
+    try:
+        await member.edit(nick=nick)
+    except discord.Forbidden:
+        return await ctx.send(f"Could not change {str(member)}'s nickname because my highest role is lower than theirs.")
+    except discord.HTTPException:
+        return await ctx.send("Nickname must be fewer than 32 characters")
+    if nick is None:
+        nick = member.name
+    await ctx.send(f"Changed {member.name}'s nickname from {oldNick} to {nick}")
 
 
 @bot.command()
@@ -649,9 +657,10 @@ async def move(ctx, member, *, channel):
     if member == "channel-all":
         if not ctx.author.voice:
             return await ctx.send("You are not in a voice channel")
-        for member in ctx.author.voice.channel.members:
+        oldVC = ctx.author.voice.channel
+        for member in oldVC.members:
             await member.move_to(channel)
-        await ctx.send(f"Moved all in {ctx.author.voice.channel.name} to {channel.name}")
+        await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
@@ -1141,7 +1150,7 @@ async def mcverify(ctx, player):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         socialMediaLinks[ctx.author.id] = data['player']['displayname']
     else:
-        await ctx.send(f"{data['player']['displayname']} is linked to {data['player']['socialMedia']['links']['DISCORD']}")
+        await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
 @bot.command()
@@ -1348,9 +1357,12 @@ async def hypixel(ctx, *player):
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, *player_and_mode):
-    if len(player_and_mode) == 0 or (len(player_and_mode == 1 and player_and_mode[0] in bedwarsModes)):
+    if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) is not None:
         member = ctx.author
-        player_and_mode = tuple(list(player_and_mode).insert(0, ""))
+        if len(player_and_mode) == 1:
+            player_and_mode = list(player_and_mode)
+            player_and_mode.insert(0, "")
+            player_and_mode = tuple(player_and_mode)
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
     else:
@@ -1412,8 +1424,13 @@ async def bedwars(ctx, *player_and_mode):
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, *player_and_mode):
-    if len(player_and_mode) == 0:
+    mode = " ".join(player_and_mode)
+    if len(player_and_mode) == 0 or multi_key_dict_get(skywarsModes, mode) is not None:
         member = ctx.author
+        if len(player_and_mode) > 0:
+            player_and_mode = list(player_and_mode)
+            player_and_mode.insert(0, "")
+            player_and_mode = tuple(player_and_mode)
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
     else:
@@ -1427,7 +1444,7 @@ async def skywars(ctx, *player_and_mode):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
-    if len(player_and_mode) < 2:
+    if len(player_and_mode) <= 1:
         embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Coins:", value=checkstat(data, "SkyWars", 'coins'), inline=True)
         embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
@@ -1442,12 +1459,11 @@ async def skywars(ctx, *player_and_mode):
         embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses'), inline=True)
         embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins'), checkstat(data, "SkyWars", 'losses')), inline=True)
     else:
-        joinedmode = ""
-        for x in player_and_mode:
-            if x != player_and_mode[0]:
-                joinedmode = f"{joinedmode}{x} "
-        joinedmode = joinedmode[:-1]
-        if joinedmode == "solos normal" or joinedmode == "solos insane":
+        player_and_mode = list(player_and_mode)
+        player_and_mode.pop(0)
+        joinedmode = " ".join(player_and_mode)
+        joinedmode = (multi_key_dict_get(skywarsModes, joinedmode))
+        if joinedmode == "solos normal":
             embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
@@ -1500,8 +1516,13 @@ async def skywars(ctx, *player_and_mode):
 
 @bot.command()
 async def duels(ctx, *player_and_mode):
-    if len(player_and_mode) == 0:
+    mode = " ".join(player_and_mode)
+    if len(player_and_mode) == 0 or multi_key_dict_get(duelModes, mode) is not None:
         member = ctx.author
+        if len(player_and_mode) > 0:
+            player_and_mode = list(player_and_mode)
+            player_and_mode.insert(0, "")
+            player_and_mode = tuple(player_and_mode)
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
     else:
@@ -1536,12 +1557,10 @@ async def duels(ctx, *player_and_mode):
         embed.add_field(name="Melee Missed:", value=checkstat(data, "Duels", 'melee_swings')-checkstat(data, "Duels", 'melee_hits'), inline=True)
         embed.add_field(name="Melee H/S Rate:", value=getrate(checkstat(data, "Duels", 'melee_hits'), checkstat(data, "Duels", 'melee_swings')), inline=True)
     else:
-        joinedmode = ""
-        for x in player_and_mode:
-            if x != player_and_mode[0]:
-                joinedmode = f"{joinedmode}{x} "
-        mode = (joinedmode[:-1]).lower()
-        if not mode in modes:
+        player_and_mode = list(player_and_mode)
+        player_and_mode.pop(0)
+        mode = " ".join(player_and_mode)
+        if not mode in duelModes:
             return await ctx.send("Invalid mode")
         embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {data['player']['displayname']}", color=0xff0000)
         try:
@@ -1570,7 +1589,7 @@ async def duels(ctx, *player_and_mode):
                                         prestige = f"Rookie {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_rookie_title_prestige'])}"
                                     else:
                                         prestige = "None"
-        mode = modes[mode]
+        mode = duelModes[mode]
         embed.add_field(name="Prestige", value=prestige, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)

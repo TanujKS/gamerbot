@@ -358,7 +358,6 @@ async def help(ctx, *category):
         embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name="VC Commands (?help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
         embed.add_field(name="Team Commands (?help teams)", value="Commands that help you manage your teams for your game nights", inline=False)
-        embed.add_field(name="Game Commands (?help games)", value="Commands for mini-games that all members can play", inline=False)
         embed.add_field(name="Game Stats Commands (?help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name="Miscellaneous Commands (?help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name="APIs (?help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)

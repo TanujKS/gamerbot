@@ -28,7 +28,7 @@ guildInfo = {}
 raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 blackListed = []
-bedwarsModes = {"solos": "eight_one", "solo": "eight_one", "doubles": "eight_two", "double": "eight_two", "3s": "four_three", "3v3v3v3": "four_three", "triples": "four_three", "4s": "four_four", "4v4v4v4": "four_four", "quadruples":"four_four", "4v4": "two_four",}
+bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
 modes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 botmaster = 566904870951714826
@@ -42,6 +42,11 @@ TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 
+def multi_key_dict_get(d, k):
+    for keys, v in d.items():
+        if k in keys:
+            return v
+    return None
 
 def convertPermtoEmoji(member, perm):
     if getattr(member.guild_permissions, perm) is True:
@@ -50,9 +55,9 @@ def convertPermtoEmoji(member, perm):
         return "❌"
 
 def convertBooltoStr(bool):
-    if bool:
+    if bool is True:
         return "On"
-    if not bool:
+    if bool is False:
         return "Off"
 
 def checkstat(data, mode, stat):
@@ -107,7 +112,6 @@ def initguild(guild):
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    guildInfo[guild.id]['eventLogs'] = False
 
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
@@ -399,9 +403,10 @@ async def help(ctx, *category):
         embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
         embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
     elif category[0] == "apis":
-        embed = discord.Embed(title="APIs used for statistics", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
+        embed = discord.Embed(title=f"APIs used by {str(bot.user)}", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
         embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)
         embed.add_field(name="Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
+        embed.add_field(name="MC-Heads API", value="https://mc-heads.net/", inline=False)
         embed.add_field(name="Fortnite API", value="https://fortnite-api.com/", inline=False)
         embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
@@ -413,9 +418,9 @@ async def help(ctx, *category):
 @bot.command()
 async def settings(ctx, *setting):
     if len(setting) == 0:
-        embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description="To edit a setting use '?settings setting on/off", color=0xff0000)
-        embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez off")
-        embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1")
+        embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description="To edit a setting use '?settings (setting) (on/off, 1/2/3, etc)", color=0xff0000)
+        embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez on/off")
+        embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1/2/3...")
         embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings TTVCrole some_role")
     elif len(setting) == 2:
         if not ctx.author.guild_permissions.administrator:
@@ -436,7 +441,9 @@ async def settings(ctx, *setting):
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
-            if not get(ctx.guild.roles, name=setting[1]):
+            if setting[1] == "everyone":
+                setting[1] = "@everyone"
+            elif not get(ctx.guild.roles, name=setting[1]):
                 return await ctx.send('Invalid role')
             guildInfo[ctx.guild.id]['TTVCrole'] = setting[1]
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
@@ -572,8 +579,7 @@ async def nick(ctx, member : discord.Member, *nick):
                 await ctx.send(f"Changed {member.name}'s nickname from {member.nick} to {joinednick}")
                 await member.edit(nick=None)
             else:
-                for nickvar in nick:
-                    joinednick = f"{joinednick}{nickvar} "
+                joinednick = " ".join(nick)
                 if member.nick:
                     nick = member.nick
                 else:
@@ -594,10 +600,7 @@ async def ping(ctx):
 
 @bot.command()
 @commands.bot_has_guild_permissions(manage_webhooks=True)
-async def quote(ctx, member : discord.Member, *messagevar):
-    message = ""
-    for m in messagevar:
-        message = f"{message} {m}"
+async def quote(ctx, member : discord.Member, *, message):
     webhooks = await ctx.channel.webhooks()
     for webhook in webhooks:
         if webhook.user == bot.user:
@@ -814,7 +817,7 @@ async def moveteams(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_channels=True)
 @commands.has_guild_permissions(manage_channels=True)
-async def lock(ctx, *channel):
+async def lock(ctx, *, channel):
     joinedchannel = ""
     for arg in channel:
         joinedchannel = f"{joinedchannel}{arg} "
@@ -830,7 +833,7 @@ async def lock(ctx, *channel):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_channels=True)
 @commands.has_guild_permissions(manage_channels=True)
-async def unlock(ctx, *channel):
+async def unlock(ctx, *, channel):
     joinedchannel = ""
     for arg in channel:
         joinedchannel = f"{joinedchannel}{arg} "
@@ -1345,8 +1348,9 @@ async def hypixel(ctx, *player):
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, *player_and_mode):
-    if len(player_and_mode) == 0:
+    if len(player_and_mode) == 0 or (len(player_and_mode == 1 and player_and_mode[0] in bedwarsModes)):
         member = ctx.author
+        player_and_mode = tuple(list(player_and_mode).insert(0, ""))
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
     else:
@@ -1385,11 +1389,10 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="Beds Lost:", value=checkstat(data, "Bedwars", "beds_lost_bedwars"), inline=True)
             embed.add_field(name="B/L Rate:", value=getrate(checkstat(data, "Bedwars", "beds_broken_bedwars"), checkstat(data, "Bedwars", "beds_lost_bedwars")), inline=True)
     else:
-        if player_and_mode[1] in bedwarsModes:
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
-            mode = bedwarsModes[player_and_mode[1]]
-        else:
-            return await ctx.send("Invalid Mode")
+        mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
+        if mode is None:
+            return await ctx.send("Invalid mode")
+        embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=checkstat(data, 'Bedwars', f'{mode}_games_played_bedwars'), inline=True)
         embed.add_field(name="Current Winstreak:", value=checkstat(data, 'Bedwars', f"{mode}_winstreak"), inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
@@ -1444,7 +1447,7 @@ async def skywars(ctx, *player_and_mode):
             if x != player_and_mode[0]:
                 joinedmode = f"{joinedmode}{x} "
         joinedmode = joinedmode[:-1]
-        if joinedmode == "solos normal":
+        if joinedmode == "solos normal" or joinedmode == "solos insane":
             embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
@@ -1670,19 +1673,14 @@ async def twitch(ctx, channel):
 
 
 @bot.command(aliases=['yt'])
-async def youtube(ctx, *channelarg):
-    if len(channelarg) == 0:
-        return await ctx.send("Invalid channel")
-    channel = ""
-    for x in channelarg:
-        channel = f"{channel} {x}"
+async def youtube(ctx, *, channel):
     channel = channel.replace(" ", "%20")
-    channel = channel[3:]
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
     try:
         data['items']
     except KeyError:
         if data['error']:
+            print(data['error'])
             return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
     if not data['items']:
         return await ctx.send("Invalid channel")
@@ -1696,7 +1694,7 @@ async def youtube(ctx, *channelarg):
     embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics']['subscriberCount'], inline=True)
     embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
     embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
-    embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channelarg}s and then run '?youtube (id_of_the_channel_you_want)'")
+    embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel}s and then run '?youtube (id_of_the_channel_you_want)'")
     try:
         await ctx.send(embed=embed)
     except discord.HTTPException:

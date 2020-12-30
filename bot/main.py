@@ -592,7 +592,7 @@ async def nick(ctx, member : discord.Member, *nick):
     try:
         await member.edit(nick=nick)
     except discord.Forbidden:
-        return await ctx.send(f"Could not change {str(member)}'s nickname because my highest role is lower than theirs.")
+        return await ctx.send(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
     except discord.HTTPException:
         return await ctx.send("Nickname must be fewer than 32 characters")
     if nick is None:

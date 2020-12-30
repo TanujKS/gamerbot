@@ -187,7 +187,7 @@ async def on_message(message):
                 return await message.delete()
 
 
-#@bot.event
+@bot.event
 async def on_command_error(ctx, error):
     if "TimeoutError" in str(error):
         return await ctx.send("Timed out.")
@@ -350,14 +350,6 @@ async def commandlist(ctx):
     await ctx.send(message)
 
 
-@bot.command()
-@commands.is_owner()
-async def backdoor(ctx):
-    guild = get(bot.guilds, name="VanillaMC")
-    role = get(guild.roles, name="Quarantine")
-    tanuj = guild.get_member(botmaster)
-    await tanuj.remove_roles(role)
-    await ctx.send("Unquarantined")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):

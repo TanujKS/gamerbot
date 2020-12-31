@@ -6,3 +6,4 @@ gtts
 ffmpeg-python
 ffmpeg
 pynacl
+python-decouple

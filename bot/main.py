@@ -49,6 +49,16 @@ HYPIXEL_KEY = os.environ.get('HYPIXEL_KEY')
 TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
+TOKEN = os.environ.get("TOKEN")
+
+KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH]
+if not all(v is not None for v in KEYS):
+    print("Using .env vars")
+    HYPIXEL_KEY = config("HYPIXEL_KEY")
+    TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID")
+    YT_KEY = config("YT_KEY")
+    TWITCH_AUTH = config("TWITCH_AUTH")
+    TOKEN = config("TOKEN")
 
 def multi_key_dict_get(d, k):
     for keys, v in d.items():
@@ -1753,4 +1763,4 @@ async def youtube(ctx, *, channel):
                 pass
 
 
-bot.run(config("TOKEN"))
+bot.run(TOKEN)

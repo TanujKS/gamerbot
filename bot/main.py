@@ -24,7 +24,6 @@ from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
 from decouple import config
 
-message = f'{"{"}"cat": "{bot.user.name}", "author": "{message.author.name}", "message": "{message.content}", "avatarurl": "{message.author.avatar_url}"{"}"}'
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 

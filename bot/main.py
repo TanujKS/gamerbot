@@ -23,8 +23,8 @@ from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
 from decouple import config
-import csv
 
+message = f'{"{"}"cat": "{bot.user.name}", "author": "{message.author.name}", "message": "{message.content}", "avatarurl": "{message.author.avatar_url}"{"}"}'
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 
@@ -126,8 +126,7 @@ def initguild(guild):
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['streamers'] = {}
-    with open("guildInfo.txt", "w+") as f:
-        f.write(guildInfo)
+
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
@@ -163,8 +162,6 @@ async def on_guild_remove(guild):
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
     guildInfo.pop(guild.id)
-    with open("guildInfo.txt", "w+") as f:
-        f.write(str(guildInfo))
 
 @bot.event
 async def on_message_edit(before, message):
@@ -309,11 +306,6 @@ async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
         return await ctx.send(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
-    with open("blacklisted.csv", "w+") as f:
-        content = "FILLER"
-        for b in blackListed:
-            content = f"{content},{b}"
-        f.write(content)
     await ctx.send(f"Blacklisted {str(member)}")
 
 
@@ -481,8 +473,6 @@ async def settings(ctx, *setting):
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         else:
             return await ctx.send("Invalid setting")
-        with open("guildInfo.txt", "w+") as f:
-            f.write(str(guildInfo))
     else:
         return await ctx.send("Invalid arguments")
     await ctx.send(embed=embed)
@@ -1183,8 +1173,7 @@ async def mcverify(ctx, player):
         socialMediaLinks[str(ctx.author.id)] = data['player']['displayname']
     else:
         await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
-    with open('hypixelLinks.txt', "w+") as f:
-        f.write(socialMediaLinks)
+
 
 @bot.command()
 async def skin(ctx, *player):

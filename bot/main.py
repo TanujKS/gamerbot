@@ -136,7 +136,7 @@ def write_roman(num):
     return "".join([a for a in roman_num(num)])
 
 def initguild(guild):
-    guildInfo[str(guild.id)] = {}
+    guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1

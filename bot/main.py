@@ -23,36 +23,47 @@ from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
 from decouple import config
-
+import csv
 
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
 bot.remove_command('help')
 
-blackListed = []
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
-guildInfo = {}
 raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError, discord.Forbidden]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
-os.system('ls')
-with open('hypixelLinks.txt') as f:
-    data = f.read()
-socialMediaLinks = json.loads(data)
-
+blackListed = []
+try:
+    with open('hypixelLinks.txt') as f:
+        data = f.read()
+    socialMediaLinks = json.loads(data)
+    with open('guildInfo.txt') as f:
+        data = f.read()
+    guildInfo = json.loads(data)
+    with open("blacklisted.csv") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            for r in row:
+                if r != row[0]:
+                    row[row.index(r)] = int(r)
+            blackListed = row
+            break
+except FileNotFoundError:
+    socialMediaLinks = {}
+    guildInfo = {}
 HYPIXEL_KEY = os.environ.get('HYPIXEL_KEY')
 TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 TOKEN = os.environ.get("TOKEN")
-
 KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH]
-if not all(v is not None for v in KEYS):
+if  any(v is None for v in KEYS):
     print("Using .env vars")
     HYPIXEL_KEY = config("HYPIXEL_KEY")
     TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID")
@@ -125,13 +136,14 @@ def write_roman(num):
     return "".join([a for a in roman_num(num)])
 
 def initguild(guild):
-    guildInfo[guild.id] = {}
+    guildInfo[str(guild.id)] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['streamers'] = {}
-
+    with open("guildInfo.txt", "w+") as f:
+        f.write(str(guildInfo))
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
@@ -139,6 +151,8 @@ def initguild(guild):
 @bot.event
 async def on_ready():
     print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
+    await bot.change_presence(activity=game)
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
@@ -147,7 +161,6 @@ async def on_ready():
     botmaster = info.owner.id
     print("Guilds:")
     for guild in bot.guilds:
-        initguild(guild)
         print(guild.name)
 
 
@@ -165,7 +178,8 @@ async def on_guild_remove(guild):
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
     guildInfo.pop(guild.id)
-
+    with open("guildInfo.txt", "w+") as f:
+        f.write(str(guildInfo))
 
 @bot.event
 async def on_message_edit(before, message):
@@ -310,6 +324,11 @@ async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
         return await ctx.send(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
+    with open("blacklisted.csv", "w+") as f:
+        content = "FILLER"
+        for b in blackListed:
+            content = f"{content},{b}"
+        f.write(content)
     await ctx.send(f"Blacklisted {str(member)}")
 
 
@@ -477,6 +496,8 @@ async def settings(ctx, *setting):
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         else:
             return await ctx.send("Invalid setting")
+        with open("guildInfo.txt", "w+") as f:
+            f.write(str(guildInfo))
     else:
         return await ctx.send("Invalid arguments")
     await ctx.send(embed=embed)
@@ -1177,7 +1198,8 @@ async def mcverify(ctx, player):
         socialMediaLinks[str(ctx.author.id)] = data['player']['displayname']
     else:
         await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
-
+    with open('hypixelLinks.txt', "w+") as f:
+        f.write(socialMediaLinks)
 
 @bot.command()
 async def skin(ctx, *player):

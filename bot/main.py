@@ -161,6 +161,7 @@ async def on_ready():
     botmaster = info.owner.id
     print("Guilds:")
     for guild in bot.guilds:
+        initguild(guild)
         print(guild.name)
 
 

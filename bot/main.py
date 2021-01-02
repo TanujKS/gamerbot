@@ -1169,7 +1169,7 @@ async def mcverify(ctx, player):
         return await ctx.send(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if data['player']['socialMedia']['links']['DISCORD'] == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
-        socialMediaLinks[str(ctx.author.id)] = data['player']['displayname']
+        socialMediaLinks[ctx.author.id] = data['player']['displayname']
     else:
         await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
@@ -1184,7 +1184,7 @@ async def skin(ctx, *player):
         member = None
         player = player[0]
     if member:
-        if str(member.id) in socialMediaLinks:
+        if member.id in socialMediaLinks:
             player = socialMediaLinks[member.id]
         else:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
@@ -1286,7 +1286,7 @@ async def hypixel(ctx, *player):
         member = None
         player = player[0]
     if member:
-        if str(member.id) in socialMediaLinks:
+        if member.id in socialMediaLinks:
             player = socialMediaLinks[member.id]
         else:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
@@ -1390,7 +1390,7 @@ async def bedwars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if str(member.id) in socialMediaLinks:
+        if member.id in socialMediaLinks:
             player = socialMediaLinks[member.id]
         else:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
@@ -1458,7 +1458,7 @@ async def skywars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if str(member.id) in socialMediaLinks:
+        if member.id in socialMediaLinks:
             player = socialMediaLinks[member.id]
         else:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
@@ -1550,7 +1550,7 @@ async def duels(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if str(member.id) in socialMediaLinks:
+        if member.id in socialMediaLinks:
             player = socialMediaLinks[member.id]
         else:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")

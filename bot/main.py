@@ -46,6 +46,7 @@ try:
     with open('guildInfo.txt') as f:
         data = f.read()
     guildInfo = json.loads(data)
+    guildInfo = guildInfo['data']
     with open("blacklisted.csv") as f:
         reader = csv.reader(f)
         for row in reader:

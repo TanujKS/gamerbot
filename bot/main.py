@@ -1089,8 +1089,8 @@ async def setteam(ctx, team : discord.Role):
                         await ctx.author.remove_roles(roles)
                 try:
                     for member in ctx.message.mentions:
-                        await member.add_roles(role)
-                        await ctx.send(f"Added {str(member)} to {str(role)}")
+                        await member.add_roles(team)
+                        await ctx.send(f"Added {str(member)} to {str(team)}")
                 except IndexError:
                     await ctx.send("That is not a valid user")
         else:

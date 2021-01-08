@@ -510,6 +510,8 @@ async def speak(ctx, *message):
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     while True:
+        if not vc:
+            return
         try:
             vc.play(discord.FFmpegPCMAudio("text.mp3"))
             return

@@ -8,4 +8,3 @@ ffmpeg
 pynacl
 python-decouple
 redis
-e

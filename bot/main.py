@@ -1157,10 +1157,10 @@ async def minecraft(ctx, *player):
         member = None
         player = player[0]
     if member:
-        if str(member.id) in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         return await ctx.send(f"{player} does not exist")

@@ -64,18 +64,18 @@ blackListed = r.lrange("blacklisted", 0, -1)
 for i in range(0, len(blackListed)):
     blackListed[i] = blackListed[i].decode("utf-8")
 
-print(blackListed)
+rval = r.get("guildInfo")
 
-socialMediaLinks = {}
+tempGuildInfo = json.loads(rval)
 guildInfo = {}
+for g in tempGuildInfo:
+    guildInfo[int(g)] = tempGuildInfo[g]
 
 def multi_key_dict_get(d, k):
     for keys, v in d.items():
         if k in keys:
             return v
     return None
-
-
 
 def convertBooltoStr(bool):
     if bool is True:
@@ -136,8 +136,8 @@ def initguild(guild):
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['streamers'] = {}
-
-
+    rval = json.dumps(guildInfo)
+    r.set("guildInfo", rval)
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
@@ -154,7 +154,6 @@ async def on_ready():
     botmaster = info.owner.id
     print("Guilds:")
     for guild in bot.guilds:
-        initguild(guild)
         print(guild.name)
 
 
@@ -305,12 +304,6 @@ async def on_reaction_remove(reaction, user):
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
 @commands.is_owner()
-async def linklist(ctx):
-    await ctx.send(socialMediaLinks)
-
-
-@bot.command()
-@commands.is_owner()
 async def blacklist(ctx, member : discord.Member):
     global blackListed
     if member.id in blackListed:
@@ -351,6 +344,8 @@ async def remoteshutdown(ctx):
 @commands.is_owner()
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
+    if not command:
+        return await ctx.send("Invalid command")
     command.update(enabled=False)
     await ctx.send(f"Disabled command {command}")
 
@@ -359,6 +354,8 @@ async def disablecommand(ctx, commandName):
 @commands.is_owner()
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
+    if not command:
+        return await ctx.send("Invalid command")
     command.update(enabled=True)
     await ctx.send(f"Enabled command {command}")
 
@@ -478,13 +475,17 @@ async def settings(ctx, *setting):
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
             if setting[1] == "everyone":
-                setting[1] = "@everyone"
-            elif not get(ctx.guild.roles, name=setting[1]):
+                setting1 = "@everyone"
+            else:
+                setting1 = setting[1]
+            if not get(ctx.guild.roles, name=setting1):
                 return await ctx.send('Invalid role')
-            guildInfo[ctx.guild.id]['TTVCrole'] = setting[1]
+            guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         else:
             return await ctx.send("Invalid setting")
+        rval = json.dumps(guildInfo)
+        r.set("guildInfo", rval)
     else:
         return await ctx.send("Invalid arguments")
     await ctx.send(embed=embed)
@@ -507,6 +508,7 @@ async def speak(ctx, *message):
         vc = await ctx.author.voice.channel.connect(timeout=60.0)
     else:
         return await ctx.send("You are not in a voice channel.")
+    await ctx.guild.me.edit(deafen=True)
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     while True:

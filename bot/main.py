@@ -60,7 +60,11 @@ emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7�
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
 
-blackListed = []
+blackListed = r.lrange("blacklisted", 0, -1)
+for i in range(0, len(blackListed)):
+    blackListed[i] = blackListed[i].decode("utf-8")
+
+print(blackListed)
 
 socialMediaLinks = {}
 guildInfo = {}
@@ -312,6 +316,7 @@ async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
         return await ctx.send(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
+    r.lpush("blacklisted", member.id)
     await ctx.send(f"Blacklisted {str(member)}")
 
 
@@ -322,6 +327,7 @@ async def unblacklist(ctx, member : discord.Member):
     if not member.id in blackListed:
         return await ctx.send(f"{str(member)} is not blacklisted")
     blackListed.remove(member.id)
+    r.lrem("blacklisted", 0, member.id)
     await ctx.send(f"Unblacklisted {str(member)}")
 
 
@@ -1183,7 +1189,7 @@ async def mcverify(ctx, player):
         return await ctx.send(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if data['player']['socialMedia']['links']['DISCORD'] == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
-        socialMediaLinks[ctx.author.id] = data['player']['displayname']
+        r.set(ctx.author.id, data['player']['displayname'])
     else:
         await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
@@ -1198,10 +1204,10 @@ async def skin(ctx, *player):
         member = None
         player = player[0]
     if member:
-        if member.id in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         return await ctx.send("That player does not exist")
@@ -1300,10 +1306,10 @@ async def hypixel(ctx, *player):
         member = None
         player = player[0]
     if member:
-        if member.id in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
@@ -1404,10 +1410,10 @@ async def bedwars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if member.id in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Bedwars")
@@ -1472,10 +1478,10 @@ async def skywars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if member.id in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played SkyWars")
@@ -1564,10 +1570,10 @@ async def duels(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        if member.id in socialMediaLinks:
-            player = socialMediaLinks[member.id]
-        else:
+        player = r.get(ctx.author.id)
+        if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode("utf-8")
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Duels")

@@ -128,16 +128,6 @@ def write_roman(num):
             if num <= 0:
                 break
     return "".join([a for a in roman_num(num)])
-
-def initguild(guild):
-    guildInfo[guild.id] = {}
-    guildInfo[guild.id]['antiez'] = False
-    guildInfo[guild.id]['teamLimit'] = 2
-    guildInfo[guild.id]['maximumTeams'] = 1
-    guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    guildInfo[guild.id]['streamers'] = {}
-    rval = json.dumps(guildInfo)
-    r.set("guildInfo", rval)
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
@@ -162,8 +152,14 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-    initguild(guild)
-
+    guildInfo[guild.id] = {}
+    guildInfo[guild.id]['antiez'] = False
+    guildInfo[guild.id]['teamLimit'] = 2
+    guildInfo[guild.id]['maximumTeams'] = 1
+    guildInfo[guild.id]['TTVCrole'] = "TTVC"
+    guildInfo[guild.id]['streamers'] = {}
+    rval = json.dumps(guildInfo)
+    r.set("guildInfo", rval)
 
 @bot.event
 async def on_guild_remove(guild):
@@ -171,6 +167,8 @@ async def on_guild_remove(guild):
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
     guildInfo.pop(guild.id)
+    rval = json.dumps(guildInfo)
+    r.set("guildInfo", rval)
 
 @bot.event
 async def on_message_edit(before, message):
@@ -1161,7 +1159,7 @@ async def minecraft(ctx, *player):
         member = None
         player = player[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
@@ -1208,7 +1206,7 @@ async def skin(ctx, *player):
         member = None
         player = player[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
@@ -1310,7 +1308,7 @@ async def hypixel(ctx, *player):
         member = None
         player = player[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
@@ -1414,7 +1412,7 @@ async def bedwars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
@@ -1482,7 +1480,7 @@ async def skywars(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
@@ -1574,7 +1572,7 @@ async def duels(ctx, *player_and_mode):
         member = None
         player = player_and_mode[0]
     if member:
-        player = r.get(ctx.author.id)
+        player = r.get(member.id)
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")

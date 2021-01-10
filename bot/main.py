@@ -48,7 +48,6 @@ if  any(v is None for v in KEYS):
 
 r = redis.from_url(REDIS_URL)
 
-
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
@@ -67,6 +66,7 @@ for i in range(0, len(blackListed)):
 rval = r.get("guildInfo")
 
 tempGuildInfo = json.loads(rval)
+
 guildInfo = {}
 for g in tempGuildInfo:
     guildInfo[int(g)] = tempGuildInfo[g]
@@ -145,6 +145,8 @@ async def on_ready():
     print("Guilds:")
     for guild in bot.guilds:
         print(guild.name)
+        channel = guild.text_channels[0]
+        print(await channel.create_invite())
 
 
 @bot.event
@@ -161,14 +163,13 @@ async def on_guild_join(guild):
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
 
+
 @bot.event
 async def on_guild_remove(guild):
     print(f"Left {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-    guildInfo.pop(guild.id)
-    rval = json.dumps(guildInfo)
-    r.set("guildInfo", rval)
+
 
 @bot.event
 async def on_message_edit(before, message):
@@ -378,14 +379,14 @@ async def commandlist(ctx):
 @bot.command()
 async def help(ctx, *category):
     if len(category) <= 0:
-        embed = discord.Embed(title="Categories", description="This is a list of all the types of commands I can do", color=0xff0000)
+        embed = discord.Embed(title="Categories", description="This is a list of all the types of commands I can do!\nThe full code for GamerBot can be found at https://github.com/TanujKS/gamerbot", color=0xff0000)
         embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name="VC Commands (?help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
         embed.add_field(name="Team Commands (?help teams)", value="Commands that help you manage your teams for your game nights", inline=False)
         embed.add_field(name="Game Stats Commands (?help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name="Miscellaneous Commands (?help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name="APIs (?help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
-        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767 \nThe full code for GamerBot can be found at https://github.com/TanujKS/gamerbot")
+        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
         embed.add_field(name="?mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)

@@ -692,6 +692,20 @@ async def report(ctx):
     await ctx.send("Your report is submitted")
 
 
+@bot.command()
+@commands.has_guild_permissions(administrator=True)
+async def dm(ctx, *, message):
+    dmedMessage = "Succesfuly DMed:"
+    for role in ctx.message.role_mentions:
+        dmedMessage += f"\nAll members with {role.name}"
+        for member in role.members:
+            dm = await member.create_dm()
+            await dm.send(message)
+    for member in ctx.message.mentions:
+        dmedMessage += f"\n{member.name}"
+        dm = await member.create_dm()
+        await dm.send(message)
+    await ctx.send(dmedMessage)
 #------------------------------------------------------------------------------VOICE CHANNEL MANAGEMENT--------------------------------------------------------------------------------------
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)

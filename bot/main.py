@@ -881,7 +881,7 @@ async def dc(ctx, member):
         except IndexError:
             return await ctx.send("That is not a valid user")
         if not member.voice:
-                await ctx.send(f"{str(member)} is not in a VC")
+            return await ctx.send(f"{str(member)} is not in a VC")
         await member.edit(voice_channel=None)
         await ctx.send(f"Disconnected {str(member)}")
 

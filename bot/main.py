@@ -37,7 +37,7 @@ TOKEN = os.environ.get("TOKEN")
 REDIS_URL = (os.environ.get("REDIS_URL"))
 KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH, REDIS_URL]
 
-if  any(v is None for v in KEYS):
+if any(v is None for v in KEYS):
     print("Using .env vars")
     HYPIXEL_KEY = config("HYPIXEL_KEY")
     TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID")
@@ -142,6 +142,7 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
+    await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -500,12 +501,33 @@ async def speak(ctx, *message):
             pass
 
 
+#streamers = {"jacksepticeye": {"pinged": True, {"channel", }}, {}}
+#async def checkIfLive():
+    #while True:
+    #    for streamer in streamers:
+    #        data = requests.get(f"https://api.twitch.tv/helix/search/channels?query={streamer}/", headers={"client-id":TWITCH_CLIENT_ID, 'Authorization': TWITCH_AUTH}).json()
+    #        for x in data['data']:
+    #            is_live = x['is_live']
+    #            break
+    #        if is_live:
+    #            if not streamers[streamer]['pinged']:
+    #                embed = discord.Embed(title=streamers[streamer]['message'], description=f"https://twitch.tv/{streamer}", color=0x04ff00)
+    #                embed.set_thumbnail(url=x['thumbnail_url'])
+    #                embed.add_field(name=x['title'], value="\u200b", inline=False)
+    #                guild = bot.get_guild(streamers[streamer]['guild'])
+    #                channel = guild.get_channel(streamers[streamer]['channel'])
+    #                await channel.send(embed=embed)
+    #                streamers[streamer]['pinged'] = True
+    #        else:
+    #            print(f"{streamer} is not live")
+    #            streamers[streamer]['pinged'] = False
+    #    await asyncio.sleep(60)
+
 #@bot.command()
 async def twitchtrack(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user['data']:
         return await ctx.send("Invalid channel")
-
 
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
@@ -694,7 +716,10 @@ async def dm(ctx, message):
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def move(ctx, member, *, channel):
-    channel = get(ctx.guild.voice_channels, name=channel)
+    if channel == "me":
+        channel = ctx.author.voice.channel
+    else:
+        channel = get(ctx.guild.voice_channels, name=channel)
     if not channel:
         return await ctx.send("That voice channel doest not exist.")
     if member == "channel-all":
@@ -718,7 +743,7 @@ async def move(ctx, member, *, channel):
             await member.edit(voice_channel=channel)
             await ctx.send(f"Moved {str(member)} to {str(channel)}")
         except discord.errors.HTTPException:
-            await ctx.send("That member is not in a VC")
+            await ctx.send(f"{str(member)}is not in a VC")
 
 
 @bot.command()
@@ -742,7 +767,7 @@ async def mute(ctx, member):
                 await member.edit(mute=True)
                 await ctx.send(f"Muted {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send("That member is not in a VC")
+                await ctx.send(f"{str(member)} is not in a VC")
             except IndexError:
                 await ctx.send("That is not a valid user")
 
@@ -768,7 +793,7 @@ async def deafen(ctx, member):
                 await member.edit(deafen=True)
                 await ctx.send(f"Deafened {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send("That member is not in a VC")
+                await ctx.send(f"{str(member)} is not in a VC")
             except IndexError:
                 await ctx.send("That is not a valid user")
 
@@ -794,7 +819,7 @@ async def unmute(ctx, member):
                 await member.edit(mute=False)
                 await ctx.send(f"Unmuted {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send("That member is not in a VC")
+                await ctx.send(f"{str(member)} is not in a VC")
             except IndexError:
                 await ctx.send("That is not a valid user")
 
@@ -820,7 +845,7 @@ async def undeafen(ctx, member):
                 await member.edit(deafen=False)
                 await ctx.send(f"Undeafend {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send("That member is not in a VC")
+                await ctx.send(f"{str(member)} is not in a VC")
             except IndexError:
                 await ctx.send("That is not a valid user")
 
@@ -846,7 +871,7 @@ async def dc(ctx, member):
         except IndexError:
             return await ctx.send("That is not a valid user")
         if not member.voice:
-            return await ctx.send("That member is not in a VC")
+                await ctx.send(f"{str(member)} is not in a VC")
         await member.edit(voice_channel=None)
         await ctx.send(f"Disconnected {str(member)}")
 
@@ -862,40 +887,21 @@ async def moveteams(ctx):
                         if get(member.roles, name=team):
                             await member.edit(voice_channel=get(ctx.guild.voice_channels, name=team))
                             await ctx.send(f"Moved {str(member)} to {team}")
-                return
-        await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+            else:
+                await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
 
 
 @bot.command()
-@commands.bot_has_guild_permissions(manage_channels=True)
-@commands.has_guild_permissions(manage_channels=True)
-async def lock(ctx, *, channel):
-    joinedchannel = ""
-    for arg in channel:
-        joinedchannel = f"{joinedchannel}{arg} "
-    channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
-    if not channel:
-        return await ctx.send("That voice channel doest not exist.")
-    perms = channel.overwrites_for(ctx.guild.default_role)
-    perms.connect = False
-    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-    await ctx.send(f"Locked {channel.name}")
-
-
-@bot.command()
-@commands.bot_has_guild_permissions(manage_channels=True)
-@commands.has_guild_permissions(manage_channels=True)
-async def unlock(ctx, *, channel):
-    joinedchannel = ""
-    for arg in channel:
-        joinedchannel = f"{joinedchannel}{arg} "
-    channel = get(ctx.guild.voice_channels, name=joinedchannel[:-1])
-    if not channel:
-        return await ctx.send("That voice channel doest not exist.")
-    perms = channel.overwrites_for(ctx.guild.default_role)
-    perms.connect = True
-    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-    await ctx.send(f"Unlocked {channel.name}")
+@commands.bot_has_guild_permissions(move_members=True)
+@commands.has_guild_permissions(move_members=True)
+async def moveevents(ctx):
+    for team in teams:
+        voicechannel = get(ctx.guild.voice_channels, name=team)
+        if not voicechannel:
+            return await ctx.send(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
+        for member in voicechannel.members:
+            await member.edit(voice_channel=voicechannel)
+    await ctx.send(f"Moved all members to {voicechannel.name}")
 
 
 #------------------------------------------------------------------------------TEAM/EVENT MANAGEMENT--------------------------------------------------------------------------------------

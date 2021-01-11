@@ -740,23 +740,31 @@ async def move(ctx, member, *, channel):
             return await ctx.send("You are not in a voice channel")
         oldVC = ctx.author.voice.channel
         for member in oldVC.members:
-            await member.move_to(channel)
-        await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
+            try:
+                await member.move_to(channel)
+                await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
+            except discord.HTTPException:
+                return await ctx.send(f"Missing permissions to move members into {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
-                await member.move_to(channel)
-        await ctx.send(f"Moved all members to {channel.name}")
+                try:
+                    await member.move_to(channel)
+                    await ctx.send(f"Moved all members to {channel.name}")
+                except discord.HTTPException:
+                    return await ctx.send(f"Missing permissions to move members into {channel.name}")
     else:
         try:
             member = ctx.message.mentions[0]
         except IndexError:
             return await ctx.send("Invalid member")
+        if not member.voice.channel:
+            return await ctx.send(f"{str(member)} is not in a VC")
         try:
             await member.move_to(channel)
             await ctx.send(f"Moved {str(member)} to {str(channel)}")
         except discord.errors.HTTPException:
-            await ctx.send(f"{str(member)} is not in a VC")
+            return await ctx.send(f"Missing permissions to move members into {channel.name}")
 
 
 @bot.command()

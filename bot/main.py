@@ -745,9 +745,9 @@ async def move(ctx, member, *, channel):
             for member in voice_channel.members:
                 try:
                     await member.move_to(channel)
-                    await ctx.send(f"Moved all members to {channel.name}")
                 except discord.HTTPException:
                     return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
+            await ctx.send(f"Moved all members to {channel.name}")
     else:
         try:
             member = ctx.message.mentions[0]

@@ -201,7 +201,7 @@ async def on_message(message):
                 return await message.delete()
 
 
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     if "TimeoutError" in str(error):
         return await ctx.send("Timed out.")
@@ -492,11 +492,11 @@ async def speak(ctx, *message):
     for messageVar in message:
         fullmessage += ' '
         fullmessage += messageVar
-    if ctx.guild.voice_client:
+    if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
         try:
-            vc = await ctx.author.voice.channel.connect(timeout=60.0)
+            vc = await ctx.author.voice.channel.connect()
         except discord.HTTPException:
             return await ctx.send(f"Missing permissions to connect to {ctx.author.voice.channel.name}")
     else:
@@ -744,7 +744,7 @@ async def move(ctx, member, *, channel):
                 await member.move_to(channel)
                 await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
             except discord.HTTPException:
-                return await ctx.send(f"Missing permissions to move members into {channel.name}")
+                return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
@@ -752,7 +752,7 @@ async def move(ctx, member, *, channel):
                     await member.move_to(channel)
                     await ctx.send(f"Moved all members to {channel.name}")
                 except discord.HTTPException:
-                    return await ctx.send(f"Missing permissions to move members into {channel.name}")
+                    return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
     else:
         try:
             member = ctx.message.mentions[0]
@@ -764,7 +764,7 @@ async def move(ctx, member, *, channel):
             await member.move_to(channel)
             await ctx.send(f"Moved {str(member)} to {str(channel)}")
         except discord.errors.HTTPException:
-            return await ctx.send(f"Missing permissions to move members into {channel.name}")
+            return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
 
 
 @bot.command()

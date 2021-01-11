@@ -238,15 +238,6 @@ async def on_reaction_add(reaction, user):
                         if get(user.roles, name=eachteam):
                             return await reaction.remove(user)
                     await user.add_roles(role)
-                    for channel in user.guild.text_channels:
-                        if "event-logs" in str(channel.name):
-                            if len(role.members)>1:
-                                for member in role.members:
-                                    if not str(member) == str(user):
-                                        await channel.send(f"{user.mention} joined {str(team)} and is now teaming with {member.mention}")
-                            else:
-                                await channel.send(f"{user.mention} joined {str(role)}")
-                            return
                 else:
                     await reaction.remove(user)
         try:
@@ -1795,7 +1786,7 @@ async def youtube(ctx, *, channel):
     try:
         seemore = await bot.wait_for('message', timeout=30, check=ytCheck)
     except asyncio.TimeoutError:
-        pass
+        return
     for item in data['items']:
         if item != data['items'][0]:
             try:

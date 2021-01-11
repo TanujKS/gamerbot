@@ -495,7 +495,10 @@ async def speak(ctx, *message):
     if ctx.guild.voice_client:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
-        vc = await ctx.author.voice.channel.connect(timeout=60.0)
+        try:
+            vc = await ctx.author.voice.channel.connect(timeout=60.0)
+        except discord.HTTPException:
+            return await ctx.send(f"Missing permissions to connect to {ctx.author.voice.channel.name}")
     else:
         return await ctx.send("You are not in a voice channel.")
     await ctx.guild.me.edit(deafen=True)

@@ -732,7 +732,9 @@ async def dm(ctx, message):
 @commands.has_guild_permissions(move_members=True)
 async def move(ctx, member, *, channel):
     if channel == "me":
-        channel = ctx.author.voice.channel
+        if not ctx.author.voice:
+            return await ctx.send("You are not in a voice channel")
+            channel = ctx.author.voice.channel
     else:
         channel = get(ctx.guild.voice_channels, name=channel)
     if not channel:

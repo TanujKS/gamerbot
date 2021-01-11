@@ -201,7 +201,7 @@ async def on_message(message):
                 return await message.delete()
 
 
-#@bot.event
+@bot.event
 async def on_command_error(ctx, error):
     if "TimeoutError" in str(error):
         return await ctx.send("Timed out.")

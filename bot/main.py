@@ -142,11 +142,6 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-    print("Guilds:")
-    for guild in bot.guilds:
-        print(guild.name)
-        channel = guild.text_channels[0]
-        print(await channel.create_invite())
 
 
 @bot.event
@@ -173,23 +168,7 @@ async def on_guild_remove(guild):
 
 @bot.event
 async def on_message_edit(before, message):
-    if message.author.id != bot.user.id:
-        if not message.author.id in blackListed:
-            await bot.process_commands(message)
-        if message.guild:
-            messageList = message.content.lower().split()
-            if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
-                webhooks = await message.channel.webhooks()
-                webhook = get(webhooks, name="ezbot")
-                if not webhook:
-                    webhook = await message.channel.create_webhook(name="ezbot")
-                print(f"Using webhook {webhook.name}")
-                if message.author.nick:
-                    username = message.author.nick
-                else:
-                    username = message.author.name
-                await webhook.send(ezmessages[random.randint(0, len(ezmessages))-1], username=username, avatar_url=message.author.avatar_url)
-                return await message.delete()
+    await on_message(message)
 
 
 @bot.event
@@ -422,6 +401,7 @@ async def help(ctx, *category):
         embed.add_field(name="?report", value="Report a problem to the bot developers", inline=False)
         embed.add_field(name="?settings", value="Tweak settings for your guild", inline=False)
         embed.add_field(name="?rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
+        embed.add_field(name="?dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
@@ -577,7 +557,10 @@ async def poll(ctx, poll, *options):
         return await ctx.send("Maximum options = 8")
     if len(options) < 2:
         return await ctx.send("Minimum of 2 options")
-    embed = discord.Embed(title=poll, description=None, color=0xff0000)
+    try:
+        embed = discord.Embed(title=poll, description=None, color=0xff0000)
+    except discord.HTTPException:
+        return await ctx.send("Poll title must be less than 256 characters")
     for option in options:
         embed.add_field(name=emojis[options.index(option)], value="\u200b", inline=True)
         embed.add_field(name=option, value="\u200b", inline=True)
@@ -694,7 +677,7 @@ async def report(ctx):
 
 @bot.command()
 @commands.has_guild_permissions(administrator=True)
-async def dm(ctx, *, message):
+async def dm(ctx, message):
     dmedMessage = "Succesfuly DMed:"
     for role in ctx.message.role_mentions:
         dmedMessage += f"\nAll members with {role.name}"

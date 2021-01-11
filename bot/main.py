@@ -71,6 +71,14 @@ guildInfo = {}
 for g in tempGuildInfo:
     guildInfo[int(g)] = tempGuildInfo[g]
 
+async def getFeedback(guild):
+    for channel in guild.text_channels:
+        try:
+            await channel.send(f"Hello {guild.owner.mention}! Sorry to disturb you, I am the creator of GamerBot. I had noticed that GamerBot has been added to your server and I am just wondering what you think of it. If you could use the ?report feature to send any feedback to me I would love that :)")
+            return
+        except discord.errors.Forbidden:
+            pass
+
 def multi_key_dict_get(d, k):
     for keys, v in d.items():
         if k in keys:

@@ -142,7 +142,7 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-    await bot.loop.create_task(checkIfLive())
+    #await bot.loop.create_task(checkIfLive())
 
 
 @bot.event

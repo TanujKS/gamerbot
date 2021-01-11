@@ -753,7 +753,7 @@ async def move(ctx, member, *, channel):
             member = ctx.message.mentions[0]
         except IndexError:
             return await ctx.send("Invalid member")
-        if not member.voice.channel:
+        if not member.voice:
             return await ctx.send(f"{str(member)} is not in a VC")
         try:
             await member.move_to(channel)

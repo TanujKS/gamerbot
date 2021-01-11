@@ -166,6 +166,7 @@ async def on_guild_join(guild):
     guildInfo[guild.id]['streamers'] = {}
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
+    await reports.send(f"Joined {guild.name} with {guild.member_count}")
 
 
 @bot.event
@@ -384,6 +385,7 @@ async def help(ctx, *category):
         embed.add_field(name="?dc (member or 'all' or 'channel-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?move (member or 'all' or 'channel-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name="?moveevents", value="Moves all people who are in Team Voice Channels to the Event Voice Channel (Requires permission Move Members)", inline=False)
         embed.add_field(name="?speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
     elif category[0] == "teams":
         embed=discord.Embed(title="Team Commands", description="Commands I can do to manage your teams for game nights", color=0xff0000)

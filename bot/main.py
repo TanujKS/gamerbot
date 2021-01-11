@@ -740,10 +740,10 @@ async def move(ctx, member, *, channel):
         except IndexError:
             return await ctx.send("Invalid member")
         try:
-            await member.edit(voice_channel=channel)
+            await member.move_to(channel)
             await ctx.send(f"Moved {str(member)} to {str(channel)}")
         except discord.errors.HTTPException:
-            await ctx.send(f"{str(member)}is not in a VC")
+            await ctx.send(f"{str(member)} is not in a VC")
 
 
 @bot.command()

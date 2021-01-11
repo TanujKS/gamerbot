@@ -725,7 +725,7 @@ async def move(ctx, member, *, channel):
     if channel == "me":
         if not ctx.author.voice:
             return await ctx.send("You are not in a voice channel")
-            channel = ctx.author.voice.channel
+        channel = ctx.author.voice.channel
     else:
         channel = get(ctx.guild.voice_channels, name=channel)
     if not channel:

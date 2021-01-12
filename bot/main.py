@@ -71,6 +71,7 @@ guildInfo = {}
 for g in tempGuildInfo:
     guildInfo[int(g)] = tempGuildInfo[g]
 
+
 async def getFeedback(guild):
     for channel in guild.text_channels:
         try:
@@ -150,7 +151,7 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-    await bot.loop.create_task(checkIfLive())
+    #await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -158,14 +159,17 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+
     guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['streamers'] = {}
+
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
+
     await reports.send(f"Joined {guild.name} with {guild.member_count}")
 
 
@@ -184,10 +188,13 @@ async def on_message_edit(before, message):
 @bot.event
 async def on_message(message):
     if not message.author.bot:
+
         if not message.author.id in blackListed:
             await bot.process_commands(message)
+
         if message.guild:
             messageList = message.content.lower().split()
+
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()
                 webhook = get(webhooks, name="ezbot")
@@ -211,6 +218,7 @@ async def on_command_error(ctx, error):
     for e in passErrors:
         if isinstance(error, e):
             return
+
     await ctx.send("Error. This has been reported and will be reviewed shortly.")
     embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
     embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
@@ -240,6 +248,7 @@ async def on_reaction_add(reaction, user):
                     await user.add_roles(role)
                 else:
                     await reaction.remove(user)
+
         try:
             dic = reaction.message.embeds[0].to_dict()
             if dic['title'].startswith("(closed)"):
@@ -248,6 +257,7 @@ async def on_reaction_add(reaction, user):
             pass
         except KeyError:
             pass
+
         try:
             dic = reaction.message.embeds[0].to_dict()
             footer = dic['footer']['text']
@@ -262,6 +272,7 @@ async def on_reaction_add(reaction, user):
             pass
         except KeyError:
             pass
+
         if reaction.message.content == "Teams are now closed.":
             await reaction.remove(user)
 
@@ -507,10 +518,6 @@ async def speak(ctx, *message):
             pass
 
 
-trackingGuilds = {
-763824152493686795: {"channel-id": 784152462944632862, "streamer": "pokimane", "pinged": False, "message": "pokimane is live"}
-}
-
 async def checkIfLive():
     while True:
         for guild in trackingGuilds:
@@ -526,28 +533,36 @@ async def checkIfLive():
                     guildSend = bot.get_guild(guild)
                     channel = guildSend.get_channel(trackingGuilds[guild]["channel-id"])
                     await channel.send(embed=embed)
-                    trackingGuilds[guild]['pinged'] = False
+                    trackingGuilds[guild]['pinged'] = True
             else:
-                print(f"{streamer} is not live")
+                print(f"{trackingGuilds[guild]['streamer']} is not live")
                 trackingGuilds[guild]['pinged'] = False
         await asyncio.sleep(60)
 
-
-@bot.command()
+#@bot.command()
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user['data']:
         return await ctx.send("Invalid channel")
-    trackingGuilds[ctx.guild.id] = {}
-    trackingGuilds[ctx.guild.id]['channel-id'] = ctx.channel.id
-    trackingGuilds[ctx.guild.id]['streamer'] = channel
-    trackingGuilds[ctx.guild.id]['pinged'] = False
-    trackingGuilds[ctx.guild.id]['channel-id'] = message
-    embed = discord.Embed(title=trackingGuilds[guild]['message'], description=f"https://twitch.tv/{trackingGuilds[guild]['streamer']}", color=0xff0000)
-    embed.set_thumbnail(url=x['thumbnail_url'])
-    embed.add_field(name=x['title'], value="\u200b", inline=False)
-    await channel.send(embed=embed)
+    for x in user['data']:
+        print(x)
+        trackingGuilds[ctx.guild.id] = {}
+        trackingGuilds[ctx.guild.id]['channel-id'] = ctx.channel.id
+        trackingGuilds[ctx.guild.id]['streamer'] = channel
+        trackingGuilds[ctx.guild.id]['pinged'] = False
+        trackingGuilds[ctx.guild.id]['message'] = message
+        embed = discord.Embed(title=trackingGuilds[ctx.guild.id]['message'], description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id]['streamer']}", color=0xff0000)
+        embed.set_thumbnail(url=x['profile_image_url'])
+        embed.add_field(name="This is an example stream", value="\u200b", inline=False)
+        channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id]["channel-id"])
+        await channelSend.send(embed=embed)
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
 
+
+@bot.command()
+async def deltrack(ctx, streamer):
+    del trackingGuilds[ctx.guild.id]['']
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)
@@ -750,9 +765,9 @@ async def move(ctx, member, *, channel):
         for member in oldVC.members:
             try:
                 await member.move_to(channel)
-                await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
             except discord.HTTPException:
                 return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
+            await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
@@ -760,7 +775,7 @@ async def move(ctx, member, *, channel):
                     await member.move_to(channel)
                 except discord.HTTPException:
                     return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
-            await ctx.send(f"Moved all members to {channel.name}")
+        await ctx.send(f"Moved all members to {channel.name}")
     else:
         try:
             member = ctx.message.mentions[0]

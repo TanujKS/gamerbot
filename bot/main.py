@@ -150,7 +150,7 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-    #await bot.loop.create_task(checkIfLive())
+    await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -507,33 +507,46 @@ async def speak(ctx, *message):
             pass
 
 
-#streamers = {"jacksepticeye": {"pinged": True, {"channel", }}, {}}
-#async def checkIfLive():
-    #while True:
-    #    for streamer in streamers:
-    #        data = requests.get(f"https://api.twitch.tv/helix/search/channels?query={streamer}/", headers={"client-id":TWITCH_CLIENT_ID, 'Authorization': TWITCH_AUTH}).json()
-    #        for x in data['data']:
-    #            is_live = x['is_live']
-    #            break
-    #        if is_live:
-    #            if not streamers[streamer]['pinged']:
-    #                embed = discord.Embed(title=streamers[streamer]['message'], description=f"https://twitch.tv/{streamer}", color=0x04ff00)
-    #                embed.set_thumbnail(url=x['thumbnail_url'])
-    #                embed.add_field(name=x['title'], value="\u200b", inline=False)
-    #                guild = bot.get_guild(streamers[streamer]['guild'])
-    #                channel = guild.get_channel(streamers[streamer]['channel'])
-    #                await channel.send(embed=embed)
-    #                streamers[streamer]['pinged'] = True
-    #        else:
-    #            print(f"{streamer} is not live")
-    #            streamers[streamer]['pinged'] = False
-    #    await asyncio.sleep(60)
+trackingGuilds = {
+763824152493686795: {"channel-id": 784152462944632862, "streamer": "pokimane", "pinged": False, "message": "pokimane is live"}
+}
 
-#@bot.command()
-async def twitchtrack(ctx, channel):
+async def checkIfLive():
+    while True:
+        for guild in trackingGuilds:
+            data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
+            for x in data['data']:
+                is_live = x['is_live']
+                break
+            if is_live:
+                if not trackingGuilds[guild]['pinged']:
+                    embed = discord.Embed(title=trackingGuilds[guild]['message'], description=f"https://twitch.tv/{trackingGuilds[guild]['streamer']}", color=0xff0000)
+                    embed.set_thumbnail(url=x['thumbnail_url'])
+                    embed.add_field(name=x['title'], value="\u200b", inline=False)
+                    guildSend = bot.get_guild(guild)
+                    channel = guildSend.get_channel(trackingGuilds[guild]["channel-id"])
+                    await channel.send(embed=embed)
+                    trackingGuilds[guild]['pinged'] = False
+            else:
+                print(f"{streamer} is not live")
+                trackingGuilds[guild]['pinged'] = False
+        await asyncio.sleep(60)
+
+
+@bot.command()
+async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user['data']:
         return await ctx.send("Invalid channel")
+    trackingGuilds[ctx.guild.id] = {}
+    trackingGuilds[ctx.guild.id]['channel-id'] = ctx.channel.id
+    trackingGuilds[ctx.guild.id]['streamer'] = channel
+    trackingGuilds[ctx.guild.id]['pinged'] = False
+    trackingGuilds[ctx.guild.id]['channel-id'] = message
+    embed = discord.Embed(title=trackingGuilds[guild]['message'], description=f"https://twitch.tv/{trackingGuilds[guild]['streamer']}", color=0xff0000)
+    embed.set_thumbnail(url=x['thumbnail_url'])
+    embed.add_field(name=x['title'], value="\u200b", inline=False)
+    await channel.send(embed=embed)
 
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)

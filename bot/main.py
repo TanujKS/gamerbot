@@ -445,7 +445,7 @@ async def help(ctx, *category):
         embed.add_field(name="?dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
         embed.add_field(name="?twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
         embed.add_field(name="?deltrack (twitch_channel)", value="Stop tracking a Twitch streamer", inline=False)
-        embed.add_field(name="?twichtracklist", value="Shows all Twitch streamers that are being tracked", inline=False)
+        embed.add_field(name="?twitchtracklist", value="Shows all Twitch streamers that are being tracked", inline=False)
         embed.add_field(name="?donate", value="Information about donating to GamerBot", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)

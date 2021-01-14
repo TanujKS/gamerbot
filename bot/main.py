@@ -445,6 +445,7 @@ async def help(ctx, *category):
         embed.add_field(name="?dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
         embed.add_field(name="?twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
         embed.add_field(name="?deltrack (twitch_channel)", value="Stop tracking a Twitch streamer", inline=False)
+        embed.add_field(name="?twichtracklist", value="Shows all Twitch streamers that are being tracked", inline=False)
         embed.add_field(name="?donate", value="Information about donating to GamerBot", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
@@ -573,7 +574,6 @@ async def checkIfLive():
                     break
         await asyncio.sleep(60)
 
-
 @bot.command()
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
@@ -597,12 +597,12 @@ async def twitchtrack(ctx, channel, *, message):
     rval = json.dumps(trackingGuilds)
     r.set("trackingGuilds", rval)
 
+
 def findTwitchTrack(ctx, streamer):
     for track in trackingGuilds[ctx.guild.id]:
         if trackingGuilds[ctx.guild.id][trackingGuilds[ctx.guild.id].index(track)]['streamer'] == streamer:
             return trackingGuilds[ctx.guild.id].index(track)
     return None
-
 
 @bot.command()
 async def deltrack(ctx, *, streamer):
@@ -621,6 +621,10 @@ async def twitchtracklist(ctx):
     for track in trackingGuilds[ctx.guild.id]:
         index = trackingGuilds[ctx.guild.id].index(track)
         embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
+    await ctx.send(embed=embed)
+
+
+
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

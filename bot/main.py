@@ -161,6 +161,19 @@ async def on_ready():
     global botmaster
     botmaster = info.owner.id
     await bot.loop.create_task(checkIfLive())
+    for guild in bot.guilds:
+        try:
+            trackingGuilds[guild.id]
+        except KeyError:
+            trackingGuilds[guild.id] = []
+        try:
+            guildInfo[guild.id]
+        except KeyError:
+            guildInfo[guild.id] = {}
+            guildInfo[guild.id]['antiez'] = False
+            guildInfo[guild.id]['teamLimit'] = 2
+            guildInfo[guild.id]['maximumTeams'] = 1
+            guildInfo[guild.id]['TTVCrole'] = "TTVC"
 
 
 @bot.event
@@ -173,7 +186,6 @@ async def on_guild_join(guild):
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    guildInfo[guild.id]['streamers'] = {}
     trackingGuilds[guild.id] = []
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
@@ -431,6 +443,9 @@ async def help(ctx, *category):
         embed.add_field(name="?settings", value="Tweak settings for your guild", inline=False)
         embed.add_field(name="?rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
         embed.add_field(name="?dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
+        embed.add_field(name="?twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
+        embed.add_field(name="?deltrack (twitch_channel)", value="Stop tracking a Twitch streamer", inline=False)
+        embed.add_field(name="?donate", value="Information about donating to GamerBot", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
@@ -562,7 +577,9 @@ async def checkIfLive():
 @bot.command()
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    if user['error'] or not user['data']:
+    try:
+        user['data']
+    except KeyError:
         return await ctx.send("Invalid channel")
     for x in user['data']:
         trackingGuilds[ctx.guild.id].append({})

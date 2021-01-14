@@ -603,6 +603,7 @@ def findTwitchTrack(ctx, streamer):
             return trackingGuilds[ctx.guild.id].index(track)
     return None
 
+
 @bot.command()
 async def deltrack(ctx, *, streamer):
     track = findTwitchTrack(ctx, streamer)
@@ -613,6 +614,13 @@ async def deltrack(ctx, *, streamer):
     rval = json.dumps(trackingGuilds)
     r.set("trackingGuilds", rval)
 
+
+@bot.command()
+async def twitchtracklist(ctx):
+    embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", description=None, color=0xff0000)
+    for track in trackingGuilds[ctx.guild.id]:
+        index = trackingGuilds[ctx.guild.id].index(track)
+        embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)

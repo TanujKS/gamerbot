@@ -25,7 +25,7 @@ from mojang.exceptions import LoginError
 from decouple import config
 import redis
 
-bot = commands.Bot(command_prefix='?', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='?', intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
 
 
@@ -38,7 +38,7 @@ REDIS_URL = (os.environ.get("REDIS_URL"))
 KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH, REDIS_URL]
 
 if any(v is None for v in KEYS):
-    print("Using .env vars")
+    print("Using .env variables")
     HYPIXEL_KEY = config("HYPIXEL_KEY")
     TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID")
     YT_KEY = config("YT_KEY")
@@ -64,13 +64,22 @@ for i in range(0, len(blackListed)):
     blackListed[i] = blackListed[i].decode("utf-8")
 
 rval = r.get("guildInfo")
-
 tempGuildInfo = json.loads(rval)
-
 guildInfo = {}
+
 for g in tempGuildInfo:
     guildInfo[int(g)] = tempGuildInfo[g]
 
+rval = r.get("trackingGuilds")
+tempTrackingGuilds = json.loads(rval)
+trackingGuilds = {}
+
+for t in tempTrackingGuilds:
+    trackingGuilds[int(t)] = tempTrackingGuilds[t]
+    for u in trackingGuilds[int(t)]:
+        index = trackingGuilds[int(t)].index(u)
+        trackingGuilds[int(t)][index]['channel-id'] = int(trackingGuilds[int(t)][index]['channel-id'])
+        trackingGuilds[int(t)][index]['pinged'] = bool(trackingGuilds[int(t)][index]['pinged'])
 
 async def getFeedback(guild):
     for channel in guild.text_channels:
@@ -151,7 +160,7 @@ async def on_ready():
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-    #await bot.loop.create_task(checkIfLive())
+    await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -159,17 +168,17 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-
     guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['streamers'] = {}
-
+    trackingGuilds[guild.id] = []
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
-
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
     await reports.send(f"Joined {guild.name} with {guild.member_count}")
 
 
@@ -181,8 +190,8 @@ async def on_guild_remove(guild):
 
 
 @bot.event
-async def on_message_edit(before, message):
-    await on_message(message)
+async def on_message_edit(before, after):
+    await on_message(after)
 
 
 @bot.event
@@ -312,6 +321,13 @@ async def unblacklist(ctx, member : discord.Member):
     blackListed.remove(member.id)
     r.lrem("blacklisted", 0, member.id)
     await ctx.send(f"Unblacklisted {str(member)}")
+
+
+@bot.command()
+@commands.is_owner()
+async def setstatus(ctx, *, status):
+    game = discord.Game(status)
+    await bot.change_presence(activity=game)
 
 
 @bot.command()
@@ -518,51 +534,68 @@ async def speak(ctx, *message):
             pass
 
 
+
 async def checkIfLive():
     while True:
         for guild in trackingGuilds:
-            data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
-            for x in data['data']:
-                is_live = x['is_live']
-                break
-            if is_live:
-                if not trackingGuilds[guild]['pinged']:
-                    embed = discord.Embed(title=trackingGuilds[guild]['message'], description=f"https://twitch.tv/{trackingGuilds[guild]['streamer']}", color=0xff0000)
-                    embed.set_thumbnail(url=x['thumbnail_url'])
-                    embed.add_field(name=x['title'], value="\u200b", inline=False)
-                    guildSend = bot.get_guild(guild)
-                    channel = guildSend.get_channel(trackingGuilds[guild]["channel-id"])
-                    await channel.send(embed=embed)
-                    trackingGuilds[guild]['pinged'] = True
-            else:
-                print(f"{trackingGuilds[guild]['streamer']} is not live")
-                trackingGuilds[guild]['pinged'] = False
+            for track in trackingGuilds[guild]:
+                index = trackingGuilds[guild].index(track)
+                data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
+                for x in data['data']:
+                    is_live = x['is_live']
+                    if is_live:
+                        if not trackingGuilds[guild][index]['pinged']:
+                            embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
+                            embed.set_thumbnail(url=x['thumbnail_url'])
+                            embed.add_field(name=x['title'], value="\u200b", inline=False)
+                            guildSend = bot.get_guild(guild)
+                            channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
+                            await channel.send(embed=embed)
+                            trackingGuilds[guild][index]['pinged'] = True
+                    else:
+                        print(f"{trackingGuilds[guild][index]['streamer']} is not live")
+                        trackingGuilds[guild][index]['pinged'] = False
+                    break
         await asyncio.sleep(60)
-
-#@bot.command()
-async def twitchtrack(ctx, channel, *, message):
-    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    if not user['data']:
-        return await ctx.send("Invalid channel")
-    for x in user['data']:
-        print(x)
-        trackingGuilds[ctx.guild.id] = {}
-        trackingGuilds[ctx.guild.id]['channel-id'] = ctx.channel.id
-        trackingGuilds[ctx.guild.id]['streamer'] = channel
-        trackingGuilds[ctx.guild.id]['pinged'] = False
-        trackingGuilds[ctx.guild.id]['message'] = message
-        embed = discord.Embed(title=trackingGuilds[ctx.guild.id]['message'], description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id]['streamer']}", color=0xff0000)
-        embed.set_thumbnail(url=x['profile_image_url'])
-        embed.add_field(name="This is an example stream", value="\u200b", inline=False)
-        channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id]["channel-id"])
-        await channelSend.send(embed=embed)
-    rval = json.dumps(trackingGuilds)
-    r.set("trackingGuilds", rval)
 
 
 @bot.command()
-async def deltrack(ctx, streamer):
-    del trackingGuilds[ctx.guild.id]['']
+async def twitchtrack(ctx, channel, *, message):
+    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+    if user['error'] or not user['data']:
+        return await ctx.send("Invalid channel")
+    for x in user['data']:
+        trackingGuilds[ctx.guild.id].append({})
+        index = len(trackingGuilds[ctx.guild.id]) - 1
+        trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
+        trackingGuilds[ctx.guild.id][index]['streamer'] = channel
+        trackingGuilds[ctx.guild.id][index]['pinged'] = False
+        trackingGuilds[ctx.guild.id][index]['message'] = message
+        embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
+        embed.set_thumbnail(url=x['profile_image_url'])
+        embed.add_field(name="This is an example stream", value="\u200b", inline=False)
+        channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]["channel-id"])
+        await channelSend.send(embed=embed)
+        break
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
+
+def findTwitchTrack(ctx, streamer):
+    for track in trackingGuilds[ctx.guild.id]:
+        if trackingGuilds[ctx.guild.id][trackingGuilds[ctx.guild.id].index(track)]['streamer'] == streamer:
+            return trackingGuilds[ctx.guild.id].index(track)
+    return None
+
+@bot.command()
+async def deltrack(ctx, *, streamer):
+    track = findTwitchTrack(ctx, streamer)
+    if track is None:
+        return await ctx.send("Invalid streamer")
+    trackingGuilds[ctx.guild.id].pop(track)
+    await ctx.send(f"No longer tracking {streamer}")
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
+
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)
@@ -745,6 +778,12 @@ async def dm(ctx, message):
         dm = await member.create_dm()
         await dm.send(message)
     await ctx.send(dmedMessage)
+
+
+@bot.command()
+async def donate(ctx):
+    embed = discord.Embed(title="Donate to GamerBot", description="Donations help pay for the server required to run GamerBot and to pay for premium APIs to deliver faster stats. Donating perks can include custom commands or a custom bot for your own server. Please contact tanju_shorty#7767 for more info.", color=0xff0000)
+    await ctx.send(embed=embed)
 #------------------------------------------------------------------------------VOICE CHANNEL MANAGEMENT--------------------------------------------------------------------------------------
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)

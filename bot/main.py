@@ -578,7 +578,8 @@ async def checkIfLive():
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     try:
-        user['data']
+        if not user['data']:
+            raise KeyError
     except KeyError:
         return await ctx.send("Invalid channel")
     for x in user['data']:
@@ -1819,7 +1820,10 @@ async def fortnite(ctx, player):
 @bot.command()
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    if not user['data']:
+    try:
+        if not user['data']:
+            raise KeyError
+    except KeyError:
         return await ctx.send("Invalid channel")
     try:
         data = (user['data'])[0]

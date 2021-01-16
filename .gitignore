@@ -2,3 +2,4 @@
 .env
 databaseManager.py
 text.mp3
+__pycache__

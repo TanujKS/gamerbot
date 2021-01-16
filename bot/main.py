@@ -191,7 +191,7 @@ async def on_guild_join(guild):
     r.set("guildInfo", rval)
     rval = json.dumps(trackingGuilds)
     r.set("trackingGuilds", rval)
-    await reports.send(f"Joined {guild.name} with {guild.member_count}")
+    await reports.send(f"Joined {guild.name} with {guild.member_count} members")
 
 
 @bot.event
@@ -511,6 +511,7 @@ async def settings(ctx, *setting):
 @bot.command()
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+@commands.cooldown(10, 60, commands.BucketType.member)
 async def speak(ctx, *message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
@@ -765,7 +766,7 @@ async def quote(ctx, member : discord.Member, *, message):
     else:
         username = member.name
     await webhook.send(message, username=username, avatar_url=member.avatar_url)
-    return await ctx.message.delete()
+    await ctx.message.delete()
 
 
 @bot.command()

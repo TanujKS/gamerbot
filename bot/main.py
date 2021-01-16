@@ -381,6 +381,7 @@ async def enablecommand(ctx, commandName):
 async def eval(ctx, *, evalInput):
     try:
         evalVar = eval(evalInput)
+        print(evalVar)
         await ctx.send(evalVar)
     except Exception as err:
         await ctx.send(err)

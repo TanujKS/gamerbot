@@ -380,7 +380,8 @@ async def enablecommand(ctx, commandName):
 @commands.is_owner()
 async def eval(ctx, *, evalInput):
     try:
-        await ctx.send(eval(evalInput))
+        evalVar = eval(evalInput)
+        await ctx.send(evalVar)
     except Exception as err:
         await ctx.send(err)
 

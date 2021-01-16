@@ -353,7 +353,7 @@ async def blacklisted(ctx):
 
 @bot.command()
 @commands.is_owner()
-async def remoteshutdown(ctx):
+async def shutdown(ctx):
     await ctx.send("Shutting down")
     await bot.close()
 
@@ -380,18 +380,11 @@ async def enablecommand(ctx, commandName):
 
 @bot.command()
 @commands.is_owner()
-async def guilds(ctx):
-    for guild in bot.guilds:
-        await ctx.send(f"{guild.name}: \nOwner: {guild.owner.name} \n# of Members: {guild.member_count}")
-
-
-@bot.command()
-@commands.is_owner()
-async def commandlist(ctx):
-    message = ""
-    for command in bot.commands:
-        message = f"{message} \n{command}"
-    await ctx.send(message)
+async def eval(ctx, *, evalInput):
+    try:
+        await ctx.send(eval(evalInput))
+    except Exception as err:
+        await ctx.send(err)
 
 
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
@@ -1764,33 +1757,6 @@ async def duels(ctx, *player_and_mode):
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
-
-
-#@bot.command(aliases=["sb"])
-#@commands.is_owner()
-async def skyblock(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not data['player']:
-        return await ctx.send("That player does not exist")
-    profiles = data['player']['stats']['SkyBlock']['profiles']
-    message = ""
-    for profile in profiles:
-        message = f"{message}\n{profiles[profile]['cute_name']}"
-    await ctx.send("Which profile would you like stats for?")
-    await ctx.send(message)
-    def skyblockCheck(m):
-        return m.author == ctx.author and m.channel == ctx.channel and m.content in profiles
-    response = await bot.wait_for('message', timeout=120, check=skyblockCheck)
-    await ctx.send(f"Stats for {response.content}")
-    #sbData = requests.get("https://api.slothpixel.me/api/skyblock/profiles/princeoftoxicity").json()
-    #sbData = sbData['members'][data['player']['uuid']]
-    #skill average (convert to level/total skill)
-    #display all skills
-    #catacombs level
-    #class levels
-    #coins
-    #equipped armor
-    #await ctx.send(embed=embed)
 
 
 @bot.command()

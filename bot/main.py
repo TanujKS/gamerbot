@@ -199,6 +199,7 @@ async def on_guild_remove(guild):
     print(f"Left {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+    await reports.send(f"Left {guild.name} with {guild.member_count} members")
 
 
 @bot.event
@@ -306,9 +307,6 @@ async def on_reaction_remove(reaction, user):
             role = get(user.guild.roles, name=team)
             if role in user.roles:
                 await user.remove_roles(role)
-                for channel in user.guild.text_channels:
-                    if "event-logs" in str(channel):
-                        await channel.send(f"{user.mention} left {team}")
 
 
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
@@ -1865,6 +1863,7 @@ async def youtube(ctx, *, channel):
                 await ctx.send(embed=embed)
             except discord.HTTPException:
                 pass
+
 
 
 bot.run(TOKEN)

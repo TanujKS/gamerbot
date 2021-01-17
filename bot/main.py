@@ -1909,12 +1909,5 @@ async def youtube(ctx, *, channel):
                 pass
 
 
-@bot.command()
-async def csgo(ctx, player):
-    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    data = data['data']
-    embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile'", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
-    embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
-    embed.add_field(name="ID:", value=data['platformInfo']['platformUserId'], inline=True)
-    embed.add_field(name="Kills:", value=data['kills']['value'], inline=False)
+
 bot.run(TOKEN)

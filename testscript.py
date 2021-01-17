@@ -17,6 +17,7 @@ async def csgo(ctx, player):
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = data['data']
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile'", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
+    embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
     embed.add_field(name="ID:", value=data['platformInfo']['platformUserId'], inline=True)
     embed.add_field(name="Kills:", value=data['segments'][0]['stats']['kills']['value'], inline=True)
@@ -27,9 +28,12 @@ async def csgo(ctx, player):
     embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['shotsFired']['value'], inline=True)
     embed.add_field(name="Shots Hit:", value=data['segments'][0]['stats']['shotsHit']['value'], inline=True)
     embed.add_field(name="Shot Accuracy:", value=data['segments'][0]['stats']['shotsAccuracy']['value'], inline=True)
-    embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['kd']['value'], inline=True)
-    embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['kd']['value'], inline=True)
-    embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['kd']['value'], inline=True)
+    embed.add_field(name="Bombs Planted:", value=data['segments'][0]['stats']['bombsPlanted']['value'], inline=True)
+    embed.add_field(name="Bombs Defused:", value=data['segments'][0]['stats']['bombsDefused']['value'], inline=True)
+    embed.add_field(name="Wins:", value=data['segments'][0]['stats']['wins']['value'], inline=True)
+    embed.add_field(name="Losses:", value=data['segments'][0]['stats']['losses']['value'], inline=True)
+    embed.add_field(name="Ties:", value=data['segments'][0]['stats']['ties']['value'], inline=True)
+    embed.add_field(name="W/L Percentage:", value=data['segments'][0]['stats']['wlPercentage']['value'], inline=True)
     await ctx.send(embed=embed)
 
 bot.run(config("ALT_TOKEN"))

@@ -1227,9 +1227,11 @@ async def wipe(ctx):
                     await category.delete()
             for team in teams:
                 role = get(ctx.guild.roles, name=team)
-                await role.delete()
+                if role:
+                    await role.delete()
             role = get(ctx.guild.roles, name="Banned from event")
-            await role.delete()
+            if role:
+                await role.delete()
             await ctx.send("Wiped all event channels")
         if response.content == "n":
             await ctx.send("Ok, cancelled the wipe")

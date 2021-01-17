@@ -36,7 +36,8 @@ YT_KEY = os.environ.get('YT_KEY')
 TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
 TOKEN = os.environ.get("TOKEN")
 REDIS_URL = (os.environ.get("REDIS_URL"))
-KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH, REDIS_URL]
+TRN_API_KEY = (os.environ.get("TRN_API_KEY"))
+KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH, REDIS_URL, TRN_API_KEY]
 
 if any(v is None for v in KEYS):
     print("Using .env variables")
@@ -46,6 +47,7 @@ if any(v is None for v in KEYS):
     TWITCH_AUTH = config("TWITCH_AUTH")
     TOKEN = config("TOKEN")
     REDIS_URL = config("REDIS_URL")
+    TRN_API_KEY = config("TRN_API_KEY")
 
 r = redis.from_url(REDIS_URL)
 
@@ -395,38 +397,12 @@ def insert_returns(body):
 @commands.is_owner()
 async def eval_fn(ctx, *, cmd):
     try:
-        """Evaluates input.
-
-        Input is interpreted as newline seperated statements.
-        If the last statement is an expression, that is the return value.
-
-        Usable globals:
-          - `bot`: the bot instance
-          - `discord`: the discord module
-          - `commands`: the discord.ext.commands module
-          - `ctx`: the invokation context
-          - `__import__`: the builtin `__import__` function
-
-        Such that `>eval 1 + 1` gives `2` as the result.
-
-        The following invokation will cause the bot to send the text '9'
-        to the channel of invokation and return '3' as the result of evaluating
-
-        >eval ```
-        a = 1 + 2
-        b = a * 2
-        await ctx.send(a + b)
-        a
-        ```
-        """
         fn_name = "_eval_expr"
 
         cmd = cmd.strip("` ")
 
-        # add a layer of indentation
         cmd = "\n".join(f"    {i}" for i in cmd.splitlines())
 
-        # wrap in async def body
         body = f"async def {fn_name}():\n{cmd}"
 
         parsed = ast.parse(body)
@@ -444,6 +420,8 @@ async def eval_fn(ctx, *, cmd):
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
 
         result = (await eval(f"{fn_name}()", env))
+        if not result:
+            result = "Done"
         await ctx.send(result)
     except Exception as err:
         await ctx.send(err)
@@ -1928,5 +1906,12 @@ async def youtube(ctx, *, channel):
                 pass
 
 
-
+@bot.command()
+async def csgo(ctx, player):
+    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
+    data = data['data']
+    embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile'", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
+    embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
+    embed.add_field(name="ID:", value=data['platformInfo']['platformUserId'], inline=True)
+    embed.add_field(name="Kills:", value=data['kills']['value'], inline=False)
 bot.run(TOKEN)

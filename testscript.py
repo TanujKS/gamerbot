@@ -31,4 +31,5 @@ async def csgo(ctx, player):
     embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['kd']['value'], inline=True)
     embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['kd']['value'], inline=True)
     await ctx.send(embed=embed)
-bot.run("Nzc0NDYyMzcwNDE1Mzc4NDMz.X6YISQ.whEv7Or-K0A7rU25vf8ctaeQbQ0")
+
+bot.run(config("ALT_TOKEN"))

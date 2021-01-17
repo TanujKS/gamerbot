@@ -55,7 +55,7 @@ bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "t
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError, discord.Forbidden]
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError, discord.errors.Forbidden]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
@@ -1039,13 +1039,17 @@ async def moveteams(ctx):
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def moveevents(ctx):
+    for vc in ctx.guild.voice_channels:
+        if "Events" in str(vc):
+            events = vc
+            break
     for team in teams:
         voicechannel = get(ctx.guild.voice_channels, name=team)
         if not voicechannel:
             return await ctx.send(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
         for member in voicechannel.members:
-            await member.edit(voice_channel=voicechannel)
-    await ctx.send(f"Moved all members to {voicechannel.name}")
+            await member.edit(voice_channel=events)
+    await ctx.send(f"Moved all members to {events.name}")
 
 
 #------------------------------------------------------------------------------TEAM/EVENT MANAGEMENT--------------------------------------------------------------------------------------

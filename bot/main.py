@@ -1032,7 +1032,7 @@ async def moveteams(ctx):
                             await member.edit(voice_channel=get(ctx.guild.voice_channels, name=team))
                 await ctx.send(f"Moved {str(member)} to {team}")
             else:
-                await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
 
 
 @bot.command()

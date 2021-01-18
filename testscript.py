@@ -12,6 +12,7 @@ bot.remove_command('help')
 async def on_ready():
     print(f"Succesfully logged into {bot.user}")
 
+
 @bot.command()
 async def csgo(ctx, player):
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()

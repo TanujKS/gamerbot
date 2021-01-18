@@ -683,11 +683,10 @@ def convertPermtoEmoji(member, perm):
 @bot.command()
 @commands.guild_only()
 async def perms(ctx, member : discord.Member):
-    await ctx.send(f"Perms for {str(member)} in {ctx.guild}")
-    perms = ""
+    embed = discord.Embed(title=f"Perms for {str(member)} in {ctx.guild.name}", description=None, color=0xff0000)
     for perm in member.guild_permissions:
-        perms = f"{perms}\n{(perm[0].replace('_', ' ')).title()} {convertPermtoEmoji(member, perm[0])}"
-    await ctx.send(perms)
+        embed.add_field(name=perm[0].replace('_', ' ').title(), value=convertPermtoEmoji(member, perm[0]))
+    await ctx.send(embed=embed)
 
 
 @bot.command()
@@ -1909,5 +1908,5 @@ async def youtube(ctx, *, channel):
                 pass
 
 
-
+var =
 bot.run(TOKEN)

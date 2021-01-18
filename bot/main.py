@@ -1921,7 +1921,7 @@ async def csgolink(ctx, id):
         data = data['data']
         await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
     except KeyError:
-        await ctx.send("Invalid ID")
+        return await ctx.send("Invalid ID")
     csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
     rval = json.dumps(csgoLinks)
     r.set("csgoLinks", rval)

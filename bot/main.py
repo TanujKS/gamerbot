@@ -1930,13 +1930,16 @@ async def csgolink(ctx, id):
 @bot.command()
 async def csgo(ctx, *player):
     if len(player) == 0:
-        player = ctx.author.id
+        member = ctx.author.id
     elif ctx.message.mentions:
-        player = ctx.message.mentions[0].id
-    try:
-        player = csgoLinks[player]
-    except KeyError:
-        return await ctx.send(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(player))}. Run ?csgolink")
+        member = ctx.message.mentions[0].id
+    else:
+        member = None
+    if member:
+        try:
+            player = csgoLinks[member]
+        except KeyError:
+            return await ctx.send(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     try:
         data['errors']

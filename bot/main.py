@@ -496,6 +496,8 @@ async def help(ctx, *category):
         embed.add_field(name="?fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
         embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
         embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
+        embed.add_field(name="?csgo (id)", value="Shows stats of a CS:GO player", inline=False)
+        embed.add_field(name="?csgolink (id)", value="Links your account to a CS:GO ID", inline=False)
     elif category[0] == "apis":
         embed = discord.Embed(title=f"APIs used by {str(bot.user)}", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
         embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)

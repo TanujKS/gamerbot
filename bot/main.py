@@ -689,6 +689,8 @@ def convertPermtoEmoji(member, perm):
 async def perms(ctx, *member : discord.Member):
     if len(member) == 0:
       member = ctx.author
+    else:
+      member = member[0]
     embed = discord.Embed(title=f"Perms for {str(member)} in {ctx.guild.name}", description=None, color=0xff0000)
     for perm in member.guild_permissions:
         embed.add_field(name=perm[0].replace('_', ' ').title(), value=convertPermtoEmoji(member, perm[0]))

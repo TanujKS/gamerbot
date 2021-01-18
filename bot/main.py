@@ -1917,7 +1917,7 @@ async def csgolink(ctx, id):
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     try:
         data = data['data']
-        await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize ID**")
+        await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
     except KeyError:
         await ctx.send("Invalid ID")
     csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
@@ -1928,10 +1928,13 @@ async def csgolink(ctx, id):
 @bot.command()
 async def csgo(ctx, *player):
     if len(player) == 0:
-        try:
-            player = csgoLinks[ctx.author.id]
-        except KeyError:
-            return await ctx.send("There is no CS:GO ID linked to your account. Run ?csgolink")
+        player = ctx.author.id
+    elif ctx.message.mentions:
+        player = ctx.message.mentions[0].id
+    try:
+        player = csgoLinks[player]
+    except KeyError:
+        return await ctx.send(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(player))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     try:
         data['errors']

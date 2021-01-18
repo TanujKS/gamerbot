@@ -84,6 +84,13 @@ for t in tempTrackingGuilds:
         trackingGuilds[int(t)][index]['channel-id'] = int(trackingGuilds[int(t)][index]['channel-id'])
         trackingGuilds[int(t)][index]['pinged'] = bool(trackingGuilds[int(t)][index]['pinged'])
 
+rval = r.get("csgoLinks")
+tempCsgoLinks = json.loads(rval)
+csgoLinks = {}
+
+for c in tempCsgoLinks:
+    csgoLinks[int(c)] = int(tempCsgoLinks[c])
+
 async def getFeedback(guild):
     for channel in guild.text_channels:
         try:
@@ -549,14 +556,11 @@ async def settings(ctx, *setting):
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.cooldown(10, 60, commands.BucketType.member)
-async def speak(ctx, *message):
+async def speak(ctx, *, message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
         return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
-    fullmessage = f"{ctx.author.name} says "
-    for messageVar in message:
-        fullmessage += ' '
-        fullmessage += messageVar
+    fullmessage = f"{ctx.author.name} says {message}"
     if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
@@ -579,7 +583,6 @@ async def speak(ctx, *message):
             return
         except discord.ClientException:
             pass
-
 
 
 async def checkIfLive():
@@ -656,7 +659,6 @@ async def twitchtracklist(ctx):
     await ctx.send(embed=embed)
 
 
-
 @bot.command()
 @commands.has_guild_permissions(create_instant_invite=True)
 @commands.bot_has_guild_permissions(create_instant_invite=True)
@@ -671,7 +673,7 @@ async def invite(ctx, *args):
             reason = args[2]
         except IndexError:
             return await ctx.send("Invalid args. 'max_age', 'max_uses', 'reason' ")
-    await ctx.send(f"Invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with {reason} as the reason. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
+    await ctx.send(f"Invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with reason: {reason}. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
 
 
 def convertPermtoEmoji(member, perm):
@@ -682,7 +684,9 @@ def convertPermtoEmoji(member, perm):
 
 @bot.command()
 @commands.guild_only()
-async def perms(ctx, member : discord.Member):
+async def perms(ctx, *member : discord.Member):
+    if len(member) == 0:
+      member = ctx.author
     embed = discord.Embed(title=f"Perms for {str(member)} in {ctx.guild.name}", description=None, color=0xff0000)
     for perm in member.guild_permissions:
         embed.add_field(name=perm[0].replace('_', ' ').title(), value=convertPermtoEmoji(member, perm[0]))
@@ -703,7 +707,7 @@ async def avatar(ctx, member : discord.Member, *format):
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
     if len(options) > 8:
-        return await ctx.send("Maximum options = 8")
+        return await ctx.send("Maximum of 8 options")
     if len(options) < 2:
         return await ctx.send("Minimum of 2 options")
     try:
@@ -1908,5 +1912,56 @@ async def youtube(ctx, *, channel):
                 pass
 
 
-var =
+@bot.command()
+async def csgolink(ctx, id):
+    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
+    try:
+        data = data['data']
+        await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize ID**")
+    except KeyError:
+        await ctx.send("Invalid ID")
+    csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
+    rval = json.dumps(csgoLinks)
+    r.set("csgoLinks", rval)
+
+
+@bot.command()
+async def csgo(ctx, *player):
+    if len(player) == 0:
+        try:
+            player = csgoLinks[ctx.author.id]
+        except KeyError:
+            return await ctx.send("There is no CS:GO ID linked to your account. Run ?csgolink")
+    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
+    try:
+        data['errors']
+        return await ctx.send("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+    except KeyError:
+        pass
+    data = data['data']
+    embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
+    embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
+    embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
+    embed.add_field(name="ID:", value=data['platformInfo']['platformUserId'], inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Kills:", value=data['segments'][0]['stats']['kills']['value'], inline=True)
+    embed.add_field(name="Deaths:", value=data['segments'][0]['stats']['deaths']['value'], inline=True)
+    embed.add_field(name="K/D Rate:", value=round(data['segments'][0]['stats']['kd']['value'], 2), inline=True)
+    embed.add_field(name="Damage:", value=data['segments'][0]['stats']['damage']['value'], inline=True)
+    embed.add_field(name="Headshots:", value=data['segments'][0]['stats']['headshots']['value'], inline=True)
+    embed.add_field(name="\u200b", value="\u200b", inline=True)
+    embed.add_field(name="Shots Fired:", value=data['segments'][0]['stats']['shotsFired']['value'], inline=True)
+    embed.add_field(name="Shots Hit:", value=data['segments'][0]['stats']['shotsHit']['value'], inline=True)
+    embed.add_field(name="Shot Accuracy:", value=f"{round(data['segments'][0]['stats']['shotsAccuracy']['value'], 2)}%", inline=True)
+    embed.add_field(name="Bombs Planted:", value=data['segments'][0]['stats']['bombsPlanted']['value'], inline=True)
+    embed.add_field(name="Bombs Defused:", value=data['segments'][0]['stats']['bombsDefused']['value'], inline=True)
+    embed.add_field(name="Hostages Rescued:", value=data['segments'][0]['stats']['hostagesRescued']['value'], inline=True)
+    embed.add_field(name="Wins:", value=data['segments'][0]['stats']['wins']['value'], inline=True)
+    embed.add_field(name="Losses:", value=data['segments'][0]['stats']['losses']['value'], inline=True)
+    embed.add_field(name="Ties:", value=data['segments'][0]['stats']['ties']['value'], inline=True)
+    embed.add_field(name="W/L Rate:", value=round(data['segments'][0]['stats']['wins']['value']/data['segments'][0]['stats']['losses']['value'], 2), inline=True)
+    embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
+    await ctx.send(embed=embed)
+
+
 bot.run(TOKEN)

@@ -874,7 +874,7 @@ async def move(ctx, member, *, channel):
                 await member.move_to(channel)
             except discord.HTTPException:
                 return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
-            await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
+        await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
@@ -1811,8 +1811,9 @@ async def duels(ctx, *player_and_mode):
 
 @bot.command()
 async def fortnite(ctx, player):
+    player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
-    if data['status'] == 404:
+    if data['status'] != 200:
         return await ctx.send("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)

@@ -34,12 +34,16 @@ class UserNotFound(Exception):
 class UnAuthorized(Exception):
     pass
 
+class InvalidArgument(Exception):
+    pass
+
 class OtherException(Exception):
     pass
 
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden]
+passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
+customErrors = ['OtherException', 'UserNotFound', 'UnAuthorized', 'InvalidArgument']
 
-bot = commands.Bot(command_prefix='?', intents=discord.Intents.all(), case_insensitive=True)
-bot.remove_command('help')
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN']
 for k in keys:
@@ -53,12 +57,11 @@ bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "t
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden]
-passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
+
 
 blackListed = r.lrange("blacklisted", 0, -1)
 for i in range(0, len(blackListed)):
@@ -89,74 +92,20 @@ csgoLinks = {}
 for c in tempCsgoLinks:
     csgoLinks[int(c)] = int(tempCsgoLinks[c])
 
-async def getFeedback(guild):
-    for channel in guild.text_channels:
-        try:
-            await channel.send(f"Hello {guild.owner.mention}! Sorry to disturb you, I am the creator of GamerBot. I had noticed that GamerBot has been added to your server and I am just wondering what you think of it. If you could use the ?report feature to send any feedback to me I would love that :)")
-            return
-        except discord.errors.Forbidden:
-            pass
 
-def multi_key_dict_get(d, k):
+def multi_key_dict_get(d : dict, k):
     for keys, v in d.items():
         if k in keys:
             return v
     return None
 
-def convertBooltoStr(bool):
+def convertBooltoStr(bool : bool):
     if bool is True:
         return "On"
     if bool is False:
         return "Off"
 
-def checkstat(data, mode, stat):
-    try:
-        return data['player']['stats'][mode][stat]
-    except KeyError:
-        return 0
-
-def getrate(stat1, stat2):
-    try:
-        return round(stat1/stat2, 2)
-    except ZeroDivisionError:
-        return 0
-
-def getSkyWarsLevel(xp):
-    if xp >= 15000:
-        return (xp - 15000) / 10000. + 12
-    else:
-        for number in xps:
-            if not xp > number:
-                closestnumber = xps[xps.index(number)-1]
-                break
-        return round(xps.index(closestnumber) + 1)
-
-def roman_num(num):
-    for r in roman.keys():
-        x, y = divmod(num, r)
-        yield roman[r] * x
-        num -= (r * x)
-        if num <= 0:
-            break
-
-def write_roman(num):
-    roman = OrderedDict()
-    roman[1000] = "M"
-    roman[900] = "CM"
-    roman[500] = "D"
-    roman[400] = "CD"
-    roman[100] = "C"
-    roman[90] = "XC"
-    roman[50] = "L"
-    roman[40] = "XL"
-    roman[10] = "X"
-    roman[9] = "IX"
-    roman[5] = "V"
-    roman[4] = "IV"
-    roman[1] = "I"
-    return "".join([a for a in roman_num(num)])
-
-def initGuild(guild):
+def initGuild(guild : discord.Guild):
     guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
@@ -165,7 +114,8 @@ def initGuild(guild):
 
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
-
+bot = commands.Bot(command_prefix='?', intents=discord.Intents.all(), case_insensitive=True)
+bot.remove_command('help')
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
 @bot.event
 async def on_ready():
@@ -174,10 +124,16 @@ async def on_ready():
     await bot.change_presence(activity=game)
 
     global reports
-    testingserver = bot.get_guild(763824152493686795)
-    reports = get(testingserver.channels, name="reports")
-    if not reports:
-        raise Exception("Could not find Error/Report channel")
+    global statusPings
+    global statusChannel
+
+    supportServer = bot.get_guild(763824152493686795)
+    reports = get(supportServer.channels, name="reports")
+
+    statusChannel = get(supportServer.channels, name="bot-status")
+    statusPings = get(supportServer.roles, name="Status Pings")
+    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
+
 
     info = await bot.application_info()
     global botmaster
@@ -224,6 +180,8 @@ async def on_guild_remove(guild):
     await bot.change_presence(activity=game)
 
     await reports.send(f"Left {guild.name} with {guild.member_count} members")
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel
     try:
         dm = await guild.owner.create_dm()
         await dm.send(f"Hello {str(guild.owner)}. I see you have removed GamerBot from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
@@ -273,7 +231,7 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    customErrors = ['OtherException', 'UserNotFound', 'UnAuthorized']
+    errorMessage = None
     for c in customErrors:
         if c in str(error):
             errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
@@ -290,17 +248,17 @@ async def on_command_error(ctx, error):
     for e in passErrors:
         if isinstance(error, e):
             return
-
-    await ctx.send("Error. This has been reported and will be reviewed shortly.")
-    embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
-    embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
-    embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
-    embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
-    embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
-    embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
-    embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
-    embed.add_field(name="Error:", value=error, inline=False)
-    await reports.send(bot.get_user(botmaster).mention, embed=embed)
+    if reports:
+        await ctx.send("Error. This has been reported and will be reviewed shortly.")
+        embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
+        embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
+        embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
+        embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
+        embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
+        embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
+        embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
+        embed.add_field(name="Error:", value=error, inline=False)
+        await reports.send(bot.get_user(botmaster).mention, embed=embed)
     print(error)
 
 
@@ -401,13 +359,6 @@ async def blacklisted(ctx):
 
 @bot.command()
 @commands.is_owner()
-async def shutdown(ctx):
-    await ctx.send("Shutting down")
-    await bot.close()
-
-
-@bot.command()
-@commands.is_owner()
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
@@ -473,6 +424,18 @@ async def eval_fn(ctx, *, cmd):
         await ctx.send(err)
 
 
+@bot.command()
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.send("Confirm shutdown: (y/n)")
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel and (m.content == "n" or m.content == "y")
+    response = await bot.wait_for('message', timeout=60, check=check)
+    if response == "y":
+        await statusChannel.send(f"{str(bot.user)} is now offline \n{statusPings.mention}")
+        await bot.logout()
+    if response == "n":
+        await ctx.send("Cancelled")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):
@@ -562,20 +525,20 @@ async def settings(ctx, *setting):
         embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings TTVCrole some_role")
     elif len(setting) == 2:
         if not ctx.author.guild_permissions.administrator:
-            return await ctx.send(f"You are missing Administrator permission(s) to run this command.")
+            raise UnAuthorized(f"You are missing Administrator permission(s) to run this command.")
         if setting[0] == "antiez":
             if setting[1] == "on":
                 guildInfo[ctx.guild.id]['antiez'] = True
             elif setting [1] == "off":
                 guildInfo[ctx.guild.id]['antiez'] = False
             else:
-                return await ctx.send("Argument must be 'on' or 'off'")
+                raise InvalidArgument("Argument must be 'on' or 'off'")
             embed = discord.Embed(title=f"Anti-EZ is now {convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", description=None, color=0xff0000)
         elif setting[0] == "teamlimit":
             try:
                 setting = int(setting[1])
             except ValueError:
-                return await ctx.send("Argument must be a number")
+                raise InvalidArgument("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
@@ -588,11 +551,11 @@ async def settings(ctx, *setting):
             guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         else:
-            return await ctx.send("Invalid setting")
+            raise InvalidArgument("Invalid setting")
         rval = json.dumps(guildInfo)
         r.set("guildInfo", rval)
     else:
-        return await ctx.send("Invalid arguments")
+        raise InvalidArgument("Invalid arguments")
     await ctx.send(embed=embed)
 
 
@@ -610,8 +573,6 @@ async def speak(ctx, *, message):
     elif ctx.author.voice:
         try:
             vc = await ctx.author.voice.channel.connect()
-        except discord.HTTPException:
-            return await ctx.send(f"Missing permissions to connect to {ctx.author.voice.channel.name}")
         except discord.ClientException:
             pass
     else:
@@ -655,11 +616,9 @@ async def checkIfLive():
 @bot.command()
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    try:
-        if not user['data']:
-            raise KeyError
-    except KeyError:
-        return await ctx.send("Invalid channel")
+    user = user.get('data')
+    if not user:
+        raise UnAuthorized("Invalid channel")
     for x in user['data']:
         trackingGuilds[ctx.guild.id].append({})
         index = len(trackingGuilds[ctx.guild.id]) - 1
@@ -1462,8 +1421,8 @@ async def hypixel(ctx, *player):
     embed.add_field(name="Last Game Played:", value=(mostRecentGameType))
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
-    EXP = round(data['player'].get("networkExp"), "None")
-    level = "None"
+    EXP = round(data['player'].get("networkExp"), 0)
+    level = 0
     if EXP != "None":
         level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
     karma = data['player'].get("karma", 0)
@@ -1549,6 +1508,47 @@ async def bedwars(ctx, *player_and_mode):
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
+
+def roman_num(num : int):
+    for r in roman.keys():
+        x, y = divmod(num, r)
+        yield roman[r] * x
+        num -= (r * x)
+        if num <= 0:
+            break
+
+def write_roman(num : int):
+    roman = OrderedDict()
+    roman[1000] = "M"
+    roman[900] = "CM"
+    roman[500] = "D"
+    roman[400] = "CD"
+    roman[100] = "C"
+    roman[90] = "XC"
+    roman[50] = "L"
+    roman[40] = "XL"
+    roman[10] = "X"
+    roman[9] = "IX"
+    roman[5] = "V"
+    roman[4] = "IV"
+    roman[1] = "I"
+    return "".join([a for a in roman_num(num)])
+
+def getrate(stat1 : int, stat2 : int):
+    try:
+        return round(stat1/stat2, 2)
+    except ZeroDivisionError:
+        return 0
+
+def getSkyWarsLevel(xp : int):
+    if xp >= 15000:
+        return (xp - 15000) / 10000. + 12
+    else:
+        for number in xps:
+            if not xp > number:
+                closestnumber = xps[xps.index(number)-1]
+                break
+        return round(xps.index(closestnumber) + 1)
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, *player_and_mode):
@@ -1691,11 +1691,11 @@ async def duels(ctx, *player_and_mode):
         player_and_mode.pop(0)
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
-            return await ctx.send("Invalid mode")
+            raise InvalidArgument("Invalid mode")
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
         ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
         prestige = None
-        if data.get(f'godlike_{mode.split()[0]}', None):
+        if data.get(f'godlike_{mode.split()[0]}'):
             prestige = "Godlike"
         else:
             for ra in ranks:
@@ -1727,7 +1727,7 @@ async def fortnite(ctx, *, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
-        return await ctx.send("Invalid player")
+        raise UserNotFound("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
@@ -1750,8 +1750,8 @@ async def fortnite(ctx, *, player):
 @bot.command()
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    if not user.get('data', None):
-        return await ctx.send("Invalid channel")
+    if not user.get('data'):
+        raise UserNotFound("Invalid channel")
     try:
         data = (user['data'])[0]
         embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
@@ -1778,34 +1778,39 @@ async def twitch(ctx, channel):
             embed.add_field(name="Stream:", value=x['title'], inline=True)
         await ctx.send(embed=embed)
     except discord.errors.HTTPException:
-        await ctx.send("Channel has not streamed")
+        raise UserNotFound("Channel has not streamed")
 
 
 @bot.command(aliases=['yt'])
 async def youtube(ctx, *, channel):
     channel = channel.replace(" ", "%20")
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
-    errors = data.get('error', None)
+    errors = data.get('error')
     if errors:
         print(data['error'])
-        return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
-    if not data.get('items', None):
-        return await ctx.send("Invalid channel")
-    channel_id = ((data['items'])[0]['snippet']['channelId'])
+        return await ctx.send("YouTube returned an error!")
+    if not data.get('items'):
+        raise UserNotFound("Invalid channel")
+    channel_id = data['items'][0]['snippet']['channelId']
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
     embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
     embed.add_field(name="Channel ID:", value=channel_id, inline=True)
-    embed.add_field(name="Channel Description:", value=(data['items'][0]['snippet'])['description'], inline=False)
+    description = (data['items'][0]['snippet'])['description']
+    print(description)
+    embed.add_field(name="Channel Description:", value=description, inline=False)
     embed.add_field(name="Views:", value=stats['items'][0]['statistics']['viewCount'], inline=True)
     embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics']['subscriberCount'], inline=True)
     embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
     embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
     embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel}s and then run '?youtube (id_of_the_channel_you_want)'")
-    try:
-        await ctx.send(embed=embed)
-    except discord.HTTPException:
-        return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
+    #try:
+    for e in embed.fields:
+        print(e)
+    await ctx.send(embed=embed)
+
+    #except discord.HTTPException:
+        #return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
     def ytCheck(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:
@@ -1847,13 +1852,13 @@ async def csgo(ctx, *player):
     else:
         member = None
     if member:
-        player = csgoLinks.get(member, None)
+        player = csgoLinks.get(member)
         if not player:
-            return await ctx.send(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
+            raise UserNotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    data = data.get('data', None)
+    data = data.get('data')
     if not data:
-        return await ctx.send("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+        raise UserNotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
@@ -1877,6 +1882,9 @@ async def csgo(ctx, *player):
     embed.add_field(name="W/L Rate:", value=round(data['segments'][0]['stats']['wins']['value']/data['segments'][0]['stats']['losses']['value'], 2), inline=True)
     embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
     await ctx.send(embed=embed)
+
+
+
 
 if len(sys.argv) < 2 or not sys.argv[1] in keys:
     raise Exception("Invalid Arguments")

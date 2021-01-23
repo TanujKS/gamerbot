@@ -25,29 +25,27 @@ from mojang.exceptions import LoginError
 from decouple import config
 import redis
 import ast
+import sys
+
+
+class UserNotFound(Exception):
+    pass
+
+class UnAuthorized(Exception):
+    pass
+
+class OtherException(Exception):
+    pass
+
 
 bot = commands.Bot(command_prefix='?', intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
 
-
-HYPIXEL_KEY = os.environ.get('HYPIXEL_KEY')
-TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
-YT_KEY = os.environ.get('YT_KEY')
-TWITCH_AUTH = os.environ.get('TWITCH_AUTH')
-TOKEN = os.environ.get("TOKEN")
-REDIS_URL = (os.environ.get("REDIS_URL"))
-TRN_API_KEY = (os.environ.get("TRN_API_KEY"))
-KEYS = [HYPIXEL_KEY, TWITCH_CLIENT_ID, HYPIXEL_KEY, YT_KEY, TWITCH_AUTH, REDIS_URL, TRN_API_KEY]
-
-if any(v is None for v in KEYS):
-    print("Using .env variables")
-    HYPIXEL_KEY = config("HYPIXEL_KEY")
-    TWITCH_CLIENT_ID = config("TWITCH_CLIENT_ID")
-    YT_KEY = config("YT_KEY")
-    TWITCH_AUTH = config("TWITCH_AUTH")
-    TOKEN = config("TOKEN")
-    REDIS_URL = config("REDIS_URL")
-    TRN_API_KEY = config("TRN_API_KEY")
+keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN']
+for k in keys:
+    globals()[k] = os.environ.get(k)
+    if globals()[k] is None:
+        globals()[k] = config(k)
 
 r = redis.from_url(REDIS_URL)
 
@@ -55,7 +53,7 @@ bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "t
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, TimeoutError, discord.errors.Forbidden]
+raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden]
 passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
 moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
@@ -133,6 +131,14 @@ def getSkyWarsLevel(xp):
                 break
         return round(xps.index(closestnumber) + 1)
 
+def roman_num(num):
+    for r in roman.keys():
+        x, y = divmod(num, r)
+        yield roman[r] * x
+        num -= (r * x)
+        if num <= 0:
+            break
+
 def write_roman(num):
     roman = OrderedDict()
     roman[1000] = "M"
@@ -148,14 +154,16 @@ def write_roman(num):
     roman[5] = "V"
     roman[4] = "IV"
     roman[1] = "I"
-    def roman_num(num):
-        for r in roman.keys():
-            x, y = divmod(num, r)
-            yield roman[r] * x
-            num -= (r * x)
-            if num <= 0:
-                break
     return "".join([a for a in roman_num(num)])
+
+def initGuild(guild):
+    guildInfo[guild.id] = {}
+    guildInfo[guild.id]['antiez'] = False
+    guildInfo[guild.id]['teamLimit'] = 2
+    guildInfo[guild.id]['maximumTeams'] = 1
+    guildInfo[guild.id]['TTVCrole'] = "TTVC"
+
+
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
@@ -164,13 +172,19 @@ async def on_ready():
     print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+
     global reports
     testingserver = bot.get_guild(763824152493686795)
     reports = get(testingserver.channels, name="reports")
+    if not reports:
+        raise Exception("Could not find Error/Report channel")
+
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
+
     await bot.loop.create_task(checkIfLive())
+
     for guild in bot.guilds:
         try:
             trackingGuilds[guild.id]
@@ -179,11 +193,7 @@ async def on_ready():
         try:
             guildInfo[guild.id]
         except KeyError:
-            guildInfo[guild.id] = {}
-            guildInfo[guild.id]['antiez'] = False
-            guildInfo[guild.id]['teamLimit'] = 2
-            guildInfo[guild.id]['maximumTeams'] = 1
-            guildInfo[guild.id]['TTVCrole'] = "TTVC"
+            initGuild(guild)
 
 
 @bot.event
@@ -191,12 +201,15 @@ async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
-    guildInfo[guild.id] = {}
-    guildInfo[guild.id]['antiez'] = False
-    guildInfo[guild.id]['teamLimit'] = 2
-    guildInfo[guild.id]['maximumTeams'] = 1
-    guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    trackingGuilds[guild.id] = []
+
+    try:
+        trackingGuilds[guild.id]
+    except KeyError:
+        trackingGuilds[guild.id] = []
+    try:
+        guildInfo[guild.id]
+    except KeyError:
+        initGuild(guild)
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
     rval = json.dumps(trackingGuilds)
@@ -209,7 +222,25 @@ async def on_guild_remove(guild):
     print(f"Left {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
     await bot.change_presence(activity=game)
+
     await reports.send(f"Left {guild.name} with {guild.member_count} members")
+    try:
+        dm = await guild.owner.create_dm()
+        await dm.send(f"Hello {str(guild.owner)}. I see you have removed GamerBot from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
+        response = await bot.wait_for('message', timeout=120, check=check)
+        if response == "y":
+            await dm.send("Thank you! First, why are you removing GamerBot from your server?")
+            response = await bot.wait_for('message', timeout=120, check=check)
+            await reports.send(f"Reason for removal: {response}")
+            await dm.send("Got it, on a scale of 1-10 how would you rate GamerBot's features, response time, ease of use, etc")
+            response = await bot.wait_for('message', timeout=120, check=check)
+            await dm.send("Thanks! Any other comments/feedback?")
+            response = await bot.wait_for('message', timeout=120, check=check)
+            await dm.send("Thank you. Your feedback helps us make GamerBot a better bot.")
+        else:
+            await ctx.send("No problem. Goodbye!")
+    except Exception as e:
+        await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
 @bot.event
@@ -237,16 +268,25 @@ async def on_message(message):
                 else:
                     username = message.author.name
                 await webhook.send(ezmessages[random.randint(0, len(ezmessages))-1], username=username, avatar_url=message.author.avatar_url)
-                return await message.delete()
+                await message.delete()
 
 
 @bot.event
 async def on_command_error(ctx, error):
+    customErrors = ['OtherException', 'UserNotFound', 'UnAuthorized']
+    for c in customErrors:
+        if c in str(error):
+            errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
+            break
+
     if "TimeoutError" in str(error):
-        return await ctx.send("Timed out.")
+        errorMessage = ("Timed out.")
     for e in raiseErrors:
         if isinstance(error, e):
-            return await ctx.send(error)
+            errorMessage = e
+            break
+    if errorMessage:
+        return await ctx.send(errorMessage)
     for e in passErrors:
         if isinstance(error, e):
             return
@@ -385,6 +425,8 @@ async def enablecommand(ctx, commandName):
     command.update(enabled=True)
     await ctx.send(f"Enabled command {command}")
 
+
+#THIS IS NOT MY EVAL COMMAND, I AM USING THIS: https://gist.github.com/nitros12/2c3c265813121492655bc95aa54da6b9
 def insert_returns(body):
     if isinstance(body[-1], ast.Expr):
         body[-1] = ast.Return(body[-1].value)
@@ -725,11 +767,8 @@ async def poll(ctx, poll, *options):
     embed.set_footer(text=f"Poll by {str(ctx.author)}")
     msg = await ctx.send(embed=embed)
     await ctx.message.delete()
-    for emoji in emojis:
-        if emojis.index(emoji) < len(options):
-            await msg.add_reaction(emoji)
-        else:
-            return
+    for i in range(0, len(options)):
+        await msg.add_reaction(emojis[i])
 
 
 @bot.command()
@@ -798,12 +837,7 @@ async def quote(ctx, member : discord.Member, *, message):
     webhooks = await ctx.channel.webhooks()
     for webhook in webhooks:
         if webhook.user == bot.user:
-            if member.nick:
-                username = member.nick
-            else:
-                username = member.name
-            await webhook.send(message, username=username, avatar_url=member.avatar_url)
-            return await ctx.message.delete()
+            break
     webhook = await ctx.channel.create_webhook(name="quotebot")
     if member.nick:
         username = member.nick
@@ -874,14 +908,14 @@ async def move(ctx, member, *, channel):
                 await member.move_to(channel)
             except discord.HTTPException:
                 return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
-            await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
+        await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
                 try:
                     await member.move_to(channel)
                 except discord.HTTPException:
-                    return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
+                    raise UnAuthorized(f"Missing Permissions")
         await ctx.send(f"Moved all members to {channel.name}")
     else:
         try:
@@ -1309,8 +1343,7 @@ async def rps(ctx, member):
 
 #-------------------------------------------------------------------------------STATS-----------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------MINECRAFT--------------------------------------------------------------------------------------------
-@bot.command(aliases=['mc'])
-async def minecraft(ctx, *player):
+def hasLink(ctx, player):
     if len(player) == 0:
         member = ctx.author
     elif ctx.message.mentions:
@@ -1320,18 +1353,24 @@ async def minecraft(ctx, *player):
         player = player[0]
     if member:
         player = r.get(member.id)
-        if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
-        player = player.decode("utf-8")
+    if player is None:
+        raise UserNotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+    player = player.decode('utf-8')
+    return player
+
+
+@bot.command(aliases=['mc'])
+async def minecraft(ctx, *player):
+    player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        return await ctx.send(f"{player} does not exist")
+        raise UserNotFound(f"{player} does not exist")
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
     for name in name_history:
-        history = f"{history}\n{name['name']}"
-    embed=discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=0xff0000)
+        history += f"\n{name['name']}"
+    embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=0xff0000)
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{uuid}")
     embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from MC Heads")
     embed.add_field(name="Username:", value=info.name, inline=True)
@@ -1344,32 +1383,20 @@ async def minecraft(ctx, *player):
 async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
-        return await ctx.send(f"{player} has not played Hypixel and cannot verify their account")
-    try:
-        data['player']['socialMedia']['links']['DISCORD']
-    except KeyError:
-        return await ctx.send(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
-    if data['player']['socialMedia']['links']['DISCORD'] == str(ctx.author):
+        raise UserNotFound(f"{player} has not played Hypixel and cannot verify their account")
+    link = data['player']['socialMedia']['links'].get('DISCORD', None)
+    if link is None:
+        raise UserNotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+    if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         r.set(ctx.author.id, data['player']['displayname'])
     else:
-        await ctx.send(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
+        raise UnAuthorized(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
 @bot.command()
 async def skin(ctx, *player):
-    if len(player) == 0:
-        member = ctx.author
-    elif ctx.message.mentions:
-        member = ctx.message.mentions[0]
-    else:
-        member = None
-        player = player[0]
-    if member:
-        player = r.get(member.id)
-        if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
-        player = player.decode("utf-8")
+    player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         return await ctx.send("That player does not exist")
@@ -1381,110 +1408,22 @@ async def skin(ctx, *player):
 
 
 @bot.command()
-@commands.is_owner()
-async def changeprofile(ctx):
-    await ctx.send("To sign in and edit your Minecraft account, please DM your login credentials")
-    dm = await ctx.author.create_dm()
-    await dm.send("Please type your email for your Mojang account")
-    def changeProfileCheck(m):
-        return m.channel == dm and m.author == ctx.author
-    user = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
-    await user.channel.send("Ok thanks! Now can I get your password?")
-    password = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
-    try:
-        account = MojangUser(user.content, password.content)
-    except LoginError:
-        return await user.channel.send("Invalid user or password")
-    if account.is_fully_authenticated:
-        await user.channel.send(f"Authenticated, security challenges are not required. Let's head back to {ctx.channel.mention}")
-    else:
-        await user.channel.send("Please fill out the security questions")
-        answers = []
-        print(account.security_challenges)
-        for question in account.security_challenges:
-            await ctx.send(question)
-            answer = await bot.wait_for('message', timeout = 60.0, check=changeProfileCheck)
-            answers.append(answers.content)
-        try:
-            account.answer_security_challenges(answers)
-        except SecurityAnswerError:
-            return await user.channel.send("A security answer was answered incorrectly.")
-    await ctx.send(f"Ok {ctx.author.mention} we've signed into your account")
-    exploring = True
-    while exploring:
-        await ctx.send("What would you like to change? Choose from: `change name`, `change skin`, or `cancel`")
-        def check(m):
-            return m.channel == ctx.channel and m.author == ctx.author
-        msg = await bot.wait_for('message', timeout = 60.0, check=check)
-        if msg.content == "cancel":
-            await ctx.send("Ok, we've signed out of your account")
-            exploring = False
-        elif msg.content == "change name":
-            await ctx.send("What would you like to change our name to?")
-            message = await bot.wait_for('message', timeout = 60.0, check=check)
-            await ctx.send(f'Are you sure you would like to change your name to {message.content}? You will not be able to change your name for 30 days after this. (Respond y/n)')
-            confirm = await bot.wait_for('message', timeout = 60.0, check=check)
-            if confirm.content == "y":
-                try:
-                    account.profile.change_name(message.content)
-                    await ctx.send("Success!!")
-                except ForbiddenNameChange:
-                    await ctx.send("Sorry, you can only change your name every 30 days")
-        elif msg.content == "change skin":
-            await ctx.send("How would you like to change your skin? You can `upload`, `copy` from another user, or `reset` to a default skin")
-            msg = await bot.wait_for('message', timeout = 60.0, check=check)
-            if msg.content == "upload":
-                await ctx.send("Great! Please upload an image with the correct dimensions")
-                newskin = await bot.wait_for('message', timeout = 60.0, check=check)
-                resp = requests.get(newskin.attachments[0].url)
-                try:
-                    account.profile.skin_upload("slim", image_bytes=resp.content)
-                    await ctx.send("Success!!")
-                except ValueError:
-                    await ctx.send("Error changing your skin. Check that the dimensions are correct, and you are logged in correctly")
-            if msg.content == "copy":
-                await ctx.send("Ok! Please give me the username of the player whos skin you want to copy!")
-                copy = await bot.wait_for('message', timeout = 60.0, check=check)
-                uuid = MojangAPI.get_uuid(copy.content)
-                if not uuid:
-                    await ctx.send("That is not a valid player")
-                else:
-                    account.profile.skin_copy(uuid)
-                    await ctx.send(f"Success!! You are now using {copy.content}'s skin")
-            if msg.content == "reset":
-                account.profile.skin_reset()
-                await ctx.send("Success!")
-        else:
-            await ctx.send("Invalid response")
-
-
-@bot.command()
 async def hypixel(ctx, *player):
-    if len(player) == 0:
-        member = ctx.author
-    elif ctx.message.mentions:
-        member = ctx.message.mentions[0]
-    else:
-        member = None
-        player = player[0]
-    if member:
-        player = r.get(member.id)
-        if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
-        player = player.decode("utf-8")
+    player = hasLink(ctx, player)
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
         return await ctx.send(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
-    status = False
-    try:
-        ts = data['player']['lastLogin']/1000
-        d = ((datetime.fromtimestamp(ts)).astimezone(timezone('US/Pacific'))).strftime('%H:%M:%S %m/%d/%Y')
-    except KeyError:
+    status = None
+    ts = data['player'].get('lastLogin')
+    if ts is None:
         d = "Never"
         status = "Offline"
+    else:
+        ts /= 1000
+        d = ((datetime.fromtimestamp(ts)).astimezone(timezone('US/Pacific'))).strftime('%H:%M:%S %m/%d/%Y')
     try:
         ts = data['player']['lastLogout']/1000
         date_format='%H:%M:%S %m/%d/%Y'
@@ -1519,32 +1458,21 @@ async def hypixel(ctx, *player):
     embed.add_field(name="Last Logged In:", value=(d), inline=True)
     embed.add_field(name="Last Logged Off:", value=(d1), inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
-    try:
-        mostRecentGameType = ((data['player']['mostRecentGameType']).lower()).capitalize()
-    except KeyError:
-        mostRecentGameType = "None"
+    mostRecentGameType = data['player'].get('mostRecentGameType', "None").lower().capitalize()
     embed.add_field(name="Last Game Played:", value=(mostRecentGameType))
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
-    try:
-        EXP = round(data['player']['networkExp'])
-        level = round(1 + (-8750. + (8750**2 + 5000*data['player']['networkExp'])**.5) / 2500)
-    except KeyError:
-        EXP = "None"
-        level = "None"
-    try:
-        karma = data['player']['karma']
-    except KeyError:
-        karma = 0
+    EXP = round(data['player'].get("networkExp"), "None")
+    level = "None"
+    if EXP != "None":
+        level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
+    karma = data['player'].get("karma", 0)
     embed.add_field(name="EXP:", value=EXP, inline=True)
     embed.add_field(name="Level:", value=level, inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="Karma:", value=karma, inline=True)
     friends = requests.get(f"https://api.hypixel.net/friends?key={HYPIXEL_KEY}&uuid={data['player']['uuid']}").json()
-    try:
-        friends = str(len(friends['records']))
-    except KeyError:
-        friends = "None"
+    friends = str(len(friends.get('records', [])))
     embed.add_field(name="Friends:", value=friends, inline=True)
     id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={data['player']['uuid']}").json()
     try:
@@ -1576,51 +1504,48 @@ async def bedwars(ctx, *player_and_mode):
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not data['player']:
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    if not rawData['player']:
         return await ctx.send(f"{player} has not played Bedwars")
+    data = rawData['player']['stats']['Bedwars']
     if len(player_and_mode) < 2:
-            try:
-                level = data['player']['achievements']['bedwars_level']
-            except KeyError:
-                level = 0
-            embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {data['player']['displayname']}", color=0xff0000)
-            embed.add_field(name="Coins:", value=checkstat(data, 'Bedwars', "coins"), inline=True)
-            embed.add_field(name="EXP:", value=checkstat(data, 'Bedwars', "Experience"), inline=True)
-            embed.add_field(name="Level:", value=level, inline=True)
-            embed.add_field(name="Games Played:", value=checkstat(data, "Bedwars", "games_played_bedwars"), inline=True)
-            embed.add_field(name="Current Winstreak:", value=checkstat(data, "Bedwars", "winstreak"), inline=True)
+            embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
+            embed.add_field(name="Coins:", value=data.get("coins", 0), inline=True)
+            embed.add_field(name="EXP:", value=data.get("experience"), inline=True)
+            embed.add_field(name="Level:", value=rawData['player']['achievements'].get("bedwars_level", 0), inline=True)
+            embed.add_field(name="Games Played:", value=data.get("games_played_bedwars", 0), inline=True)
+            embed.add_field(name="Current Winstreak:", value=data.get("winstreak", 0), inline=True)
             embed.add_field(name="\u200b", value="\u200b", inline=True)
-            embed.add_field(name="Wins:", value=checkstat(data, "Bedwars", "wins_bedwars"), inline=True)
-            embed.add_field(name="Losses:", value=checkstat(data, "Bedwars", "losses_bedwars"), inline=True)
-            embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "Bedwars", "wins_bedwars"), checkstat(data, "Bedwars", "losses_bedwars")), inline=True)
-            embed.add_field(name="Kills:", value=checkstat(data, "Bedwars", "kills_bedwars"), inline=True)
-            embed.add_field(name="Deaths:", value=checkstat(data, "Bedwars", "deaths_bedwars"), inline=True)
-            embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "Bedwars", "kills_bedwars"), checkstat(data, "Bedwars", "deaths_bedwars")), inline=True)
-            embed.add_field(name="Final Kills:", value=checkstat(data, "Bedwars", "final_kills_bedwars"), inline=True)
-            embed.add_field(name="Final Deaths:", value=checkstat(data, "Bedwars", "final_deaths_bedwars"), inline=True)
-            embed.add_field(name="Final K/D Rate:", value=getrate(checkstat(data, "Bedwars", "final_kills_bedwars"), checkstat(data, "Bedwars", "final_deaths_bedwars")), inline=True)
-            embed.add_field(name="Beds Broken:", value=checkstat(data, "Bedwars", "beds_broken_bedwars"), inline=True)
-            embed.add_field(name="Beds Lost:", value=checkstat(data, "Bedwars", "beds_lost_bedwars"), inline=True)
-            embed.add_field(name="B/L Rate:", value=getrate(checkstat(data, "Bedwars", "beds_broken_bedwars"), checkstat(data, "Bedwars", "beds_lost_bedwars")), inline=True)
+            embed.add_field(name="Wins:", value=data.get("wins_bedwars", 0), inline=True)
+            embed.add_field(name="Losses:", value=data.get("losses_bedwars", 0), inline=True)
+            embed.add_field(name="W/L Rate:", value=getrate(data.get('wins_bedwars', 0), data.get("losses_bedwars", 0)), inline=True)
+            embed.add_field(name="Kills:", value=data.get("kills_bedwars", 0), inline=True)
+            embed.add_field(name="Deaths:", value=data.get("deaths_bedwars", 0), inline=True)
+            embed.add_field(name="K/D Rate:", value=getrate(data.get("kills_bedwars", 0), data.get("deaths_bedwars", 0)), inline=True)
+            embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
+            embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
+            embed.add_field(name="Final K/D Rate:", value=getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
+            embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
+            embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
+            embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars")), inline=True)
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
             return await ctx.send("Invalid mode")
         embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
-        embed.add_field(name="Games Played:", value=checkstat(data, 'Bedwars', f'{mode}_games_played_bedwars'), inline=True)
-        embed.add_field(name="Current Winstreak:", value=checkstat(data, 'Bedwars', f"{mode}_winstreak"), inline=True)
+        embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
+        embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="Kills:", value=checkstat(data, 'Bedwars', f'{mode}_kills_bedwars'), inline=True)
-        embed.add_field(name="Deaths:", value=checkstat(data, 'Bedwars', f'{mode}_deaths_bedwars'), inline=True)
-        embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, 'Bedwars', f'{mode}_kills_bedwars'), checkstat(data, 'Bedwars', f'{mode}_deaths_bedwars')), inline=True)
-        embed.add_field(name="Final Kills:", value=checkstat(data, 'Bedwars', f'{mode}_final_kills_bedwars'), inline=True)
-        embed.add_field(name="Final Deaths:", value=checkstat(data, 'Bedwars', f'{mode}_final_deaths_bedwars'), inline=True)
-        embed.add_field(name="Final K/D Rate:", value=getrate(checkstat(data, 'Bedwars', f'{mode}_final_kills_bedwars'), checkstat(data, 'Bedwars', f'{mode}_final_deaths_bedwars')), inline=True)
-        embed.add_field(name="Wins:", value=checkstat(data, 'Bedwars', f'{mode}_wins_bedwars'), inline=True)
-        embed.add_field(name="Losses:", value=checkstat(data, 'Bedwars', f'{mode}_losses_bedwars'), inline=True)
-        embed.add_field(name="W/L Rate", value=getrate(checkstat(data, 'Bedwars', f'{mode}_wins_bedwars'), checkstat(data, 'Bedwars', f'{mode}_losses_bedwars')), inline=True)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
+        embed.add_field(name="Kills:", value=data.get(f"{mode}_kills_bedwars", 0), inline=True)
+        embed.add_field(name="Deaths:", value=data.get(f"{mode}_deaths_bedwars", 0), inline=True)
+        embed.add_field(name="K/D Rate:", value=getrate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_deaths_bedwars", 0)), inline=True)
+        embed.add_field(name="Final Kills:", value=data.get(f"{mode}_final_kills_bedwars", 0), inline=True)
+        embed.add_field(name="Final Deaths:", value=data.get(f"{mode}_final_deaths_bedwars", 0), inline=True)
+        embed.add_field(name="Final K/D Rate:", value=getrate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_final_deaths_bedwars", 0)), inline=True)
+        embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
+        embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
+        embed.add_field(name="W/L Rate", value=getrate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1644,75 +1569,76 @@ async def skywars(ctx, *player_and_mode):
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not data['player']:
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    if not rawData['player']:
         return await ctx.send(f"{player} has not played SkyWars")
+    data = data['player']['stats']['SkyWars']
     if len(player_and_mode) <= 1:
-        embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {data['player']['displayname']}", color=0xff0000)
-        embed.add_field(name="Coins:", value=checkstat(data, "SkyWars", 'coins'), inline=True)
-        embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
-        embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
-        embed.add_field(name="Games Played:", value=checkstat(data, "SkyWars", 'wins')+checkstat(data, "SkyWars", 'losses'), inline=True)
-        embed.add_field(name="Current Winstreak:", value=checkstat(data, "SkyWars", 'win_streak'), inline=True)
-        embed.add_field(name="Assists:", value=checkstat(data, "SkyWars", 'assists'), inline=True)
-        embed.add_field(name="Kills:", value=checkstat(data, "SkyWars", 'kills'), inline=True)
-        embed.add_field(name="Deaths:", value=checkstat(data, "SkyWars", 'deaths'), inline=True)
-        embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "SkyWars", 'kills'), checkstat(data, "SkyWars", 'deaths')), inline=True)
-        embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins'), inline=True)
-        embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses'), inline=True)
-        embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins'), checkstat(data, "SkyWars", 'losses')), inline=True)
+        embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
+        embed.add_field(name="Coins:", value=data.get('coins', 0), inline=True)
+        embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
+        embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
+        embed.add_field(name="Games Played:", value=data.get('wins', 0) + data.get('losses', 0), inline=True)
+        embed.add_field(name="Current Winstreak:", value=data.get('win_streak', 0), inline=True)
+        embed.add_field(name="Assists:", value=data.get('assists', 0), inline=True)
+        embed.add_field(name="Kills:", value=data.get('kills', 0), inline=True)
+        embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
+        embed.add_field(name="K/D Rate:", value=getrate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
+        embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
+        embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
+        embed.add_field(name="W/L Rate:", value=getrate(data.get('wins', 0), data.get('losses', 0)), inline=True)
     else:
         player_and_mode = list(player_and_mode)
         player_and_mode.pop(0)
         joinedmode = " ".join(player_and_mode)
         joinedmode = (multi_key_dict_get(skywarsModes, joinedmode))
         if joinedmode == "solos normal":
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
-            embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
-            embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
-            embed.add_field(name="Games Played:", value=(checkstat(data, "SkyWars", 'wins_solo')-checkstat(data, "SkyWars", 'wins_solo_insane'))+(checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
-            embed.add_field(name="Kills:", value=checkstat(data, "SkyWars", 'kills_solo')-checkstat(data, "SkyWars", 'kills_solo_insane'), inline=True)
-            embed.add_field(name="Deaths:", value=checkstat(data, "SkyWars", 'deaths_solo')-checkstat(data, "SkyWars", 'deaths_solo_insane'), inline=True)
-            embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "SkyWars", 'kills_solo')-checkstat(data, "SkyWars", 'kills_solo_insane'), checkstat(data, "SkyWars", 'deaths_solo')-checkstat(data, "SkyWars", 'deaths_solo_insane')), inline=True)
-            embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins_solo')-checkstat(data, "SkyWars", 'wins_solo_insane'), inline=True)
-            embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
-            embed.add_field(name="W/L Rate:", value=getrate((checkstat(data, "SkyWars", 'wins_solo')-checkstat(data, "SkyWars", 'wins_solo_insane')), checkstat(data, "SkyWars", 'losses_solo')-checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
+            embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
+            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
+            embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('losses', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
+            embed.add_field(name="Kills:", value=data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), inline=True)
+            embed.add_field(name="Deaths:", value=data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0), inline=True)
+            embed.add_field(name="K/D Rate:", value=getrate(data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0)), inline=True)
+            embed.add_field(name="Wins:", value=data.get('wins_solo', 0) - data.get('wins_solo_insane', 0), inline=True)
+            embed.add_field(name="Losses:", value=data.get('losses_solo', 0) - data.get('losses_solo_insane', 0), inline=True)
+            embed.add_field(name="W/L Rate:", value=getrate(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0), data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
         elif joinedmode == "solos insane":
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
-            embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
-            embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
-            embed.add_field(name="Games Played:", value=checkstat(data, "SkyWars", 'wins_solo_insane')+checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
-            embed.add_field(name="Kills:", value=checkstat(data, "SkyWars", 'kills_solo_insane'), inline=True)
-            embed.add_field(name="Deaths:", value=checkstat(data, "SkyWars", 'deaths_solo_insane'), inline=True)
-            embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "SkyWars", 'kills_solo_insane'), checkstat(data, "SkyWars", 'deaths_solo_insane')), inline=True)
-            embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins_solo_insane'), inline=True)
-            embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_solo_insane'), inline=True)
-            embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins_solo_insane'), checkstat(data, "SkyWars", 'losses_solo_insane')), inline=True)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
+            embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
+            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
+            embed.add_field(name="Games Played:", value=data.get('wins_solo_insane', 0) + data.get('losses_solo_insane', 0), inline=True)
+            embed.add_field(name="Kills:", value=data.get('kills_solo_insane', 0), inline=True)
+            embed.add_field(name="Deaths:", value=data.get('deaths_solo_insane', 0), inline=True)
+            embed.add_field(name="K/D Rate:", value=getrate(data.get("kills_solo_insane", 0), data.get("deaths_solo_insane", 0)), inline=True)
+            embed.add_field(name="Wins:", value=data.get("wins_solo_insane", 0), inline=True)
+            embed.add_field(name="Losses:", value=data.get("losses_solo_insane", 0), inline=True)
+            embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_solo_insane", 0), data.get("losses_solo_insane", 0)), inline=True)
         elif joinedmode == "teams normal":
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {data['player']['displayname']}", color=0xff0000)
-            embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
-            embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
-            embed.add_field(name="Games Played:", value=(checkstat(data, "SkyWars", 'wins_teams')-checkstat(data, "SkyWars", 'wins_teams_insane'))+(checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
-            embed.add_field(name="Kills:", value=checkstat(data, "SkyWars", 'kills_teams')-checkstat(data, "SkyWars", 'kills_teams_insane'), inline=True)
-            embed.add_field(name="Deaths:", value=checkstat(data, "SkyWars", 'deaths_teams')-checkstat(data, "SkyWars", 'deaths_teams_insane'), inline=True)
-            embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "SkyWars", 'kills_teams')-checkstat(data, "SkyWars", 'kills_teams_insane'), checkstat(data, "SkyWars", 'deaths_teams')-checkstat(data, "SkyWars", 'deaths_teams_insane')), inline=True)
-            embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins_teams')-checkstat(data, "SkyWars", 'wins_teams_insane'), inline=True)
-            embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
-            embed.add_field(name="W/L Rate:", value=getrate((checkstat(data, "SkyWars", 'wins_teams')-checkstat(data, "SkyWars", 'wins_teams_insane')), checkstat(data, "SkyWars", 'losses_teams')-checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
+            embed.add_field(name="EXP:", value=data.get("skywars_experience", 0), inline=True)
+            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0), inline=True))
+            embed.add_field(name="Games Played:", value=(data.get("wins_teams", 0) - data.get("wins_teams_insane", 0)) + (data.get("losses_teams", 0) - data.get("losses_teams_insane", 0)), inline=True)
+            embed.add_field(name="Kills:", value=data.get("kills_teams", 0) - data.get("kills_teams_insane"), inline=True)
+            embed.add_field(name="Deaths:", value=data.get("deaths_teams", 0) - data.get("deaths_teams_insane", 0), inline=True)
+            embed.add_field(name="K/D Rate:", value=getrate(data.get("kills_teams", 0) - data.get("kills_teams_insane", 0), data.get("deaths_teams") - data.get("deaths_teams_insane")), inline=True)
+            embed.add_field(name="Wins:", value=data.get("wins_teams", 0) - data.get("wins_teams_insane", 0), inline=True)
+            embed.add_field(name="Losses:", value=data.get("losses_teams", 0) - data.get("losses_teams_insane", 0), inline=True)
+            embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_teams", 0) - data.get("wins_teams_insane", 0), data.get("losses_teams", 0) - data.get("losses_teams_insane", 0)), inline=True)
         elif joinedmode == "teams insane":
-            embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {data['player']['displayname']}", color=0xff0000)
-            embed.add_field(name="EXP:", value=checkstat(data, "SkyWars", 'skywars_experience'), inline=True)
-            embed.add_field(name="Level:", value=getSkyWarsLevel(checkstat(data, "SkyWars", 'skywars_experience')), inline=True)
-            embed.add_field(name="Games Played:", value=checkstat(data, "SkyWars", 'wins_teams_insane')+checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
-            embed.add_field(name="Kills:", value=checkstat(data, "SkyWars", 'kills_teams_insane'), inline=True)
-            embed.add_field(name="Deaths:", value=checkstat(data, "SkyWars", 'deaths_teams_insane'), inline=True)
-            embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "SkyWars", 'kills_teams_insane'), checkstat(data, "SkyWars", 'deaths_teams_insane')), inline=True)
-            embed.add_field(name="Wins:", value=checkstat(data, "SkyWars", 'wins_teams_insane'), inline=True)
-            embed.add_field(name="Losses:", value=checkstat(data, "SkyWars", 'losses_teams_insane'), inline=True)
-            embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "SkyWars", 'wins_teams_insane'), checkstat(data, "SkyWars", 'losses_teams_insane')), inline=True)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
+            embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
+            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
+            embed.add_field(name="Games Played:", value=data.get("wins_teams_insane", 0) + data.get("losses_teams_insane"), inline=True)
+            embed.add_field(name="Kills:", value=data.get("kills_teams_insane", 0), inline=True)
+            embed.add_field(name="Deaths:", value=data.get("deaths_teams_insane"), inline=True)
+            embed.add_field(name="K/D Rate:", value=getrate(data.get("kills_teams_insane", 0), data.get("deaths_teams_insane")), inline=True)
+            embed.add_field(name="Wins:", value=data.get("wins_teams_insane"), inline=True)
+            embed.add_field(name="Losses:", value=data.get("losses_teams_insane"), inline=True)
+            embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_teams_insane"), data.get("losses_teams_insane")), inline=True)
         else:
             return await ctx.send("Invalid mode")
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1736,83 +1662,71 @@ async def duels(ctx, *player_and_mode):
         if player is None:
             return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not data['player']:
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    if not rawData['player']:
         return await ctx.send(f"{player} has not played Duels")
+    data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:
-        embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {data['player']['displayname']}", color=0xff0000)
-        embed.add_field(name="Games Played:", value=checkstat(data, "Duels", 'wins')+checkstat(data, "Duels", 'losses'), inline=True)
-        embed.add_field(name="Winstreak:", value=checkstat(data, "Duels", 'current_winstreak'), inline=True)
-        embed.add_field(name="Best Winstreak:", value=checkstat(data, "Duels", 'best_overall_winstreak'), inline=True)
-        embed.add_field(name="Coins:", value=checkstat(data, "Duels", 'coins'), inline=False)
-        embed.add_field(name="Kills:", value=checkstat(data, "Duels", 'kills'), inline=True)
-        embed.add_field(name="Deaths:", value=checkstat(data, "Duels", 'deaths'), inline=True)
-        embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "Duels", 'kills'), checkstat(data, "Duels", 'deaths')), inline=True)
-        embed.add_field(name="Wins:", value=checkstat(data, "Duels", 'wins'), inline=True)
-        embed.add_field(name="Losses:", value=checkstat(data, "Duels", 'losses'), inline=True)
-        embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "Duels", 'wins'), checkstat(data, "Duels", 'losses')), inline=True)
-        embed.add_field(name="Arrows Shot:", value=checkstat(data, "Duels", 'bow_shots'), inline=True)
-        embed.add_field(name="Arrows Hit:", value=checkstat(data, "Duels", 'bow_hits'), inline=True)
-        embed.add_field(name="Arrows Missed:", value=checkstat(data, "Duels", 'bow_shots')-checkstat(data, "Duels", 'bow_hits'), inline=True)
-        embed.add_field(name="Arrow H/S Rate:", value=getrate(checkstat(data, "Duels", 'bow_hits'), checkstat(data, "Duels", 'bow_shots')), inline=False)
-        embed.add_field(name="Melee Swings:", value=checkstat(data, "Duels", 'melee_swings'), inline=True)
-        embed.add_field(name="Melee Hits:", value=checkstat(data, "Duels", 'melee_hits'), inline=True)
-        embed.add_field(name="Melee Missed:", value=checkstat(data, "Duels", 'melee_swings')-checkstat(data, "Duels", 'melee_hits'), inline=True)
-        embed.add_field(name="Melee H/S Rate:", value=getrate(checkstat(data, "Duels", 'melee_hits'), checkstat(data, "Duels", 'melee_swings')), inline=True)
+        embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=0xff0000)
+        embed.add_field(name="Games Played:", value=data.get('wins', 0) + data.get('losses', 0), inline=True)
+        embed.add_field(name="Winstreak:", value=data.get('current_winstreak', 0), inline=True)
+        embed.add_field(name="Best Winstreak:", value=data.get('best_overall_winstreak', 0), inline=True)
+        embed.add_field(name="Coins:", value=data.get('coins', 0), inline=False)
+        embed.add_field(name="Kills:", value=data.get('kills', 0), inline=True)
+        embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
+        embed.add_field(name="K/D Rate:", value=getrate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
+        embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
+        embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
+        embed.add_field(name="W/L Rate:", value=getrate(data.get('wins', 0), data.get('losses', 0)), inline=True)
+        embed.add_field(name="Arrows Shot:", value=data.get('bow_shots', 0), inline=True)
+        embed.add_field(name="Arrows Hit:", value=data.get('bow_hits', 0), inline=True)
+        embed.add_field(name="Arrows Missed:", value=data.get('bow_shots', 0) - data.get('bow_hits', 0), inline=True)
+        embed.add_field(name="Arrow H/S Rate:", value=getrate(data.get('bow_hits', 0), data.get('bow_shots', 0)), inline=False)
+        embed.add_field(name="Melee Swings:", value=data.get('melee_swings', 0), inline=True)
+        embed.add_field(name="Melee Hits:", value=data.get('melee_hits', 0), inline=True)
+        embed.add_field(name="Melee Missed:", value=data.get('melee_swings', 0) - data.get('melee_hits', 0), inline=True)
+        embed.add_field(name="Melee H/S Rate:", value=getrate(data.get('melee_hits', 0), data.get('melee_swings', 0)), inline=True)
     else:
         player_and_mode = list(player_and_mode)
         player_and_mode.pop(0)
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
             return await ctx.send("Invalid mode")
-        embed=discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {data['player']['displayname']}", color=0xff0000)
-        try:
-            if data['player']['stats']['Duels'][f'godlike_{mode.split()[0]}']:
-                prestige = "Godlike"
-        except KeyError:
-            try:
-                prestige = f"Grandmaster {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_grandmaster_title_prestige'])}"
-            except KeyError:
-                try:
-                    prestige = f"Legend {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_legend_title_prestige'])}"
-                except KeyError:
-                    try:
-                        prestige = f"Master {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_master_title_prestige'])}"
-                    except KeyError:
-                        try:
-                            prestige = f"Diamond {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_diamond_title_prestige'])}"
-                        except KeyError:
-                            try:
-                                prestige = f"Gold {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_gold_title_prestige'])}"
-                            except KeyError:
-                                try:
-                                    prestige = f"Iron {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_iron_title_prestige'])}"
-                                except KeyError:
-                                    if data['player']['stats']['Duels'][f'{mode.split()[0]}_rookie_title_prestige'] > 1:
-                                        prestige = f"Rookie {write_roman(data['player']['stats']['Duels'][f'{mode.split()[0]}_rookie_title_prestige'])}"
-                                    else:
-                                        prestige = "None"
+        embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
+        ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
+        prestige = None
+        if data.get(f'godlike_{mode.split()[0]}', None):
+            prestige = "Godlike"
+        else:
+            for ra in ranks:
+                prestigeNumber = data.get(f'{mode.split()[0]}_{ra}_title_prestige', None)
+                if prestigeNumber:
+                    if ra == "rookie" and prestigeNumber == 1:
+                        break
+                    prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+                    break
         mode = duelModes[mode]
         embed.add_field(name="Prestige", value=prestige, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="Kills:", value=checkstat(data, "Duels", f'{mode}_kills'), inline=True)
-        embed.add_field(name="Deaths:", value=checkstat(data, "Duels", f'{mode}_deaths'), inline=True)
-        embed.add_field(name="K/D Rate:", value=getrate(checkstat(data, "Duels", f'{mode}_kills'), checkstat(data, "Duels", f'{mode}_deaths')), inline=True)
+        embed.add_field(name="Kills:", value=data.get(f'{mode}_kills', 0), inline=True)
+        embed.add_field(name="Deaths:", value=data.get(f'{mode}_deaths', 0), inline=True)
+        embed.add_field(name="K/D Rate:", value=getrate(data.get(f'{mode}_kills', 0), data.get(f'{mode}_deaths', 0)), inline=True)
         if mode == "bridge":
             mode = "bridge_duel"
-        embed.add_field(name="Wins:", value=checkstat(data, "Duels", f'{mode}_wins'), inline=True)
-        embed.add_field(name="Losses:", value=checkstat(data, "Duels", f'{mode}_losses'), inline=True)
-        embed.add_field(name="W/L Rate:", value=getrate(checkstat(data, "Duels", f'{mode}_wins'), checkstat(data, "Duels", f'{mode}_losses')), inline=True)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
+        embed.add_field(name="Wins:", value=data.get(f'{mode}_wins', 0), inline=True)
+        embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
+        embed.add_field(name="W/L Rate:", value=getrate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
 
 @bot.command()
-async def fortnite(ctx, player):
+async def fortnite(ctx, *, player):
+    player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
-    if data['status'] == 404:
+    if data['status'] != 200:
         return await ctx.send("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
@@ -1836,10 +1750,7 @@ async def fortnite(ctx, player):
 @bot.command()
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    try:
-        if not user['data']:
-            raise KeyError
-    except KeyError:
+    if not user.get('data', None):
         return await ctx.send("Invalid channel")
     try:
         data = (user['data'])[0]
@@ -1874,13 +1785,11 @@ async def twitch(ctx, channel):
 async def youtube(ctx, *, channel):
     channel = channel.replace(" ", "%20")
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
-    try:
-        data['items']
-    except KeyError:
-        if data['error']:
-            print(data['error'])
-            return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
-    if not data['items']:
+    errors = data.get('error', None)
+    if errors:
+        print(data['error'])
+        return await ctx.send("This command is down until tommorow due to Youtube API rate limiting")
+    if not data.get('items', None):
         return await ctx.send("Invalid channel")
     channel_id = ((data['items'])[0]['snippet']['channelId'])
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
@@ -1919,14 +1828,14 @@ async def youtube(ctx, *, channel):
 @bot.command()
 async def csgolink(ctx, id):
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    try:
-        data = data['data']
+    data = data.get('data', None)
+    if data:
         await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
-    except KeyError:
-        return await ctx.send("Invalid ID")
-    csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
-    rval = json.dumps(csgoLinks)
-    r.set("csgoLinks", rval)
+        csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
+        rval = json.dumps(csgoLinks)
+        r.set("csgoLinks", rval)
+    else:
+        await ctx.send("Invalid ID")
 
 
 @bot.command()
@@ -1938,17 +1847,13 @@ async def csgo(ctx, *player):
     else:
         member = None
     if member:
-        try:
-            player = csgoLinks[member]
-        except KeyError:
+        player = csgoLinks.get(member, None)
+        if not player:
             return await ctx.send(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    try:
-        data['errors']
+    data = data.get('data', None)
+    if not data:
         return await ctx.send("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
-    except KeyError:
-        pass
-    data = data['data']
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
@@ -1973,5 +1878,7 @@ async def csgo(ctx, *player):
     embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
     await ctx.send(embed=embed)
 
+if len(sys.argv) < 2 or not sys.argv[1] in keys:
+    raise Exception("Invalid Arguments")
 
-bot.run(TOKEN)
+bot.run(globals()[sys.argv[1]])

@@ -196,12 +196,6 @@ async def on_ready():
 
 
 @bot.event
-async def on_disconnect():
-    await bot.change_presence(status=discord.Status.offline)
-    await statusChannel.send(f"{str(bot.user)} is now offline \n{statusPings.mention}")
-
-
-@bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")

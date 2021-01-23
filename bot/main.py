@@ -163,10 +163,19 @@ def write_roman(num):
 async def on_ready():
     print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
-    await bot.change_presence(activity=game)
+    await bot.change_presence(status=discord.Status.online, activity=game)
+
     global reports
-    testingserver = bot.get_guild(763824152493686795)
-    reports = get(testingserver.channels, name="reports")
+    global statusPings
+    global statusChannel
+
+    supportServer = bot.get_guild(763824152493686795)
+    reports = get(supportServer.channels, name="reports")
+
+    statusChannel = get(supportServer.channels, name="bot-status")
+    statusPings = get(supportServer.roles, name="Status Pings")
+    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
+
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
@@ -184,6 +193,12 @@ async def on_ready():
             guildInfo[guild.id]['teamLimit'] = 2
             guildInfo[guild.id]['maximumTeams'] = 1
             guildInfo[guild.id]['TTVCrole'] = "TTVC"
+
+
+@bot.event
+async def on_disconnect():
+    await bot.change_presence(status=discord.Status.offline)
+    await statusChannel.send(f"{str(bot.user)} is now offline \n{statusPings.mention}")
 
 
 @bot.event

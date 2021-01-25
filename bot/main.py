@@ -36,6 +36,8 @@ for k in keys:
     globals()[k] = os.environ.get(k)
     if globals()[k] is None:
         globals()[k] = config(k)
+        if globals()[k] is None:
+            raise Exception("Could not initialise keys")
 
 r = redis.from_url(REDIS_URL)
 

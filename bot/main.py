@@ -516,7 +516,7 @@ async def help(ctx, *category):
         embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
-        raise exceptions.exceptions.NotFound("Invalid category")
+        raise exceptions.NotFound("Invalid category")
     await ctx.send(embed=embed)
 
 
@@ -1312,7 +1312,7 @@ def hasLink(ctx, player):
     if member:
         player = r.get(member.id)
     if player is None:
-        raise exceptions.exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+        raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
     player = player.decode('utf-8')
     return player
 
@@ -1322,7 +1322,7 @@ async def minecraft(ctx, *player):
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        raise exceptions.exceptions.NotFound(f"{player} does not exist")
+        raise exceptions.NotFound(f"{player} does not exist")
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
@@ -1341,10 +1341,10 @@ async def minecraft(ctx, *player):
 async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
-        raise exceptions.exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
+        raise exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD', None)
     if link is None:
-        raise exceptions.exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+        raise exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         r.set(ctx.author.id, data['player']['displayname'])
@@ -1750,7 +1750,7 @@ async def fortnite(ctx, player):
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user.get('data'):
-        raise exceptions.exceptions.NotFound("Invalid channel")
+        raise exceptions.NotFound("Invalid channel")
     data = (user['data'])[0]
     embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
     embed.set_thumbnail(url=data['profile_image_url'])
@@ -1784,7 +1784,7 @@ async def youtube(ctx, *, channel):
     if errors:
         raise exceptions.CustomException("YouTube returned an error!")
     if not data.get('items'):
-        raise exceptions.exceptions.NotFound("Invalid channel")
+        raise exceptions.NotFound("Invalid channel")
     channel_id = data['items'][0]['snippet']['channelId']
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
@@ -1830,7 +1830,7 @@ async def csgolink(ctx, id):
         rval = json.dumps(csgoLinks)
         r.set("csgoLinks", rval)
     else:
-        raise exceptions.exceptions.NotFound("Invalid ID")
+        raise exceptions.NotFound("Invalid ID")
 
 
 @bot.command()
@@ -1844,11 +1844,11 @@ async def csgo(ctx, *player):
     if member:
         player = csgoLinks.get(member)
         if not player:
-            raise exceptions.exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
+            raise exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = data.get('data')
     if not data:
-        raise exceptions.exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+        raise exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)

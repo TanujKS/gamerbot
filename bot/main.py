@@ -26,24 +26,11 @@ from decouple import config
 import redis
 import ast
 import sys
+import exceptions
 
-
-class UserNotFound(Exception):
-    pass
-
-class UnAuthorized(Exception):
-    pass
-
-class InvalidArgument(Exception):
-    pass
-
-class OtherException(Exception):
-    pass
-
-raiseErrors = [commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden]
-passErrors = [commands.CommandNotFound, commands.NotOwner, commands.CheckFailure]
-customErrors = ['OtherException', 'UserNotFound', 'UnAuthorized', 'InvalidArgument']
-
+raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
+passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
+customErrors = exceptions.customErrors
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN']
 for k in keys:
@@ -105,16 +92,26 @@ def convertBooltoStr(bool : bool):
     if bool is False:
         return "Off"
 
+defaultPrefix = '?'
+
 def initGuild(guild : discord.Guild):
     guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
+    guildInfo[guild.id]['prefix'] =  defaultPrefix
+    rval = json.dumps(guildInfo)
+    r.set('guildInfo', rval)
 
-
+def determine_prefix(bot, message):
+    guild = message.guild
+    if guild:
+        return guildInfo[guild.id].get('prefix')
+    else:
+        return defaultPrefix
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
-bot = commands.Bot(command_prefix='?', intents=discord.Intents.all(), case_insensitive=True)
+bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
 @bot.event
@@ -132,14 +129,12 @@ async def on_ready():
 
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
-    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
 
 
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
 
-    await bot.loop.create_task(checkIfLive())
 
     for guild in bot.guilds:
         try:
@@ -150,6 +145,10 @@ async def on_ready():
             guildInfo[guild.id]
         except KeyError:
             initGuild(guild)
+
+    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
+
+    await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -166,8 +165,6 @@ async def on_guild_join(guild):
         guildInfo[guild.id]
     except KeyError:
         initGuild(guild)
-    rval = json.dumps(guildInfo)
-    r.set("guildInfo", rval)
     rval = json.dumps(trackingGuilds)
     r.set("trackingGuilds", rval)
     await reports.send(f"Joined {guild.name} with {guild.member_count} members")
@@ -199,11 +196,6 @@ async def on_guild_remove(guild):
             await ctx.send("No problem. Goodbye!")
     except Exception as e:
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
-
-
-@bot.event
-async def on_message_edit(before, after):
-    await on_message(after)
 
 
 @bot.event
@@ -239,15 +231,17 @@ async def on_command_error(ctx, error):
 
     if "TimeoutError" in str(error):
         errorMessage = ("Timed out.")
-    for e in raiseErrors:
-        if isinstance(error, e):
-            errorMessage = e
-            break
+
+    if isinstance(error, raiseErrors):
+        errorMessage = str(error)
+
+    if isinstance(error, passErrors):
+        return
+
     if errorMessage:
         return await ctx.send(errorMessage)
-    for e in passErrors:
-        if isinstance(error, e):
-            return
+
+
     if reports:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")
         embed = discord.Embed(title="Error Report", description=None, color=0xff0000)
@@ -283,9 +277,7 @@ async def on_reaction_add(reaction, user):
             dic = reaction.message.embeds[0].to_dict()
             if dic['title'].startswith("(closed)"):
                 await reaction.remove(user)
-        except IndexError:
-            pass
-        except KeyError:
+        except:
             pass
 
         try:
@@ -298,9 +290,7 @@ async def on_reaction_add(reaction, user):
                             await thereaction.remove(user)
                 else:
                     await reaction.remove(user)
-        except IndexError:
-            pass
-        except KeyError:
+        except:
             pass
 
         if reaction.message.content == "Teams are now closed.":
@@ -324,7 +314,7 @@ async def on_reaction_remove(reaction, user):
 async def blacklist(ctx, member : discord.Member):
     global blackListed
     if member.id in blackListed:
-        return await ctx.send(f"{str(member)} is already blacklisted")
+        raise exceptions.OtherException(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
     r.lpush("blacklisted", member.id)
     await ctx.send(f"Blacklisted {str(member)}")
@@ -335,7 +325,7 @@ async def blacklist(ctx, member : discord.Member):
 async def unblacklist(ctx, member : discord.Member):
     global blackListed
     if not member.id in blackListed:
-        return await ctx.send(f"{str(member)} is not blacklisted")
+        raise exceptions.OtherException(f"{str(member)} is not blacklisted")
     blackListed.remove(member.id)
     r.lrem("blacklisted", 0, member.id)
     await ctx.send(f"Unblacklisted {str(member)}")
@@ -362,7 +352,7 @@ async def blacklisted(ctx):
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
-        return await ctx.send("Invalid command")
+        raise exceptions.NotFound("Invalid command")
     command.update(enabled=False)
     await ctx.send(f"Disabled command {command}")
 
@@ -372,7 +362,7 @@ async def disablecommand(ctx, commandName):
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
-        return await ctx.send("Invalid command")
+        raise exceptions.NotFound("Invalid command")
     command.update(enabled=True)
     await ctx.send(f"Enabled command {command}")
 
@@ -421,7 +411,7 @@ async def eval_fn(ctx, *, cmd):
             result = "Done"
         await ctx.send(result)
     except Exception as err:
-        await ctx.send(err)
+        raise exceptions.OtherException(err)
 
 
 @bot.command()
@@ -512,7 +502,7 @@ async def help(ctx, *category):
         embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
-        return await ctx.send("Invalid category")
+        raise exceptions.NotFound("Invalid category")
     await ctx.send(embed=embed)
 
 
@@ -523,22 +513,23 @@ async def settings(ctx, *setting):
         embed.add_field(name=f"Anti-Ez: `{convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value="?settings antiez on/off")
         embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value="?settings teamlimit 1/2/3...")
         embed.add_field(name=f"Role required to use ?speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value="?settings TTVCrole some_role")
+        embed.add_field(name=f"Prefix for {str(bot.user)} in this server: `{guildInfo[ctx.guild.id]['prefix']}`", value="?settings prefix some_prefix")
     elif len(setting) == 2:
         if not ctx.author.guild_permissions.administrator:
-            raise UnAuthorized(f"You are missing Administrator permission(s) to run this command.")
+            raise exceptions.UnAuthorized(f"You are missing Administrator permission(s) to run this command.")
         if setting[0] == "antiez":
             if setting[1] == "on":
                 guildInfo[ctx.guild.id]['antiez'] = True
             elif setting [1] == "off":
                 guildInfo[ctx.guild.id]['antiez'] = False
             else:
-                raise InvalidArgument("Argument must be 'on' or 'off'")
+                raise exceptions.InvalidArgument("Argument must be 'on' or 'off'")
             embed = discord.Embed(title=f"Anti-EZ is now {convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", description=None, color=0xff0000)
         elif setting[0] == "teamlimit":
             try:
                 setting = int(setting[1])
             except ValueError:
-                raise InvalidArgument("Argument must be a number")
+                raise exceptions.InvalidArgument("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
@@ -550,12 +541,15 @@ async def settings(ctx, *setting):
                 return await ctx.send('Invalid role')
             guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
+        elif setting[0] == "prefix":
+            guildInfo[ctx.guild.id]['prefix'] = setting[1]
+            embed = discord.Embed(title=f"Prefix for {str(bot.user)} in {ctx.guild.name} is now {guildInfo[ctx.guild.id]['prefix']}")
         else:
-            raise InvalidArgument("Invalid setting")
+            raise exceptions.InvalidArgument("Invalid setting")
         rval = json.dumps(guildInfo)
         r.set("guildInfo", rval)
     else:
-        raise InvalidArgument("Invalid arguments")
+        raise exceptions.InvalidArgument("Invalid arguments")
     await ctx.send(embed=embed)
 
 
@@ -581,6 +575,7 @@ async def speak(ctx, *, message):
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     while True:
+        vc = ctx.guild.me.voice
         if not vc:
             return
         try:
@@ -594,9 +589,9 @@ async def checkIfLive():
     while True:
         for guild in trackingGuilds:
             for track in trackingGuilds[guild]:
-                index = trackingGuilds[guild].index(track)
-                data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
-                for x in data['data']:
+                    index = trackingGuilds[guild].index(track)
+                    data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
+                    x = list(data['data'])[0]
                     is_live = x['is_live']
                     if is_live:
                         if not trackingGuilds[guild][index]['pinged']:
@@ -610,7 +605,6 @@ async def checkIfLive():
                     else:
                         print(f"{trackingGuilds[guild][index]['streamer']} is not live")
                         trackingGuilds[guild][index]['pinged'] = False
-                    break
         await asyncio.sleep(60)
 
 @bot.command()
@@ -618,20 +612,19 @@ async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     user = user.get('data')
     if not user:
-        raise UnAuthorized("Invalid channel")
-    for x in user['data']:
-        trackingGuilds[ctx.guild.id].append({})
-        index = len(trackingGuilds[ctx.guild.id]) - 1
-        trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
-        trackingGuilds[ctx.guild.id][index]['streamer'] = channel
-        trackingGuilds[ctx.guild.id][index]['pinged'] = False
-        trackingGuilds[ctx.guild.id][index]['message'] = message
-        embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
-        embed.set_thumbnail(url=x['profile_image_url'])
-        embed.add_field(name="This is an example stream", value="\u200b", inline=False)
-        channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]["channel-id"])
-        await channelSend.send(embed=embed)
-        break
+        raise exceptions.UnAuthorized("Invalid channel")
+    x = list(user['data'])[0]
+    trackingGuilds[ctx.guild.id].append({})
+    index = len(trackingGuilds[ctx.guild.id]) - 1
+    trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
+    trackingGuilds[ctx.guild.id][index]['streamer'] = channel
+    trackingGuilds[ctx.guild.id][index]['pinged'] = False
+    trackingGuilds[ctx.guild.id][index]['message'] = message
+    embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
+    embed.set_thumbnail(url=x['profile_image_url'])
+    embed.add_field(name="This is an example stream", value="\u200b", inline=False)
+    channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]["channel-id"])
+    await channelSend.send(embed=embed)
     rval = json.dumps(trackingGuilds)
     r.set("trackingGuilds", rval)
 
@@ -704,7 +697,7 @@ async def avatar(ctx, member : discord.Member, *format):
         format = ["png"]
     try:
         await ctx.send(member.avatar_url_as(format=format[0], size=1024))
-    except discord.InvalidArgument:
+    except discord.exceptions.InvalidArgument:
         return await ctx.send("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 
 
@@ -874,7 +867,7 @@ async def move(ctx, member, *, channel):
                 try:
                     await member.move_to(channel)
                 except discord.HTTPException:
-                    raise UnAuthorized(f"Missing Permissions")
+                    raise exceptions.UnAuthorized(f"Missing Permissions")
         await ctx.send(f"Moved all members to {channel.name}")
     else:
         try:
@@ -1313,7 +1306,7 @@ def hasLink(ctx, player):
     if member:
         player = r.get(member.id)
     if player is None:
-        raise UserNotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+        raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
     player = player.decode('utf-8')
     return player
 
@@ -1323,7 +1316,7 @@ async def minecraft(ctx, *player):
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        raise UserNotFound(f"{player} does not exist")
+        raise exceptions.NotFound(f"{player} does not exist")
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
@@ -1342,15 +1335,15 @@ async def minecraft(ctx, *player):
 async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
-        raise UserNotFound(f"{player} has not played Hypixel and cannot verify their account")
+        raise exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD', None)
     if link is None:
-        raise UserNotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+        raise exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         r.set(ctx.author.id, data['player']['displayname'])
     else:
-        raise UnAuthorized(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
+        raise exceptions.UnAuthorized(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
 @bot.command()
@@ -1691,7 +1684,7 @@ async def duels(ctx, *player_and_mode):
         player_and_mode.pop(0)
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
-            raise InvalidArgument("Invalid mode")
+            raise exceptions.InvalidArgument("Invalid mode")
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
         ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
         prestige = None
@@ -1727,7 +1720,7 @@ async def fortnite(ctx, *, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
-        raise UserNotFound("Invalid player")
+        raise exceptions.NotFound("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
@@ -1751,34 +1744,30 @@ async def fortnite(ctx, *, player):
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user.get('data'):
-        raise UserNotFound("Invalid channel")
-    try:
-        data = (user['data'])[0]
-        embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
-        embed.set_thumbnail(url=data['profile_image_url'])
-        embed.add_field(name="Username:", value=data['display_name'], inline=True)
-        embed.add_field(name="Login Name:", value=data['login'], inline=True)
-        embed.add_field(name="ID", value=data['id'], inline=True)
-        embed.add_field(name="Channel Type", value=data['broadcaster_type'].capitalize(), inline=False)
-        embed.add_field(name="Channel Description", value=data['description'], inline=False)
-        embed.add_field(name="Views", value=data['view_count'], inline=True)
-        followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-        embed.add_field(name="Followers", value=followers['total'], inline=True)
-        stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-        for x in stream['data']:
-            is_live = x['is_live']
-            break
-        if is_live:
-            status = "Live"
-            embed.set_thumbnail(url=x['thumbnail_url'])
-        if not is_live:
-            status = "Not Live"
-        embed.add_field(name="Status:", value=status, inline=True)
-        if status == "Live":
-            embed.add_field(name="Stream:", value=x['title'], inline=True)
-        await ctx.send(embed=embed)
-    except discord.errors.HTTPException:
-        raise UserNotFound("Channel has not streamed")
+        raise exceptions.NotFound("Invalid channel")
+    data = (user['data'])[0]
+    embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
+    embed.set_thumbnail(url=data['profile_image_url'])
+    embed.add_field(name="Username:", value=data['display_name'], inline=True)
+    embed.add_field(name="Login Name:", value=data['login'], inline=True)
+    embed.add_field(name="ID", value=data['id'], inline=True)
+    embed.add_field(name="Channel Type", value=data['broadcaster_type'].capitalize(), inline=False)
+    embed.add_field(name="Channel Description", value=data['description'], inline=False)
+    embed.add_field(name="Views", value=data['view_count'], inline=True)
+    followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+    embed.add_field(name="Followers", value=followers['total'], inline=True)
+    stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+    x = list(stream['data'])[0]
+    is_live = x['is_live']
+    if is_live:
+        status = "Live"
+        embed.set_thumbnail(url=x['thumbnail_url'])
+    if not is_live:
+        status = "Not Live"
+    embed.add_field(name="Status:", value=status, inline=True)
+    if status == "Live":
+        embed.add_field(name="Stream:", value=x['title'], inline=True)
+    await ctx.send(embed=embed)
 
 
 @bot.command(aliases=['yt'])
@@ -1787,30 +1776,25 @@ async def youtube(ctx, *, channel):
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
     errors = data.get('error')
     if errors:
-        print(data['error'])
-        return await ctx.send("YouTube returned an error!")
+        raise exceptions.CustomException("YouTube returned an error!")
     if not data.get('items'):
-        raise UserNotFound("Invalid channel")
+        raise exceptions.NotFound("Invalid channel")
     channel_id = data['items'][0]['snippet']['channelId']
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
     embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
     embed.add_field(name="Channel ID:", value=channel_id, inline=True)
     description = (data['items'][0]['snippet'])['description']
-    print(description)
+    if not description:
+        description = "None"
     embed.add_field(name="Channel Description:", value=description, inline=False)
     embed.add_field(name="Views:", value=stats['items'][0]['statistics']['viewCount'], inline=True)
     embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics']['subscriberCount'], inline=True)
     embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
     embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
     embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel}s and then run '?youtube (id_of_the_channel_you_want)'")
-    #try:
-    for e in embed.fields:
-        print(e)
     await ctx.send(embed=embed)
 
-    #except discord.HTTPException:
-        #return await ctx.send(f"{data['items'][0]['snippet']['title']} has no videos")
     def ytCheck(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
     try:
@@ -1819,15 +1803,15 @@ async def youtube(ctx, *, channel):
         return
     for item in data['items']:
         if item != data['items'][0]:
-            try:
-                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
-                embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
-                embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
-                embed.add_field(name="Description:", value=item['snippet']['description'], inline=True)
-                embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
-                await ctx.send(embed=embed)
-            except discord.HTTPException:
-                pass
+            embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=0xff0000)
+            embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
+            embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
+            description = item['snippet']['description']
+            if not description:
+                description = "None"
+            embed.add_field(name="Description:", value=description, inline=True)
+            embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
+            await ctx.send(embed=embed)
 
 
 @bot.command()
@@ -1840,7 +1824,7 @@ async def csgolink(ctx, id):
         rval = json.dumps(csgoLinks)
         r.set("csgoLinks", rval)
     else:
-        await ctx.send("Invalid ID")
+        raise exceptions.NotFound("Invalid ID")
 
 
 @bot.command()
@@ -1854,11 +1838,11 @@ async def csgo(ctx, *player):
     if member:
         player = csgoLinks.get(member)
         if not player:
-            raise UserNotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
+            raise exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = data.get('data')
     if not data:
-        raise UserNotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+        raise exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
@@ -1883,6 +1867,31 @@ async def csgo(ctx, *player):
     embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
     await ctx.send(embed=embed)
 
+
+connect4Games = {}
+class Board(ctx, bot):
+    def __init__(self):
+
+    def move(column)
+
+@bot.command()
+async def connect4(ctx, member : discord.Member):
+    if connect4Games.get(member.id):
+
+        await ctx.send(message)
+        gameInProgress = True
+        players = [ctx.author, member]
+        while gameInProgress:
+            for player in players:
+                await ctx.send(f"{player.name}'s turn")
+                board =
+                def check(m):
+                    return m.author in players and m.channel == ctx.channel
+                move = await bot.wait_for('message', timeout=60, check=check)
+
+    else:
+        await ctx.send(f"You challenged {str(member)} to Connect 4! Tell {str(member)} to run ?connect4 {ctx.author.mention}")
+        connect4Games[ctx.author.id] = True
 
 
 

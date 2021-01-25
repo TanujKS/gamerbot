@@ -117,11 +117,10 @@ bot.remove_command('help')
 async def on_ready():
     print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
-<<<<<<< HEAD
+
     await bot.change_presence(activity=game)
-=======
+
     await bot.change_presence(status=discord.Status.online, activity=game)
->>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
 
     global reports
     global statusPings
@@ -132,11 +131,8 @@ async def on_ready():
 
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
-<<<<<<< HEAD
 
-=======
     await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
->>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
 
     info = await bot.application_info()
     global botmaster
@@ -556,7 +552,7 @@ async def settings(ctx, *setting):
             else:
                 setting1 = setting[1]
             if not get(ctx.guild.roles, name=setting1):
-                return await ctx.send('Invalid role')
+                raise exceptions.InvalidArgument('Invalid role')
             guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         elif setting[0] == "prefix":
@@ -578,7 +574,7 @@ async def settings(ctx, *setting):
 async def speak(ctx, *, message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
-        return await ctx.send(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
+        raise exceptions.UnAuthorized(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
     fullmessage = f"{ctx.author.name} says {message}"
     if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
@@ -588,7 +584,7 @@ async def speak(ctx, *, message):
         except discord.ClientException:
             pass
     else:
-        return await ctx.send("You are not in a voice channel.")
+        raise exceptions.NotFound("You are not in a voice channel.")
     await ctx.guild.me.edit(deafen=True)
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
@@ -657,7 +653,7 @@ def findTwitchTrack(ctx, streamer):
 async def deltrack(ctx, *, streamer):
     track = findTwitchTrack(ctx, streamer)
     if track is None:
-        return await ctx.send("Invalid streamer")
+        raise exceptions.NotFound("Invalid streamer")
     trackingGuilds[ctx.guild.id].pop(track)
     await ctx.send(f"No longer tracking {streamer}")
     rval = json.dumps(trackingGuilds)
@@ -686,7 +682,7 @@ async def invite(ctx, *args):
             max_uses = args[1]
             reason = args[2]
         except IndexError:
-            return await ctx.send("Invalid args. 'max_age', 'max_uses', 'reason' ")
+            raise exceptions.OtherException("Invalid args. 'max_age', 'max_uses', 'reason' ")
     await ctx.send(f"Invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with reason: {reason}. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
 
 
@@ -716,20 +712,20 @@ async def avatar(ctx, member : discord.Member, *format):
     try:
         await ctx.send(member.avatar_url_as(format=format[0], size=1024))
     except discord.exceptions.InvalidArgument:
-        return await ctx.send("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
+        raise exceptions.InvalidArgument("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 
 
 @bot.command()
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
     if len(options) > 8:
-        return await ctx.send("Maximum of 8 options")
+        raise exceptions.InvalidArgument("Maximum of 8 options")
     if len(options) < 2:
-        return await ctx.send("Minimum of 2 options")
+        raise exceptions.InvalidArgument("Minimum of 2 options")
     try:
         embed = discord.Embed(title=poll, description=None, color=0xff0000)
     except discord.HTTPException:
-        return await ctx.send("Poll title must be less than 256 characters")
+        raise exceptions.InvalidArgument("Poll title must be less than 256 characters")
     for option in options:
         embed.add_field(name=emojis[options.index(option)], value="\u200b", inline=True)
         embed.add_field(name=option, value="\u200b", inline=True)
@@ -786,9 +782,9 @@ async def nick(ctx, member : discord.Member, *nick):
     try:
         await member.edit(nick=nick)
     except discord.Forbidden:
-        return await ctx.send(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
+        raise exceptions.UnAuthorized(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
     except discord.HTTPException:
-        return await ctx.send("Nickname must be fewer than 32 characters")
+        raise exceptions.InvalidArgument("Nickname must be fewer than 32 characters")
     if nick is None:
         nick = member.name
     await ctx.send(f"Changed {member.name}'s nickname from {oldNick} to {nick}")
@@ -863,21 +859,18 @@ async def donate(ctx):
 async def move(ctx, member, *, channel):
     if channel == "me":
         if not ctx.author.voice:
-            return await ctx.send("You are not in a voice channel")
+            raise exceptions.NotFound("You are not in a voice channel")
         channel = ctx.author.voice.channel
     else:
         channel = get(ctx.guild.voice_channels, name=channel)
     if not channel:
-        return await ctx.send("That voice channel doest not exist.")
+        raise exceptions.NotFound("That voice channel doest not exist.")
     if member == "channel-all":
         if not ctx.author.voice:
-            return await ctx.send("You are not in a voice channel")
+            raise exceptions.NotFound("You are not in a voice channel")
         oldVC = ctx.author.voice.channel
         for member in oldVC.members:
-            try:
-                await member.move_to(channel)
-            except discord.HTTPException:
-                return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
+            await member.move_to(channel)
         await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
@@ -891,14 +884,11 @@ async def move(ctx, member, *, channel):
         try:
             member = ctx.message.mentions[0]
         except IndexError:
-            return await ctx.send("Invalid member")
+            raise exceptions.NotFound("Invalid member")
         if not member.voice:
-            return await ctx.send(f"{str(member)} is not in a VC")
-        try:
-            await member.move_to(channel)
-            await ctx.send(f"Moved {str(member)} to {str(channel)}")
-        except discord.errors.HTTPException:
-            return await ctx.send(f"{str(member)} cannot connect to {channel.name}")
+            raise exceptions.NotFound(f"{str(member)} is not in a VC")
+        await member.move_to(channel)
+        await ctx.send(f"Moved {str(member)} to {str(channel)}")
 
 
 @bot.command()
@@ -907,7 +897,7 @@ async def move(ctx, member, *, channel):
 async def mute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
-                return await ctx.send("You are not in a voice channel")
+                raise exceptions.NotFound("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {ctx.author.voice.channel.name}")
@@ -933,7 +923,7 @@ async def mute(ctx, member):
 async def deafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
-                return await ctx.send("You are not in a voice channel")
+                raise NotFound("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {ctx.author.voice.channel.name}")
@@ -959,7 +949,7 @@ async def deafen(ctx, member):
 async def unmute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
-                return await ctx.send("You are not in a voice channel")
+                raise exceptions.NotFound("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {ctx.author.voice.channel.name}")
@@ -985,7 +975,7 @@ async def unmute(ctx, member):
 async def undeafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
-                return await ctx.send("You are not in a voice channel")
+                raise exceptions.NotFound("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {ctx.author.voice.channel.name}")
@@ -1011,7 +1001,7 @@ async def undeafen(ctx, member):
 async def dc(ctx, member):
     if member == "channel-all":
         if not ctx.author.voice:
-            return await ctx.send("You are not in a voice channel")
+            raise exceptions.NotFound("You are not in a voice channel")
         for member in ctx.author.voice.channel.members:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {ctx.author.voice.channel.name}")
@@ -1024,9 +1014,9 @@ async def dc(ctx, member):
         try:
             member = ctx.message.mentions[0]
         except IndexError:
-            return await ctx.send("That is not a valid user")
+            raise exceptions.NotFound("That is not a valid user")
         if not member.voice:
-            return await ctx.send(f"{str(member)} is not in a VC")
+            raise exceptions.NotFound(f"{str(member)} is not in a VC")
         await member.edit(voice_channel=None)
         await ctx.send(f"Disconnected {str(member)}")
 
@@ -1041,7 +1031,7 @@ async def moveteams(ctx):
                     for team in teams:
                         if get(member.roles, name=team):
                             await member.edit(voice_channel=get(ctx.guild.voice_channels, name=team))
-                return await ctx.send(f"Moved all members to their team voice channels")
+                raise exceptions.NotFound(f"Moved all members to their team voice channels")
         await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
 
 
@@ -1056,7 +1046,7 @@ async def moveevents(ctx):
     for team in teams:
         voicechannel = get(ctx.guild.voice_channels, name=team)
         if not voicechannel:
-            return await ctx.send(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
+            raise exceptions.NotFound(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
         for member in voicechannel.members:
             await member.edit(voice_channel=events)
     await ctx.send(f"Moved all members to {events.name}")
@@ -1070,7 +1060,7 @@ async def lockevents(ctx):
         for team in teams:
             channel = get(ctx.guild.voice_channels, name=team)
             if not channel:
-                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
             perms = channel.overwrites_for(ctx.guild.default_role)
             perms.connect = False
             await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
@@ -1085,7 +1075,7 @@ async def unlockevents(ctx):
         for team in teams:
             voicechannel = get(ctx.guild.voice_channels, name=team)
             if not voicechannel:
-                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
             await voicechannel.set_permissions(ctx.guild.default_role, connect=True)
             await voicechannel.edit(user_limit=None)
         await ctx.send("Unlocked all voice channels")
@@ -1097,9 +1087,7 @@ async def unlockevents(ctx):
 async def eventban(ctx, member : discord.Member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
-            return await ctx.send("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
-        if member.id == botmaster:
-            return await ctx.send("I would never ban senpai")
+            raise exceptions.NotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
         if role in member.roles:
             await ctx.send("That user is already banned")
         else:
@@ -1113,7 +1101,7 @@ async def eventban(ctx, member : discord.Member):
 async def eventunban(ctx, member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
-            return await ctx.send("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
+            raise exceptions.NotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
         if member == "all":
             for member in role.members:
                 await member.remove_roles(role)
@@ -1137,7 +1125,7 @@ async def createteams(ctx):
         for team in teams:
             role = get(ctx.guild.roles, name=team)
             if not role:
-                return await ctx.send("Could not find the team roles, your server may not be setup for Game Events yet. Run ?setup")
+                raise exceptions.NotFound("Could not find the team roles, your server may not be setup for Game Events yet. Run ?setup")
         await ctx.message.delete()
         msg = await ctx.send("React to get into your teams")
         for emoji in emojis:
@@ -1151,7 +1139,7 @@ async def clearteam(ctx, team : discord.Role):
     if team.name in teams:
         role = get(ctx.guild.roles, name=team)
         if not role:
-            return await ctx.send("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
+            raise exceptions.NotFound("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
         for member in role.members:
             await member.remove_roles(role)
             await ctx.send(f"Cleared {str(role)}")
@@ -1166,7 +1154,7 @@ async def clearteams(ctx):
         for team in teams:
             role = get(ctx.guild.roles, name=team)
             if not role:
-                return await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
             for member in role.members:
                 await member.remove_roles(role)
         await ctx.send("Cleared all teams")
@@ -1501,7 +1489,7 @@ async def bedwars(ctx, *player_and_mode):
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
-            return await ctx.send("Invalid mode")
+            raise exceptions.InvalidArgument("Invalid mode")
         embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
         embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
@@ -1734,19 +1722,11 @@ async def duels(ctx, *player_and_mode):
 
 
 @bot.command()
-<<<<<<< HEAD
-async def fortnite(ctx, *, player):
-    player = player.replace(" ", "%20")
-    data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
-    if data['status'] != 200:
-        raise exceptions.exceptions.NotFound("Invalid player")
-=======
 async def fortnite(ctx, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
-        return await ctx.send("Invalid player")
->>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
+        raise exceptions.NotFound("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)

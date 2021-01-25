@@ -101,7 +101,7 @@ def initGuild(guild : discord.Guild):
     guildInfo[guild.id]['teamLimit'] = 2
     guildInfo[guild.id]['maximumTeams'] = 1
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
-    guildInfo[guild.id]['prefix'] =  defaultPrefix
+    guildInfo[guild.id]['prefix'] = defaultPrefix
     rval = json.dumps(guildInfo)
     r.set('guildInfo', rval)
 
@@ -134,12 +134,9 @@ async def on_ready():
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
 
-    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
-
     info = await bot.application_info()
     global botmaster
     botmaster = info.owner.id
-
 
     for guild in bot.guilds:
         try:
@@ -151,6 +148,8 @@ async def on_ready():
         except KeyError:
             initGuild(guild)
 
+    print(guildInfo)
+    
     await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
 
     await bot.loop.create_task(checkIfLive())

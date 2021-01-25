@@ -1,3 +1,6 @@
+import sys, inspect
+
+
 class NotFound(Exception):
     pass
 
@@ -10,7 +13,6 @@ class InvalidArgument(Exception):
 class OtherException(Exception):
     pass
 
-import sys, inspect
 
 clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
 

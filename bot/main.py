@@ -30,7 +30,6 @@ import exceptions
 
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
 passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
-customErrors = exceptions.customErrors
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN']
 for k in keys:
@@ -152,6 +151,19 @@ async def on_ready():
 
 
 @bot.event
+async def on_disconnect():
+    print("Disconnected")
+    data = {"content": f"{str(bot.user)} is now offline \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+
+    result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+    try:
+        result.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"ERROR: {err}")
+
+
+@bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
@@ -224,7 +236,7 @@ async def on_message(message):
 @bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
-    for c in customErrors:
+    for c in exceptions.customErrors:
         if c in str(error):
             errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
             break
@@ -312,7 +324,6 @@ async def on_reaction_remove(reaction, user):
 @bot.command()
 @commands.is_owner()
 async def blacklist(ctx, member : discord.Member):
-    global blackListed
     if member.id in blackListed:
         raise exceptions.OtherException(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
@@ -323,7 +334,6 @@ async def blacklist(ctx, member : discord.Member):
 @bot.command()
 @commands.is_owner()
 async def unblacklist(ctx, member : discord.Member):
-    global blackListed
     if not member.id in blackListed:
         raise exceptions.OtherException(f"{str(member)} is not blacklisted")
     blackListed.remove(member.id)
@@ -421,8 +431,8 @@ async def shutdown(ctx):
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and (m.content == "n" or m.content == "y")
     response = await bot.wait_for('message', timeout=60, check=check)
+    response = response.content
     if response == "y":
-        await statusChannel.send(f"{str(bot.user)} is now offline \n{statusPings.mention}")
         await bot.logout()
     if response == "n":
         await ctx.send("Cancelled")
@@ -502,7 +512,7 @@ async def help(ctx, *category):
         embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
-        raise exceptions.NotFound("Invalid category")
+        raise exceptions.exceptions.NotFound("Invalid category")
     await ctx.send(embed=embed)
 
 
@@ -1306,7 +1316,7 @@ def hasLink(ctx, player):
     if member:
         player = r.get(member.id)
     if player is None:
-        raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+        raise exceptions.exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
     player = player.decode('utf-8')
     return player
 
@@ -1316,7 +1326,7 @@ async def minecraft(ctx, *player):
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        raise exceptions.NotFound(f"{player} does not exist")
+        raise exceptions.exceptions.NotFound(f"{player} does not exist")
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
@@ -1335,10 +1345,10 @@ async def minecraft(ctx, *player):
 async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
-        raise exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
+        raise exceptions.exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD', None)
     if link is None:
-        raise exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+        raise exceptions.exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         r.set(ctx.author.id, data['player']['displayname'])
@@ -1351,7 +1361,7 @@ async def skin(ctx, *player):
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        return await ctx.send("That player does not exist")
+        raise exceptions.NotFound("That player does not exist")
     info = MojangAPI.get_profile(uuid)
     embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=0xff0000)
     embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from MC Heads")
@@ -1364,7 +1374,7 @@ async def hypixel(ctx, *player):
     player = hasLink(ctx, player)
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:
-        return await ctx.send(f"{player} has not played Hypixel")
+        raise exceptions.NotFound(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
@@ -1453,12 +1463,12 @@ async def bedwars(ctx, *player_and_mode):
         player = player_and_mode[0]
     if member:
         player = r.get(member.id)
-        if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+        if not player:
+            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not rawData['player']:
-        return await ctx.send(f"{player} has not played Bedwars")
+        raise exceptions.NotFound(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']
     if len(player_and_mode) < 2:
             embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1560,11 +1570,11 @@ async def skywars(ctx, *player_and_mode):
     if member:
         player = r.get(member.id)
         if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not rawData['player']:
-        return await ctx.send(f"{player} has not played SkyWars")
+        raise exceptions.NotFound(f"{player} has not played SkyWars")
     data = data['player']['stats']['SkyWars']
     if len(player_and_mode) <= 1:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1630,7 +1640,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Losses:", value=data.get("losses_teams_insane"), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_teams_insane"), data.get("losses_teams_insane")), inline=True)
         else:
-            return await ctx.send("Invalid mode")
+            raise exceptions.NotFound("Invalid mode")
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
@@ -1653,11 +1663,11 @@ async def duels(ctx, *player_and_mode):
     if member:
         player = r.get(member.id)
         if player is None:
-            return await ctx.send(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not rawData['player']:
-        return await ctx.send(f"{player} has not played Duels")
+        raise exceptions.NotFound(f"{player} has not played Duels")
     data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1720,7 +1730,7 @@ async def fortnite(ctx, *, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
-        raise exceptions.NotFound("Invalid player")
+        raise exceptions.exceptions.NotFound("Invalid player")
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
@@ -1744,7 +1754,7 @@ async def fortnite(ctx, *, player):
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user.get('data'):
-        raise exceptions.NotFound("Invalid channel")
+        raise exceptions.exceptions.NotFound("Invalid channel")
     data = (user['data'])[0]
     embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
     embed.set_thumbnail(url=data['profile_image_url'])
@@ -1778,7 +1788,7 @@ async def youtube(ctx, *, channel):
     if errors:
         raise exceptions.CustomException("YouTube returned an error!")
     if not data.get('items'):
-        raise exceptions.NotFound("Invalid channel")
+        raise exceptions.exceptions.NotFound("Invalid channel")
     channel_id = data['items'][0]['snippet']['channelId']
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
@@ -1824,7 +1834,7 @@ async def csgolink(ctx, id):
         rval = json.dumps(csgoLinks)
         r.set("csgoLinks", rval)
     else:
-        raise exceptions.NotFound("Invalid ID")
+        raise exceptions.exceptions.NotFound("Invalid ID")
 
 
 @bot.command()
@@ -1838,11 +1848,11 @@ async def csgo(ctx, *player):
     if member:
         player = csgoLinks.get(member)
         if not player:
-            raise exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
+            raise exceptions.exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = data.get('data')
     if not data:
-        raise exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+        raise exceptions.exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
@@ -1867,31 +1877,6 @@ async def csgo(ctx, *player):
     embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
     await ctx.send(embed=embed)
 
-
-connect4Games = {}
-class Board(ctx, bot):
-    def __init__(self):
-
-    def move(column)
-
-@bot.command()
-async def connect4(ctx, member : discord.Member):
-    if connect4Games.get(member.id):
-
-        await ctx.send(message)
-        gameInProgress = True
-        players = [ctx.author, member]
-        while gameInProgress:
-            for player in players:
-                await ctx.send(f"{player.name}'s turn")
-                board =
-                def check(m):
-                    return m.author in players and m.channel == ctx.channel
-                move = await bot.wait_for('message', timeout=60, check=check)
-
-    else:
-        await ctx.send(f"You challenged {str(member)} to Connect 4! Tell {str(member)} to run ?connect4 {ctx.author.mention}")
-        connect4Games[ctx.author.id] = True
 
 
 

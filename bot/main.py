@@ -147,9 +147,12 @@ async def on_ready():
             guildInfo[guild.id]
         except KeyError:
             initGuild(guild)
+        guildInfo[guild.id]['prefix'] = defaultPrefix
+        rval = json.dumps(guildInfo)
+        r.set("guildInfo", rval)
 
     print(guildInfo)
-    
+
     await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
 
     await bot.loop.create_task(checkIfLive())

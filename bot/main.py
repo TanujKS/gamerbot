@@ -117,7 +117,11 @@ bot.remove_command('help')
 async def on_ready():
     print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
+<<<<<<< HEAD
     await bot.change_presence(activity=game)
+=======
+    await bot.change_presence(status=discord.Status.online, activity=game)
+>>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
 
     global reports
     global statusPings
@@ -128,7 +132,11 @@ async def on_ready():
 
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
+<<<<<<< HEAD
 
+=======
+    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
+>>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
 
     info = await bot.application_info()
     global botmaster
@@ -1726,11 +1734,19 @@ async def duels(ctx, *player_and_mode):
 
 
 @bot.command()
+<<<<<<< HEAD
 async def fortnite(ctx, *, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
         raise exceptions.exceptions.NotFound("Invalid player")
+=======
+async def fortnite(ctx, player):
+    player = player.replace(" ", "%20")
+    data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
+    if data['status'] != 200:
+        return await ctx.send("Invalid player")
+>>>>>>> ff4b09db0f2ad2dc1b9c4518c87a08c1b6119e1c
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)

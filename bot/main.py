@@ -218,17 +218,15 @@ async def on_guild_remove(guild):
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
-#@bot.event
+@bot.event
 async def on_voice_state_update(member, before, after):
-    if member.guild.me.voice:
+    if member.guild.me.voice_client:
         if not before.channel:
-            print("Playing")
             tts = gtts.gTTS(f"{member.name} joined the voice channel", lang="en")
             tts.save("text.mp3")
             while True:
                 vc = member.guild.voice_client
                 if not vc:
-                    print("Returning")
                     return
                 try:
                     vc.play(discord.FFmpegPCMAudio("text.mp3"))
@@ -260,7 +258,7 @@ async def on_message(message):
                 await message.delete()
 
 
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
     for c in exceptions.customErrors:
@@ -798,7 +796,7 @@ async def closepoll(ctx):
             await reaction.message.edit(embed=embed)
             await reaction.remove(user)
         else:
-            await ctx.send(f"Only {dic} can close that poll")
+            raise exceptions.UnAuthorized(f"Only {dic} can close that poll")
 
 
 @bot.command()
@@ -867,6 +865,27 @@ async def report(ctx):
     await ctx.send(embed=embed)
     await reports.send(embed=embed)
     await ctx.send("Your report is submitted")
+
+
+@bot.command()
+async def stopwatchstart(ctx):
+    if stopWatches.get(ctx.author.id):
+        return await ctx.send("Stop watch already in use")
+    await ctx.send("Starting stopwatch")
+    stopWatches[ctx.author.id] = datetime.utcnow()
+
+
+@bot.command()
+async def stopwatchstop(ctx):
+    startTime = stopWatches.get(ctx.author.id)
+    if not startTime:
+        return await ctx.send("No active stopwatches")
+    seconds = round((datetime.utcnow() - startTime).total_seconds())
+    await ctx.send(f"""{seconds} seconds
+{seconds/60} minutes
+{(seconds/60)/60} hours
+""")
+    del stopWatches[ctx.author.id]
 
 
 @bot.command()
@@ -1442,10 +1461,8 @@ async def hypixel(ctx, *player):
             else:
                 rank = (data['player']['newPackageRank'])
         except KeyError:
-            try:
-                rank = data['player']['newPackageRank']
-            except KeyError:
-                rank = "No rank"
+            rank = data['player'].get('newPackageRank', "None")
+
     rank = rank.replace("_PLUS","+")
     embed.add_field(name="Status:", value=status, inline=True)
     embed.add_field(name="Rank:", value=rank, inline=True)
@@ -1458,9 +1475,7 @@ async def hypixel(ctx, *player):
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     EXP = round(data['player'].get("networkExp"), 0)
-    level = 0
-    if EXP != "None":
-        level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
+    level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
     karma = data['player'].get("karma", 0)
     embed.add_field(name="EXP:", value=EXP, inline=True)
     embed.add_field(name="Level:", value=level, inline=True)
@@ -1479,6 +1494,12 @@ async def hypixel(ctx, *player):
     except KeyError:
         embed.add_field(name="Guild:", value="None", inline=True)
     await ctx.send(embed=embed)
+
+
+@bot.command()
+async def hypixelguild(ctx, guild):
+    data = requests.get(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&name={guild}").json()
+    print(data)
 
 
 @bot.command(aliases=['bw'])

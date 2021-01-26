@@ -133,6 +133,7 @@ async def on_ready():
 
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
+    r.set("statusPingsMention", statusPings.mention)
 
     info = await bot.application_info()
     global botmaster
@@ -157,7 +158,10 @@ async def on_ready():
 
 @bot.event
 async def on_connect():
-    data = {"content": f"{str(bot.user)} is now **online** \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+    mention = r.get("statusPingsMention")
+    mention = mention.decode('utf-8')
+
+    data = {"content": f"{str(bot.user)} is now **online** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
 
     result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
 
@@ -169,7 +173,10 @@ async def on_connect():
 
 @bot.event
 async def on_disconnect():
-    data = {"content": f"{str(bot.user)} is now **online** \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+    mention = r.get("statusPingsMention")
+    mention = mention.decode('utf-8')
+
+    data = {"content": f"{str(bot.user)} is now **online** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
 
     result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
 
@@ -637,76 +644,6 @@ async def speak(ctx, *, message):
             return
         except discord.ClientException:
             pass
-
-
-async def checkIfLive():
-    while True:
-        for guild in trackingGuilds:
-            for track in trackingGuilds[guild]:
-                    index = trackingGuilds[guild].index(track)
-                    data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
-                    x = list(data['data'])[0]
-                    is_live = x['is_live']
-                    if is_live:
-                        if not trackingGuilds[guild][index]['pinged']:
-                            embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
-                            embed.set_thumbnail(url=x['thumbnail_url'])
-                            embed.add_field(name=x['title'], value="\u200b", inline=False)
-                            guildSend = bot.get_guild(guild)
-                            channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
-                            await channel.send(embed=embed)
-                            trackingGuilds[guild][index]['pinged'] = True
-                    else:
-                        print(f"{trackingGuilds[guild][index]['streamer']} is not live")
-                        trackingGuilds[guild][index]['pinged'] = False
-        await asyncio.sleep(60)
-
-@bot.command()
-async def twitchtrack(ctx, channel, *, message):
-    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    user = user.get('data')
-    if not user:
-        raise exceptions.UnAuthorized("Invalid channel")
-    x = list(user['data'])[0]
-    trackingGuilds[ctx.guild.id].append({})
-    index = len(trackingGuilds[ctx.guild.id]) - 1
-    trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
-    trackingGuilds[ctx.guild.id][index]['streamer'] = channel
-    trackingGuilds[ctx.guild.id][index]['pinged'] = False
-    trackingGuilds[ctx.guild.id][index]['message'] = message
-    embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
-    embed.set_thumbnail(url=x['profile_image_url'])
-    embed.add_field(name="This is an example stream", value="\u200b", inline=False)
-    channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]["channel-id"])
-    await channelSend.send(embed=embed)
-    rval = json.dumps(trackingGuilds)
-    r.set("trackingGuilds", rval)
-
-
-def findTwitchTrack(ctx, streamer):
-    for track in trackingGuilds[ctx.guild.id]:
-        if trackingGuilds[ctx.guild.id][trackingGuilds[ctx.guild.id].index(track)]['streamer'] == streamer:
-            return trackingGuilds[ctx.guild.id].index(track)
-    return None
-
-@bot.command()
-async def deltrack(ctx, *, streamer):
-    track = findTwitchTrack(ctx, streamer)
-    if track is None:
-        raise exceptions.NotFound("Invalid streamer")
-    trackingGuilds[ctx.guild.id].pop(track)
-    await ctx.send(f"No longer tracking {streamer}")
-    rval = json.dumps(trackingGuilds)
-    r.set("trackingGuilds", rval)
-
-
-@bot.command()
-async def twitchtracklist(ctx):
-    embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", description=None, color=0xff0000)
-    for track in trackingGuilds[ctx.guild.id]:
-        index = trackingGuilds[ctx.guild.id].index(track)
-        embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
-    await ctx.send(embed=embed)
 
 
 @bot.command()
@@ -1839,6 +1776,75 @@ async def twitch(ctx, channel):
     embed.add_field(name="Status:", value=status, inline=True)
     if status == "Live":
         embed.add_field(name="Stream:", value=x['title'], inline=True)
+    await ctx.send(embed=embed)
+
+
+async def checkIfLive():
+    while True:
+        for guild in trackingGuilds:
+            for track in trackingGuilds[guild]:
+                    index = trackingGuilds[guild].index(track)
+                    data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
+                    x = list(data['data'])[0]
+                    is_live = x['is_live']
+                    if is_live:
+                        if not trackingGuilds[guild][index]['pinged']:
+                            embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
+                            embed.set_thumbnail(url=x['thumbnail_url'])
+                            embed.add_field(name=x['title'], value="\u200b", inline=False)
+                            guildSend = bot.get_guild(guild)
+                            channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
+                            await channel.send(embed=embed)
+                            trackingGuilds[guild][index]['pinged'] = True
+                    else:
+                        print(f"{trackingGuilds[guild][index]['streamer']} is not live")
+                        trackingGuilds[guild][index]['pinged'] = False
+        await asyncio.sleep(60)
+
+@bot.command()
+async def twitchtrack(ctx, channel, *, message):
+    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+    if not user:
+        raise exceptions.UnAuthorized("Invalid channel")
+    x = (user['data'])[0]
+    trackingGuilds[ctx.guild.id].append({})
+    index = len(trackingGuilds[ctx.guild.id]) - 1
+    trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
+    trackingGuilds[ctx.guild.id][index]['streamer'] = channel
+    trackingGuilds[ctx.guild.id][index]['pinged'] = False
+    trackingGuilds[ctx.guild.id][index]['message'] = message
+    embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
+    embed.set_thumbnail(url=x['profile_image_url'])
+    embed.add_field(name="This is an example stream", value="\u200b", inline=False)
+    channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]["channel-id"])
+    await channelSend.send(embed=embed)
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
+
+
+def findTwitchTrack(ctx, streamer):
+    for track in trackingGuilds[ctx.guild.id]:
+        if trackingGuilds[ctx.guild.id][trackingGuilds[ctx.guild.id].index(track)]['streamer'] == streamer:
+            return trackingGuilds[ctx.guild.id].index(track)
+    return None
+
+@bot.command()
+async def deltrack(ctx, *, streamer):
+    track = findTwitchTrack(ctx, streamer)
+    if track is None:
+        raise exceptions.NotFound("Invalid streamer")
+    trackingGuilds[ctx.guild.id].pop(track)
+    await ctx.send(f"No longer tracking {streamer}")
+    rval = json.dumps(trackingGuilds)
+    r.set("trackingGuilds", rval)
+
+
+@bot.command()
+async def twitchtracklist(ctx):
+    embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", description=None, color=0xff0000)
+    for track in trackingGuilds[ctx.guild.id]:
+        index = trackingGuilds[ctx.guild.id].index(track)
+        embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
     await ctx.send(embed=embed)
 
 

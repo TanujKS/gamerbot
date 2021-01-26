@@ -41,7 +41,8 @@ for k in keys:
 
 r = redis.from_url(REDIS_URL)
 
-if bool(r.get("shutdown").decode('utf-8')):
+shutDown = r.get("shutdown").decode('utf-8')
+if shutDown == "True":
     raise Exception("Shutting down")
 
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}

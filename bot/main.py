@@ -41,8 +41,9 @@ for k in keys:
 
 r = redis.from_url(REDIS_URL)
 
-shutDown = r.get("shutdown").decode('utf-8')
-if shutDown == "True":
+shutDown = bool(r.get("shutdown"))
+print(shutDown)
+if shutDown:
     raise Exception("Shutting down")
 
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
@@ -90,6 +91,7 @@ def multi_key_dict_get(d : dict, k):
         if k in keys:
             return v
     return None
+
 
 def convertBooltoStr(bool : bool):
     if bool is True:

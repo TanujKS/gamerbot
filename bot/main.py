@@ -273,7 +273,7 @@ async def on_message(message):
                 await message.delete()
 
 
-#@bot.event
+@bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
     for c in exceptions.customErrors:
@@ -1760,22 +1760,33 @@ async def twitch(ctx, channel):
     embed.add_field(name="Username:", value=data['display_name'], inline=True)
     embed.add_field(name="Login Name:", value=data['login'], inline=True)
     embed.add_field(name="ID", value=data['id'], inline=True)
-    embed.add_field(name="Channel Type", value=data['broadcaster_type'].capitalize(), inline=False)
-    embed.add_field(name="Channel Description", value=data['description'], inline=False)
+    channelType = data['broadcaster_type'].capitalize()
+    if not channelType:
+        channelType = "None"
+    embed.add_field(name="Channel Type", value=channelType, inline=False)
+    description = data['description']
+    if not description:
+        description = "None"
+    embed.add_field(name="Channel Description", value=description, inline=False)
     embed.add_field(name="Views", value=data['view_count'], inline=True)
     followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     embed.add_field(name="Followers", value=followers['total'], inline=True)
     stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    x = list(stream['data'])[0]
-    is_live = x['is_live']
-    if is_live:
-        status = "Live"
-        embed.set_thumbnail(url=x['thumbnail_url'])
-    if not is_live:
-        status = "Not Live"
-    embed.add_field(name="Status:", value=status, inline=True)
-    if status == "Live":
-        embed.add_field(name="Stream:", value=x['title'], inline=True)
+    try:
+        x = list(stream['data'])[0]
+        is_live = x['is_live']
+        if is_live:
+            status = "Live"
+            embed.set_thumbnail(url=x['thumbnail_url'])
+        if not is_live:
+            status = "Not Live"
+        embed.add_field(name="Status:", value=status, inline=True)
+        if status == "Live":
+            embed.add_field(name="Stream:", value=x['title'], inline=True)
+        for e in embed.fields:
+            print(e)
+    except IndexError:
+        pass
     await ctx.send(embed=embed)
 
 

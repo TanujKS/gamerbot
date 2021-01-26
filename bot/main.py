@@ -156,34 +156,29 @@ async def on_ready():
     await bot.loop.create_task(checkIfLive())
 
 
+async def sendStatusMessage(bot, statusMessage):
+    if bot.user.name == "GamerBot":
+        mention = r.get("statusPingsMention")
+        mention = mention.decode('utf-8')
+
+        data = {"content": f"{str(bot.user)} is now **{statusMessage}** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+
+        result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+        try:
+            result.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            print(f"ERROR: {err}")
+
+
 @bot.event
 async def on_connect():
-    mention = r.get("statusPingsMention")
-    mention = mention.decode('utf-8')
-
-    data = {"content": f"{str(bot.user)} is now **online** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
-
-    result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
-
-    try:
-        result.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(f"ERROR: {err}")
+    await sendStatusMessage(bot, "Online")
 
 
 @bot.event
 async def on_disconnect():
-    mention = r.get("statusPingsMention")
-    mention = mention.decode('utf-8')
-
-    data = {"content": f"{str(bot.user)} is now **online** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
-
-    result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
-
-    try:
-        result.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(f"ERROR: {err}")
+    await sendStatusMessage(bot, "Offline")
 
 
 @bot.event
@@ -257,7 +252,11 @@ async def on_message(message):
         if not message.author.id in blackListed:
             await bot.process_commands(message)
 
+        if bot.user.mentioned_in(message):
+            await message.channel.send(f"My prefix in this server is `{determine_prefix(bot, message)}`")
+
         if message.guild:
+
             messageList = message.content.lower().split()
 
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:

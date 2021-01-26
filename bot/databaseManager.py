@@ -4,5 +4,5 @@ from decouple import config
 
 r = redis.from_url(config("REDIS_URL"))
 
-value = r.get("stopWatches")
+value = r.get("shutdown")
 print(value)

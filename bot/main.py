@@ -473,8 +473,8 @@ async def shutdown(ctx):
     response = await bot.wait_for('message', timeout=60, check=check)
     response = response.content
     if response == "y":
-        await bot.logout()
         r.set("shutdown", True)
+        await bot.logout()
     if response == "n":
         await ctx.send("Cancelled")
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------

@@ -151,17 +151,25 @@ async def on_ready():
         rval = json.dumps(guildInfo)
         r.set("guildInfo", rval)
 
-    print(guildInfo)
-
-    await statusChannel.send(f"{str(bot.user)} is now online \n{statusPings.mention}")
 
     await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
+async def on_connect():
+    data = {"content": f"{str(bot.user)} is now **online** \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+
+    result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+    try:
+        result.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"ERROR: {err}")
+
+
+@bot.event
 async def on_disconnect():
-    print("Disconnected")
-    data = {"content": f"{str(bot.user)} is now offline \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
+    data = {"content": f"{str(bot.user)} is now **online** \n{statusPings.mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
 
     result = requests.post("https://discord.com/api/webhooks/803380380529983528/68h43sAcJXFAIck7C-M0Ja1P4G2qoUNu2cXdlUowE36IRrm0binS0DjHGGDHpI99ZE2g", data=json.dumps(data), headers={"Content-Type": "application/json"})
 

@@ -1168,25 +1168,32 @@ async def clearteams(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
 @commands.has_guild_permissions(manage_channels=True, manage_roles=True)
+@commands.cooldown(1, 120, commands.BucketType.guild)
 async def setup(ctx):
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
     await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
     msg = await bot.wait_for('message', check=check)
-    await ctx.send(f"Setting up your server for {msg.content} Events")
+    await ctx.send(f"Setting up your server for {msg.content} Events. \nThis make take a little while...")
     category = await ctx.guild.create_category(msg.content + " Events")
     announcement = await ctx.guild.create_text_channel(f"{msg.content}-announcement", overwrites=None, category=category)
+    await asyncio.sleep(5)
     rules = await ctx.guild.create_text_channel(f"{msg.content}-rules", overwrites=None, category=category)
+    await asyncio.sleep(5)
     logs = await ctx.guild.create_text_channel(f"{msg.content}-event-logs", overwrites=None, category=category)
+    await asyncio.sleep(5)
     await announcement.set_permissions(ctx.guild.default_role, send_messages=False)
     await rules.set_permissions(ctx.guild.default_role, send_messages=False)
     await logs.set_permissions(ctx.guild.default_role, send_messages=False)
     lounge = await ctx.guild.create_text_channel(f"{msg.content}-lounge", overwrites=None, category=category)
+    await asyncio.sleep(5)
     banned = await ctx.guild.create_role(name="Banned from event")
+    await asyncio.sleep(5)
     perms = lounge.overwrites_for(banned)
     perms.send_messages = False
     await lounge.set_permissions(banned, overwrite=perms)
     channel1 = await ctx.guild.create_voice_channel(f"{msg.content} Events", overwrites=None, category=category)
+    await asyncio.sleep(5)
     perms = channel1.overwrites_for(banned)
     perms.connect = False
     await channel1.set_permissions(banned, overwrite=perms)
@@ -1202,7 +1209,8 @@ async def setup(ctx):
         perms = channel.overwrites_for(ctx.guild.default_role)
         perms.connect = False
         await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
-    await ctx.send("Your server is setup! \nIMPORTANT: DO NOT change the name of the voicechannels or the roles that I created it may mess up certain commands. ")
+        await asyncio.sleep(5)
+    await ctx.send("Your server is setup! \nIMPORTANT: **DO NOT change the name of the voicechannels or the roles that I created it may mess up certain commands.**")
 
 
 @bot.command()

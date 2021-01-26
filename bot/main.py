@@ -219,6 +219,25 @@ async def on_guild_remove(guild):
 
 
 @bot.event
+async def on_voice_state_update(member, before, after):
+    if member.guild.me.voice:
+        if not before.channel:
+            print("Playing")
+            tts = gtts.gTTS(f"{member.name} joined the voice channel", lang="en")
+            tts.save("text.mp3")
+            while True:
+                vc = member.guild.voice_client
+                if not vc:
+                    print("Returning")
+                    return
+                try:
+                    vc.play(discord.FFmpegPCMAudio("text.mp3"))
+                    return
+                except discord.ClientException:
+                    pass
+
+
+@bot.event
 async def on_message(message):
     if not message.author.bot:
 
@@ -447,78 +466,79 @@ async def shutdown(ctx):
 #------------------------------------------------------------------------------MISCELLANEOUS--------------------------------------------------------------------------------------
 @bot.command()
 async def help(ctx, *category):
+    prefix = determine_prefix(bot, ctx)
     if len(category) <= 0:
         embed = discord.Embed(title="Categories", description="This is a list of all the types of commands I can do!\nThe full code for GamerBot can be found at https://github.com/TanujKS/gamerbot", color=0xff0000)
         embed.set_thumbnail(url=bot.user.avatar_url)
-        embed.add_field(name="VC Commands (?help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
-        embed.add_field(name="Team Commands (?help teams)", value="Commands that help you manage your teams for your game nights", inline=False)
-        embed.add_field(name="Game Stats Commands (?help stats)", value="Commands to see Minecraft player's stats", inline=False)
-        embed.add_field(name="Miscellaneous Commands (?help misc)", value="All other commands I can do!", inline=False)
-        embed.add_field(name="APIs (?help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
+        embed.add_field(name=f"VC Commands ({prefix}help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
+        embed.add_field(name=f"Team Commands ({prefix}help teams)", value="Commands that help you manage your teams for your game nights", inline=False)
+        embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to see Minecraft player's stats", inline=False)
+        embed.add_field(name=f"Miscellaneous Commands ({prefix}help misc)", value="All other commands I can do!", inline=False)
+        embed.add_field(name=f"APIs ({prefix}help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by tanju_shorty#7767")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
-        embed.add_field(name="?mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?unmute (member or 'all' or 'channel-all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
-        embed.add_field(name="?deafen (member or 'all' or 'channel-all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?undeafen (member or 'all' or 'channel-all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
-        embed.add_field(name="?dc (member or 'all' or 'channel-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?move (member or 'all' or 'channel-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?moveevents", value="Moves all people who are in Team Voice Channels to the Event Voice Channel (Requires permission Move Members)", inline=False)
-        embed.add_field(name="?speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
+        embed.add_field(name=f"{prefix}mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
+        embed.add_field(name=f"{prefix}unmute (member or 'all' or 'channel-all')", value="Server unmutes a member (Requires permission Mute Members)", inline=False)
+        embed.add_field(name=f"{prefix}deafen (member or 'all' or 'channel-all')", value="Server deafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name=f"{prefix}undeafen (member or 'all' or 'channel-all')", value="Server undeafens a member (Requires permission Deafen Members)", inline=False)
+        embed.add_field(name=f"{prefix}dc (member or 'all' or 'channel-all')", value="Disconnects a member from their voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name=f"{prefix}move (member or 'all' or 'channel-all')", value="Moves member to another voice channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name=f"{prefix}moveteams", value="Moves all people who are in main Voice Channel back to their Team Voice Channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name=f"{prefix}moveevents", value="Moves all people who are in Team Voice Channels to the Event Voice Channel (Requires permission Move Members)", inline=False)
+        embed.add_field(name=f"{prefix}speak (message)", value="Joins a voicechannel and uses TTS to speak a message. Useful if you are unable to unmute", inline=False)
     elif category[0] == "teams":
         embed=discord.Embed(title="Team Commands", description="Commands I can do to manage your teams for game nights", color=0xff0000)
-        embed.add_field(name="?createteams", value="Creates a team menu where people can react to join teams (max limit of 2 and member can only be in 1 team) (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?closeteams", value="Close a team menu so people can no longer react (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?checkteams", value="Checks to make sure no one has somehow got into 2 teams (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?clearteams", value="Removes all the team roles from all members (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?clearteam (team)", value="Removes the specified team role from all members", inline=False)
-        embed.add_field(name="?setteam (team) (*member)", value="Gives the specified member(s) the specified team role (first clears the members other teams) (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?eventban (user or 'all')", value="Prevents a user from joining teams or using team text/voice channels (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?eventunban (user or 'all')", value="Allows a user to join teams and use team text/voice channels (Requires permission Manage Roles)", inline=False)
-        embed.add_field(name="?lockevents", value="Locks the team voice channels so that ONLY people with the team role can join", inline=False)
-        embed.add_field(name="?unlockevents", value="Unlocks the team voice channels so that ANYONE can join them", inline=False)
+        embed.add_field(name=f"{prefix}createteams", value="Creates a team menu where people can react to join teams (max limit of 2 and member can only be in 1 team) (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}closeteams", value="Close a team menu so people can no longer react (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}checkteams", value="Checks to make sure no one has somehow got into 2 teams (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}clearteams", value="Removes all the team roles from all members (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}clearteam (team)", value="Removes the specified team role from all members", inline=False)
+        embed.add_field(name=f"{prefix}setteam (team) (*member)", value="Gives the specified member(s) the specified team role (first clears the members other teams) (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}eventban (user or 'all')", value="Prevents a user from joining teams or using team text/voice channels (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}eventunban (user or 'all')", value="Allows a user to join teams and use team text/voice channels (Requires permission Manage Roles)", inline=False)
+        embed.add_field(name=f"{prefix}lockevents", value="Locks the team voice channels so that ONLY people with the team role can join", inline=False)
+        embed.add_field(name=f"{prefix}unlockevents", value="Unlocks the team voice channels so that ANYONE can join them", inline=False)
     elif category[0] == "misc":
         embed=discord.Embed(title="Miscellaneous Commands", description="All other commands I can do!", color=0xff0000)
-        embed.add_field(name="?nick (user)", value="Changes the nickname of a member (Requires permission Manage Nicknames)", inline=False)
-        embed.add_field(name="?poll (Poll) (*options)", value="Creates a poll where you can only vote once", inline=False)
-        embed.add_field(name="?closepoll", value="Closes a poll and shows the final results", inline=False)
-        embed.add_field(name="?ping", value="Checks the bots ping in ms", inline=False)
-        embed.add_field(name="?quote (@user) (quote)", value="Quotes a user using a webhook", inline=False)
-        embed.add_field(name="?avatar (@user) (format)", value="Returns the avatar of a member in the specified format(‘webp’, ‘jpeg’, ‘jpg’, ‘png’ or ‘gif’)", inline=False)
-        embed.add_field(name="?perms (@user)", value="Sends the server permissions for a certain member", inline=False)
-        embed.add_field(name="?invite (*(max_age) (max_uses) (reason))", value="Generates a invite to the channel with the specified maximum age, uses, and reason. If no args are provided, it will default to infinite uses, infinite age, and no reason", inline=False)
-        embed.add_field(name="?report", value="Report a problem to the bot developers", inline=False)
-        embed.add_field(name="?settings", value="Tweak settings for your guild", inline=False)
-        embed.add_field(name="?rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
-        embed.add_field(name="?dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
-        embed.add_field(name="?twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
-        embed.add_field(name="?deltrack (twitch_channel)", value="Stop tracking a Twitch streamer", inline=False)
-        embed.add_field(name="?twitchtracklist", value="Shows all Twitch streamers that are being tracked", inline=False)
-        embed.add_field(name="?donate", value="Information about donating to GamerBot", inline=False)
+        embed.add_field(name=f"{prefix}nick (user)", value="Changes the nickname of a member (Requires permission Manage Nicknames)", inline=False)
+        embed.add_field(name=f"{prefix}poll (Poll) (*options)", value="Creates a poll where you can only vote once", inline=False)
+        embed.add_field(name=f"{prefix}closepoll", value="Closes a poll and shows the final results", inline=False)
+        embed.add_field(name=f"{prefix}ping", value="Checks the bots ping in ms", inline=False)
+        embed.add_field(name=f"{prefix}quote (@user) (quote)", value="Quotes a user using a webhook", inline=False)
+        embed.add_field(name=f"{prefix}avatar (@user) (format)", value="Returns the avatar of a member in the specified format(‘webp’, ‘jpeg’, ‘jpg’, ‘png’ or ‘gif’)", inline=False)
+        embed.add_field(name=f"{prefix}perms (@user)", value="Sends the server permissions for a certain member", inline=False)
+        embed.add_field(name=f"{prefix}invite (*(max_age) (max_uses) (reason))", value="Generates a invite to the channel with the specified maximum age, uses, and reason. If no args are provided, it will default to infinite uses, infinite age, and no reason", inline=False)
+        embed.add_field(name=f"{prefix}report", value="Report a problem to the bot developers", inline=False)
+        embed.add_field(name=f"{prefix}settings", value="Tweak settings for your guild", inline=False)
+        embed.add_field(name=f"{prefix}rps (user or 'bot')", value="Challenges a member (or the bot) to Rock Paper Scissors", inline=False)
+        embed.add_field(name=f"{prefix}dm (user or role)", value="Useful if you need to DM a large amount of members a message", inline=False)
+        embed.add_field(name=f"{prefix}twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
+        embed.add_field(name=f"{prefix}deltrack (twitch_channel)", value="Stop tracking a Twitch streamer", inline=False)
+        embed.add_field(name=f"{prefix}twitchtracklist", value="Shows all Twitch streamers that are being tracked", inline=False)
+        embed.add_field(name=f"{prefix}donate", value="Information about donating to GamerBot", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
-        embed.add_field(name="?minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
-        embed.add_field(name="?mcverify (your_minecraft_username)", value="Allows you to link your Discord account to your Minecraft account using the Hypixel Social Media Link system", inline=False)
-        embed.add_field(name="?skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
-        embed.add_field(name="?hypixel (minecraft_player)", value="Shows Hypixel stats about a Minecraft player", inline=False)
-        embed.add_field(name="?bedwars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Bedwars player \nOptional modes are: solos, doubles, 3v3v3v3, 4v4v4v4, 4v4", inline=False)
-        embed.add_field(name="?skywars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Skywars player \nOptional modes are: solos normal, solos insane, teams normal, teams insane", inline=False)
-        embed.add_field(name="?duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, op, sumo, skywars, uhc doubles, combo, bridge", inline=False)
-        embed.add_field(name="?fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
-        embed.add_field(name="?twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
-        embed.add_field(name="?youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
-        embed.add_field(name="?csgo (id)", value="Shows stats of a CS:GO player", inline=False)
-        embed.add_field(name="?csgolink (id)", value="Links your account to a CS:GO ID", inline=False)
+        embed.add_field(name=f"{prefix}minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
+        embed.add_field(name=f"{prefix}mcverify (your_minecraft_username)", value="Allows you to link your Discord account to your Minecraft account using the Hypixel Social Media Link system", inline=False)
+        embed.add_field(name=f"{prefix}skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
+        embed.add_field(name=f"{prefix}hypixel (minecraft_player)", value="Shows Hypixel stats about a Minecraft player", inline=False)
+        embed.add_field(name=f"{prefix}bedwars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Bedwars player \nOptional modes are: solos, doubles, 3v3v3v3, 4v4v4v4, 4v4", inline=False)
+        embed.add_field(name=f"{prefix}skywars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Skywars player \nOptional modes are: solos normal, solos insane, teams normal, teams insane", inline=False)
+        embed.add_field(name=f"{prefix}duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, op, sumo, skywars, uhc doubles, combo, bridge", inline=False)
+        embed.add_field(name=f"{prefix}fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
+        embed.add_field(name=f"{prefix}twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
+        embed.add_field(name=f"{prefix}youtube (channel)", value="Shows stats of a YouTube channel", inline=False)
+        embed.add_field(name=f"{prefix}csgo (id)", value="Shows stats of a CS:GO player", inline=False)
+        embed.add_field(name=f"{prefix}csgolink (id)", value="Links your account to a CS:GO ID", inline=False)
     elif category[0] == "apis":
         embed = discord.Embed(title=f"APIs used by {str(bot.user)}", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
-        embed.add_field(name="Hypixel API", value="https://api.hypixel.net/", inline=False)
-        embed.add_field(name="Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
-        embed.add_field(name="MC-Heads API", value="https://mc-heads.net/", inline=False)
-        embed.add_field(name="Fortnite API", value="https://fortnite-api.com/", inline=False)
-        embed.add_field(name="Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
-        embed.add_field(name="YouTube API", value="https://developers.google.com/youtube/", inline=False)
+        embed.add_field(name=f"Hypixel API", value="https://api.hypixel.net/", inline=False)
+        embed.add_field(name=f"Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
+        embed.add_field(name=f"MC-Heads API", value="https://mc-heads.net/", inline=False)
+        embed.add_field(name=f"Fortnite API", value="https://fortnite-api.com/", inline=False)
+        embed.add_field(name=f"Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
+        embed.add_field(name=f"YouTube API", value="https://developers.google.com/youtube/", inline=False)
     else:
         raise exceptions.NotFound("Invalid category")
     await ctx.send(embed=embed)
@@ -574,6 +594,16 @@ async def settings(ctx, *setting):
 @bot.command()
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+async def join(ctx):
+    if ctx.author.voice:
+        await ctx.author.voice.channel.connect()
+    else:
+        raise exceptions.NotFound("You are not in a voice channel.")
+
+
+@bot.command()
+@commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
+@commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.cooldown(10, 60, commands.BucketType.member)
 async def speak(ctx, *, message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
@@ -593,7 +623,7 @@ async def speak(ctx, *, message):
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     while True:
-        vc = ctx.guild.me.voice
+        vc = ctx.guild.me.voice_client
         if not vc:
             return
         try:

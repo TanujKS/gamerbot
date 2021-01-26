@@ -835,10 +835,13 @@ async def ping(ctx):
 @commands.bot_has_guild_permissions(manage_webhooks=True)
 async def quote(ctx, member : discord.Member, *, message):
     webhooks = await ctx.channel.webhooks()
-    for webhook in webhooks:
-        if webhook.user == bot.user:
+    webhook = None
+    for webhookVar in webhooks:
+        if webhookVar.name == "quotebot":
+            webhook = webhookVar
             break
-    webhook = await ctx.channel.create_webhook(name="quotebot")
+    if not webhook:
+        webhook = await ctx.channel.create_webhook(name="quotebot")
     if member.nick:
         username = member.nick
     else:

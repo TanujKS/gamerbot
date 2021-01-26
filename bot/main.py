@@ -745,7 +745,7 @@ async def avatar(ctx, member : discord.Member, *format):
         format = ["png"]
     try:
         await ctx.send(member.avatar_url_as(format=format[0], size=1024))
-    except discord.exceptions.InvalidArgument:
+    except discord.InvalidArgument:
         raise exceptions.InvalidArgument("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 
 
@@ -828,7 +828,7 @@ async def nick(ctx, member : discord.Member, *nick):
 @commands.cooldown(1, 5, commands.BucketType.channel)
 async def ping(ctx):
     t = await ctx.send("Pong!")
-    await t.edit(content=f'Pong! {(t.created_at-ctx.message.created_at).total_seconds() * 1000}ms')
+    await t.edit(content=f'Pong! `{(t.created_at-ctx.message.created_at).total_seconds() * 1000}ms`')
 
 
 @bot.command()

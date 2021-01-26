@@ -868,7 +868,7 @@ async def report(ctx):
 
 
 @bot.command()
-async def stopwatchstart(ctx):
+async def starttimer(ctx):
     if stopWatches.get(ctx.author.id):
         return await ctx.send("Stop watch already in use")
     await ctx.send("Starting stopwatch")
@@ -876,7 +876,7 @@ async def stopwatchstart(ctx):
 
 
 @bot.command()
-async def stopwatchstop(ctx):
+async def stoptimer(ctx):
     startTime = stopWatches.get(ctx.author.id)
     if not startTime:
         return await ctx.send("No active stopwatches")

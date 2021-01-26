@@ -218,7 +218,7 @@ async def on_guild_remove(guild):
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
-@bot.event
+#@bot.event
 async def on_voice_state_update(member, before, after):
     if member.guild.me.voice:
         if not before.channel:

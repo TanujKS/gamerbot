@@ -623,7 +623,7 @@ async def speak(ctx, *, message):
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
     while True:
-        vc = ctx.guild.me.voice_client
+        vc = ctx.guild.voice_client
         if not vc:
             return
         try:

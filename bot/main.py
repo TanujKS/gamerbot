@@ -812,9 +812,10 @@ async def stoptimer(ctx):
     if not startTime:
         return await ctx.send("No active stopwatches")
     seconds = round((datetime.utcnow() - startTime).total_seconds())
-    await ctx.send(f"""{seconds} seconds
-{seconds/60} minutes
-{(seconds/60)/60} hours
+    await ctx.send(f"""Ended timer. Timer ran for:
+{seconds} seconds
+{round(seconds/60)} minutes
+{round((seconds/60)/60)} hours
 """)
     del stopWatches[ctx.author.id]
 

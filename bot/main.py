@@ -228,22 +228,6 @@ async def on_guild_remove(guild):
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
-@bot.event
-async def on_voice_state_update(member, before, after):
-    if member.guild.voice_client:
-        print("Voice Client exists")
-        if not before.channel:
-            tts = gtts.gTTS(f"{member.name} joined the voice channel", lang="en")
-            tts.save("text.mp3")
-            while True:
-                vc = member.guild.voice_client
-                if not vc:
-                    return
-                try:
-                    vc.play(discord.FFmpegPCMAudio("text.mp3"))
-                    return
-                except discord.ClientException:
-                    pass
 
 
 @bot.event

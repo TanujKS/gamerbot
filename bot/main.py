@@ -1345,9 +1345,9 @@ def hasLink(ctx, player):
         player = player[0]
     if member:
         player = r.get(member.id)
-    if player is None:
-        raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
-    player = player.decode('utf-8')
+        if player is None:
+            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+        player = player.decode('utf-8')
     return player
 
 

@@ -230,7 +230,7 @@ async def on_guild_remove(guild):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if member.guild.me.voice_client:
+    if member.guild.voice_client:
         print("Voice Client exists")
         if not before.channel:
             tts = gtts.gTTS(f"{member.name} joined the voice channel", lang="en")

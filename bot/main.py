@@ -5,7 +5,13 @@ from discord.utils import get
 from discord import Webhook, AsyncWebhookAdapter
 from discord import FFmpegPCMAudio
 from discord import opus
+import decouple
+from decouple import config
+import redis
+import ast
+import exceptions
 import os
+import sys
 import time
 import json
 import datetime
@@ -22,12 +28,8 @@ from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
-import decouple
-from decouple import config
-import redis
-import ast
-import sys
-import exceptions
+
+
 
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
 passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
@@ -135,8 +137,8 @@ async def on_ready():
     global statusChannel
 
     supportServer = bot.get_guild(763824152493686795)
-    reports = get(supportServer.channels, name="reports")
 
+    reports = get(supportServer.channels, name="reports")
     statusChannel = get(supportServer.channels, name="bot-status")
     statusPings = get(supportServer.roles, name="Status Pings")
     r.set("statusPingsMention", statusPings.mention)
@@ -164,8 +166,7 @@ async def on_ready():
 
 async def sendStatusMessage(bot, statusMessage):
     if bot.user.name == "GamerBot":
-        mention = r.get("statusPingsMention")
-        mention = mention.decode('utf-8')
+        mention = r.get("statusPingsMention").decode('utf-8')
 
         data = {"content": f"{str(bot.user)} is now **{statusMessage}** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
 
@@ -1826,6 +1827,8 @@ async def checkIfLive():
                     else:
                         print(f"{trackingGuilds[guild][index]['streamer']} is not live")
                         trackingGuilds[guild][index]['pinged'] = "False"
+        rval = json.dumps(trackingGuilds)
+        r.set("trackingGuilds", rval)
         await asyncio.sleep(60)
 
 @bot.command()

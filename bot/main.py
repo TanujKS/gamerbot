@@ -77,7 +77,6 @@ for t in tempTrackingGuilds:
     for u in trackingGuilds[int(t)]:
         index = trackingGuilds[int(t)].index(u)
         trackingGuilds[int(t)][index]['channel-id'] = int(trackingGuilds[int(t)][index]['channel-id'])
-        trackingGuilds[int(t)][index]['pinged'] = bool(trackingGuilds[int(t)][index]['pinged'])
 
 rval = r.get("csgoLinks")
 tempCsgoLinks = json.loads(rval)
@@ -1816,17 +1815,17 @@ async def checkIfLive():
                     x = list(data['data'])[0]
                     is_live = x['is_live']
                     if is_live:
-                        if not trackingGuilds[guild][index]['pinged']:
+                        if trackingGuilds[guild][index]['pinged'] == "False":
                             embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
                             embed.set_thumbnail(url=x['thumbnail_url'])
                             embed.add_field(name=x['title'], value="\u200b", inline=False)
                             guildSend = bot.get_guild(guild)
                             channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
                             await channel.send(embed=embed)
-                            trackingGuilds[guild][index]['pinged'] = True
+                            trackingGuilds[guild][index]['pinged'] = "True"
                     else:
                         print(f"{trackingGuilds[guild][index]['streamer']} is not live")
-                        trackingGuilds[guild][index]['pinged'] = False
+                        trackingGuilds[guild][index]['pinged'] = "False"
         await asyncio.sleep(60)
 
 @bot.command()
@@ -1839,7 +1838,7 @@ async def twitchtrack(ctx, channel, *, message):
     index = len(trackingGuilds[ctx.guild.id]) - 1
     trackingGuilds[ctx.guild.id][index]['channel-id'] = ctx.channel.id
     trackingGuilds[ctx.guild.id][index]['streamer'] = channel
-    trackingGuilds[ctx.guild.id][index]['pinged'] = False
+    trackingGuilds[ctx.guild.id][index]['pinged'] = "False"
     trackingGuilds[ctx.guild.id][index]['message'] = message
     embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
     embed.set_thumbnail(url=x['profile_image_url'])

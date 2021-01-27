@@ -31,8 +31,8 @@ from mojang.exceptions import LoginError
 
 
 
-raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
-passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
+raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.errors.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
+passErrors = (commands.CommandNotFound, commands.NotOwner)
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
@@ -864,6 +864,7 @@ async def donate(ctx):
     await ctx.send(embed=embed)
 #------------------------------------------------------------------------------VOICE CHANNEL MANAGEMENT--------------------------------------------------------------------------------------
 @bot.command()
+@commands.guild_only()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def move(ctx, member, *, channel):

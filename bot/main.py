@@ -265,7 +265,7 @@ async def on_message(message):
                 await message.delete()
 
 
-#@bot.event
+@bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
     for c in exceptions.customErrors:

@@ -265,7 +265,7 @@ async def on_message(message):
                 await message.delete()
 
 
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
     for c in exceptions.customErrors:
@@ -1458,12 +1458,6 @@ async def hypixel(ctx, *player):
     await ctx.send(embed=embed)
 
 
-@bot.command()
-async def hypixelguild(ctx, guild):
-    data = requests.get(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&name={guild}").json()
-    print(data)
-
-
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, *player_and_mode):
     if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) is not None:
@@ -1510,7 +1504,7 @@ async def bedwars(ctx, *player_and_mode):
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
             raise exceptions.InvalidArgument("Invalid mode")
-        embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
+        embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
         embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
@@ -1528,13 +1522,7 @@ async def bedwars(ctx, *player_and_mode):
     await ctx.send(embed=embed)
 
 
-def roman_num(num : int):
-    for r in roman.keys():
-        x, y = divmod(num, r)
-        yield roman[r] * x
-        num -= (r * x)
-        if num <= 0:
-            break
+
 
 def write_roman(num : int):
     roman = OrderedDict()
@@ -1551,6 +1539,13 @@ def write_roman(num : int):
     roman[5] = "V"
     roman[4] = "IV"
     roman[1] = "I"
+    def roman_num(num : int):
+        for r in roman.keys():
+            x, y = divmod(num, r)
+            yield roman[r] * x
+            num -= (r * x)
+            if num <= 0:
+                break
     return "".join([a for a in roman_num(num)])
 
 def getrate(stat1 : int, stat2 : int):

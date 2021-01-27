@@ -1504,7 +1504,7 @@ async def bedwars(ctx, *player_and_mode):
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
             raise exceptions.InvalidArgument("Invalid mode")
-        embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {data['player']['displayname']}", color=0xff0000)
+        embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
         embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)

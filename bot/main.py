@@ -692,18 +692,12 @@ async def avatar(ctx, *member_and_format):
         member = ctx.author
         format = None
     elif len(member_and_format) == 1:
-        if member_and_format[0] in formats:
-            member = ctx.author
-            format = member_and_format[0]
-        else:
-            raise exceptions.InvalidArgument(f"Invalid format. Format must be {formats}")
+        member = ctx.author
+        format = member_and_format[0]
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
         if len(member_and_format) == 2:
-            if member_and_format[1] in formats:
-                format = member_and_format[1]
-            else:
-                raise exceptions.InvalidArgument(f"Invalid format. Format must be {formats}")
+            format = member_and_format[1]
         else:
             format = None
     else:

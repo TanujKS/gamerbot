@@ -30,10 +30,6 @@ from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
 
 
-
-raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.errors.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
-passErrors = (commands.CommandNotFound, commands.NotOwner)
-
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
     globals()[k] = os.environ.get(k)
@@ -49,14 +45,8 @@ shutDown = r.get("shutdown")
 if shutDown == "True":
     raise Exception("Shutting down")
 
-bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
-skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
-duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
-xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
-moves = ["rock", "paper", "scissors"]
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
-ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
 stopWatches = {}
 
 blackListed = r.lrange("blacklisted", 0, -1)
@@ -235,7 +225,7 @@ async def on_guild_remove(guild):
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
-
+ezmessages = ["Wait... This isn't what I typed!", "Anyone else really like Rick Astley?", "Hey helper, how play game?", "Sometimes I sing soppy, love songs in the car.", "I like long walks on the beach and playing Hypixel", "Please go easy on me, this is my first game!", "You're a great person! Do you want to play some Hypixel games with me?", "In my free time I like to watch cat videos on Youtube", "When I saw the witch with the potion, I knew there was trouble brewing.", "If the Minecraft world is infinite, how is the sun spinning around it?", "Hello everyone! I am an innocent player who loves everything Hypixel.", "Plz give me doggo memes!", "I heard you like Minecraft, so I built a computer in Minecraft in your Minecraft so you can Minecraft while you Minecraft", "Why can't the Ender Dragon read a book? Because he always starts at the End.", "Maybe we can have a rematch?", "I sometimes try to say bad things then this happens :(", "Behold, the great and powerful, my magnificent and almighty nemisis!", "Doin a bamboozle fren.", "Your clicks per second are godly.", "What happens if I add chocolate milk to macaroni and cheese?", "Can you paint with all the colors of the wind", "Blue is greener than purple for sure", "I had something to say, then I forgot it.", "When nothing is right, go left.", "I need help, teach me how to play!", "Your personality shines brighter than the sun.", "You are very good at the game friend.", "I like pineapple on my pizza", "I like pasta, do you prefer nachos?", "I like Minecraft pvp but you are truly better than me!", "I have really enjoyed playing with you! <3", "ILY <3", "Pineapple doesn't go on pizza!", "Lets be friends instead of fighting okay?"]
 
 @bot.event
 async def on_message(message):
@@ -264,6 +254,9 @@ async def on_message(message):
                 await webhook.send(ezmessages[random.randint(0, len(ezmessages))-1], username=username, avatar_url=message.author.avatar_url)
                 await message.delete()
 
+
+raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.errors.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
+passErrors = (commands.CommandNotFound, commands.NotOwner)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -1298,6 +1291,8 @@ async def setteam(ctx, team : discord.Role):
 
 
 #------------------------------------------------------------------------------MINI-GAMES--------------------------------------------------------------------------------------
+moves = ["rock", "paper", "scissors"]
+
 @bot.command()
 @commands.guild_only()
 async def rps(ctx, member):
@@ -1480,6 +1475,8 @@ async def hypixel(ctx, *player):
     await ctx.send(embed=embed)
 
 
+bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
+
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, *player_and_mode):
     if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) is not None:
@@ -1544,8 +1541,6 @@ async def bedwars(ctx, *player_and_mode):
     await ctx.send(embed=embed)
 
 
-
-
 def write_roman(num : int):
     roman = OrderedDict()
     roman[1000] = "M"
@@ -1585,6 +1580,9 @@ def getSkyWarsLevel(xp : int):
                 closestnumber = xps[xps.index(number)-1]
                 break
         return round(xps.index(closestnumber) + 1)
+
+skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
+xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 
 @bot.command(aliases=["sw"])
 async def skywars(ctx, *player_and_mode):
@@ -1678,6 +1676,8 @@ async def skywars(ctx, *player_and_mode):
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
+
+duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
 
 @bot.command()
 async def duels(ctx, *player_and_mode):

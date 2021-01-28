@@ -1608,7 +1608,6 @@ async def skywars(ctx, *player_and_mode):
     if not rawData.get('player') or not rawData['player']['stats'].get("SkyWars"):
         raise exceptions.NotFound(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
-    print(data)
     if len(player_and_mode) <= 1:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Coins:", value=data.get('coins', 0), inline=True)

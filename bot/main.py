@@ -45,6 +45,7 @@ shutDown = r.get("shutdown")
 if shutDown == "True":
     raise Exception("Shutting down")
 
+
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 stopWatches = {}
@@ -133,9 +134,8 @@ async def on_ready():
     statusPings = get(supportServer.roles, name="Status Pings")
     r.set("statusPingsMention", statusPings.mention)
 
-    info = await bot.application_info()
     global botmaster
-    botmaster = info.owner.id
+    botmaster = bot.owner_id
 
     for guild in bot.guilds:
         try:
@@ -234,13 +234,13 @@ async def on_message(message):
         if not message.author.id in blackListed:
             await bot.process_commands(message)
 
-        if message.mentions:
+        messageList = message.content.lower().split()
+
+        if message.mentions and len(messageList) == 1:
             if message.mentions[0] == message.guild.me:
                 await message.channel.send(f"My prefix in this server is `{determine_prefix(bot, message)}`")
 
         if message.guild:
-
-            messageList = message.content.lower().split()
 
             if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                 webhooks = await message.channel.webhooks()

@@ -1498,7 +1498,7 @@ async def bedwars(ctx, *player_and_mode):
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not rawData['player']:
+    if not rawData.get('player') or not rawData['player']['stats'].get("Bedwars"):
         raise exceptions.NotFound(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']
     if len(player_and_mode) < 2:
@@ -1605,9 +1605,10 @@ async def skywars(ctx, *player_and_mode):
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not rawData['player']:
+    if not rawData.get('player') or not rawData['player']['stats'].get("SkyWars"):
         raise exceptions.NotFound(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
+    print(data)
     if len(player_and_mode) <= 1:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Coins:", value=data.get('coins', 0), inline=True)

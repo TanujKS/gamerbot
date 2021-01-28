@@ -1581,7 +1581,7 @@ def getSkyWarsLevel(xp : int):
                 break
         return round(xps.index(closestnumber) + 1)
 
-skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal"): "teams normal", ("teams insane", "team insane"): "teams insane"}
+skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal", "doubles normal", "double normal"): "teams normal", ("teams insane", "team insane", "doubles insane", "double insane"): "teams insane"}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 
 @bot.command(aliases=["sw"])
@@ -1648,7 +1648,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Wins:", value=data.get("wins_solo_insane", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get("losses_solo_insane", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_solo_insane", 0), data.get("losses_solo_insane", 0)), inline=True)
-        elif joinedmode == "doubles normal":
+        elif joinedmode == "teams normal":
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get("skywars_experience", 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
@@ -1659,7 +1659,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Wins:", value=data.get("wins_team", 0) - data.get("wins_team_insane", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get("losses_team", 0) - data.get("losses_team_insane", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_team", 0) - data.get("wins_team_insane", 0), data.get("losses_team", 0) - data.get("losses_team_insane", 0)), inline=True)
-        elif joinedmode == "doubles insane":
+        elif joinedmode == "teams insane":
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)

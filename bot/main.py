@@ -41,7 +41,7 @@ for k in keys:
         try:
             globals()[k] = config(k)
         except decouple.UndefinedValueError:
-            raise Exception("Could not initialise keys")
+            raise Exception(f"Could not initialise key: {k}")
 
 r = redis.from_url(REDIS_URL)
 
@@ -690,12 +690,32 @@ async def perms(ctx, *member : discord.Member):
     await ctx.send(embed=embed)
 
 
+formats = ['webp', 'png', 'gif', 'jpeg', 'jpg', 'png']
+
 @bot.command()
-async def avatar(ctx, member : discord.Member, *format):
-    if not format:
-        format = ["png"]
+async def avatar(ctx, *member_and_format):
+    if len(member_and_format) == 0:
+        member = ctx.author
+        format = None
+    elif len(member_and_format) == 1:
+        if member_and_format[0] in formats:
+            member = ctx.author
+            format = member_and_format[0]
+        else:
+            raise exceptions.InvalidArgument(f"Invalid format. Format must be {formats}")
+    elif ctx.message.mentions:
+        member = ctx.message.mentions[0]
+        if len(member_and_format) == 2:
+            if member_and_format[1] in formats:
+                format = member_and_format[1]
+            else:
+                raise exceptions.InvalidArgument(f"Invalid format. Format must be {formats}")
+        else:
+            format = None
+    else:
+        raise exceptions.NotFound("Invalid member")
     try:
-        await ctx.send(member.avatar_url_as(format=format[0], size=1024))
+        await ctx.send(member.avatar_url_as(format=format, size=1024))
     except discord.InvalidArgument:
         raise exceptions.InvalidArgument("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
 

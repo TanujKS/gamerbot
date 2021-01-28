@@ -1650,7 +1650,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Wins:", value=data.get("wins_solo_insane", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get("losses_solo_insane", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_solo_insane", 0), data.get("losses_solo_insane", 0)), inline=True)
-        elif joinedmode == "teams normal":
+        elif joinedmode == "doubles normal":
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get("skywars_experience", 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
@@ -1661,7 +1661,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Wins:", value=data.get("wins_team", 0) - data.get("wins_team_insane", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get("losses_team", 0) - data.get("losses_team_insane", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_team", 0) - data.get("wins_team_insane", 0), data.get("losses_team", 0) - data.get("losses_team_insane", 0)), inline=True)
-        elif joinedmode == "teams insane":
+        elif joinedmode == "doubles insane":
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)

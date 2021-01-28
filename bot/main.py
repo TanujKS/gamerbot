@@ -444,7 +444,8 @@ async def eval_fn(ctx, *, cmd):
             'discord': discord,
             'commands': commands,
             'ctx': ctx,
-            '__import__': __import__
+            '__import__': __import__,
+            'get': get
         }
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
 

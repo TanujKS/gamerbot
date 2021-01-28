@@ -1652,7 +1652,7 @@ async def skywars(ctx, *player_and_mode):
         elif joinedmode == "teams normal":
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get("skywars_experience", 0), inline=True)
-            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0), inline=True))
+            embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
             embed.add_field(name="Games Played:", value=(data.get("wins_teams", 0) - data.get("wins_teams_insane", 0)) + (data.get("losses_teams", 0) - data.get("losses_teams_insane", 0)), inline=True)
             embed.add_field(name="Kills:", value=data.get("kills_teams", 0) - data.get("kills_teams_insane", 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get("deaths_teams", 0) - data.get("deaths_teams_insane", 0), inline=True)

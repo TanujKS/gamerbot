@@ -1497,7 +1497,7 @@ async def bedwars(ctx, *player_and_mode):
     if len(player_and_mode) < 2:
             embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="Coins:", value=data.get("coins", 0), inline=True)
-            embed.add_field(name="EXP:", value=data.get("experience"), inline=True)
+            embed.add_field(name="EXP:", value=data.get("Experience", 0), inline=True)
             embed.add_field(name="Level:", value=rawData['player']['achievements'].get("bedwars_level", 0), inline=True)
             embed.add_field(name="Games Played:", value=data.get("games_played_bedwars", 0), inline=True)
             embed.add_field(name="Current Winstreak:", value=data.get("winstreak", 0), inline=True)
@@ -1512,8 +1512,8 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
             embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
-            embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
             embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
+            embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:

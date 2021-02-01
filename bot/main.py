@@ -135,7 +135,8 @@ async def on_ready():
     r.set("statusPingsMention", statusPings.mention)
 
     global botmaster
-    botmaster = bot.get_user(bot.owner_id)
+    botmaster = await bot.application_info()
+    botmaster = botmaster.owner
 
     for guild in bot.guilds:
         try:

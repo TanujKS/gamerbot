@@ -1513,7 +1513,7 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="Final K/D Rate:", value=getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
             embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
-            embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars")), inline=True)
+            embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:

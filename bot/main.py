@@ -728,8 +728,8 @@ async def addemoji(ctx, emojiName, url):
     except requests.exceptions.MissingSchema as err:
         raise exceptions.InvalidArgument(err)
     img = BytesIO(response.content)
-    await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
-
+    emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
+    await ctx.send(f"Created {emojiName}: \n{emoji}")
 
 @bot.command()
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)

@@ -28,6 +28,8 @@ from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
+from PIL import Image
+from io import BytesIO
 
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
@@ -710,14 +712,23 @@ async def avatar(ctx, *member_and_format):
 
 @bot.command()
 async def emoji(ctx, *, emojiName):
-    print(emojiName)
     emojiName = emojiName.replace(" ", "_")
-    emojiName = emojiName.replace(":", "")
-    print(emojiName)
     emojiVar = get(ctx.guild.emojis, name=emojiName)
     if not emojiVar:
         raise exceptions.NotFound("Invalid emoji")
     await ctx.send(emojiVar.url)
+
+
+@bot.command()
+@commands.bot_has_guild_permissions(manage_emojis=True)
+@commands.has_guild_permissions(manage_emojis=True)
+async def addemoji(ctx, emojiName, url):
+    try:
+        response = requests.get(url)
+    except requests.exceptions.MissingSchema as err:
+        raise exceptions.InvalidArgument(err)
+    img = BytesIO(response.content)
+    await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
 
 
 @bot.command()

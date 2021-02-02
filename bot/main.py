@@ -95,6 +95,7 @@ def convertBooltoStr(bool : bool):
 defaultPrefix = '?'
 
 def initGuild(guild : discord.Guild):
+    print(f"Initialsed {guild.name}")
     guildInfo[guild.id] = {}
     guildInfo[guild.id]['antiez'] = False
     guildInfo[guild.id]['teamLimit'] = 2
@@ -102,7 +103,7 @@ def initGuild(guild : discord.Guild):
     guildInfo[guild.id]['TTVCrole'] = "TTVC"
     guildInfo[guild.id]['prefix'] = defaultPrefix
     rval = json.dumps(guildInfo)
-    r.set('guildInfo', rval)
+    r.set("guildInfo", rval)
 
 def determine_prefix(bot, message):
     guild = message.guild
@@ -116,7 +117,7 @@ bot.remove_command('help')
 #---------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
 @bot.event
 async def on_ready():
-    print(f"Bot connected with {bot.user}\nID:{bot.user.id}")
+    print(f"Bot connected with {bot.user} \nID:{bot.user.id}")
     game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
 
     await bot.change_presence(activity=game)
@@ -139,17 +140,13 @@ async def on_ready():
     botmaster = botmaster.owner
 
     for guild in bot.guilds:
-        try:
-            trackingGuilds[guild.id]
-        except KeyError:
+        if not trackingGuilds.get(guild.id):
             trackingGuilds[guild.id] = []
-        try:
-            guildInfo[guild.id]
-        except KeyError:
+        if not guildInfo.get(guild.id):
             initGuild(guild)
-        guildInfo[guild.id]['prefix'] = defaultPrefix
-        rval = json.dumps(guildInfo)
-        r.set("guildInfo", rval)
+
+    rval = json.dumps(guildInfo)
+    r.set("guildInfo", rval)
 
 
     await bot.loop.create_task(checkIfLive())
@@ -491,7 +488,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name=f"Miscellaneous Commands ({prefix}help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name=f"APIs ({prefix}help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
-        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by{str(botmaster)}")
+        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str(botmaster)}")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
         embed.add_field(name=f"{prefix}mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)

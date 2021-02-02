@@ -709,6 +709,14 @@ async def avatar(ctx, *member_and_format):
 
 
 @bot.command()
+async def emoji(ctx, emojiName):
+    emojiVar = get(ctx.guild.emojis, name=emojiName)
+    if not emojiVar:
+        raise exceptions.NotFound("Invalid emoji")
+    await ctx.send(emojiVar.url)
+
+
+@bot.command()
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
     if len(options) > 8:

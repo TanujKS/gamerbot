@@ -182,7 +182,7 @@ async def on_disconnect():
 @bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use {bot.user.mention} to see what I can do!")
     await bot.change_presence(activity=game)
 
     try:
@@ -620,7 +620,7 @@ async def join(ctx):
 @bot.command()
 @commands.has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
-@commands.cooldown(10, 60, commands.BucketType.member)
+@commands.cooldown(5, 60, commands.BucketType.member)
 async def speak(ctx, *, message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
@@ -1673,9 +1673,11 @@ async def skywars(ctx, *player_and_mode):
 
 
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
+ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
 
 @bot.command()
 async def duels(ctx, *player_and_mode):
+    prestige = None
     mode = " ".join(player_and_mode)
     if len(player_and_mode) == 0 or multi_key_dict_get(duelModes, mode) is not None:
         member = ctx.author
@@ -1699,10 +1701,23 @@ async def duels(ctx, *player_and_mode):
     data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=0xff0000)
+        mode = "all_modes"
+        if data.get(f'godlike_{mode}'):
+            prestige = "Godlike"
+        else:
+            for ra in ranks:
+                prestigeNumber = data.get(f'{mode}_{ra}_title_prestige', None)
+                if prestigeNumber:
+                    if ra == "rookie" and prestigeNumber == 1:
+                        break
+                    prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+                    break
         embed.add_field(name="Games Played:", value=data.get('wins', 0) + data.get('losses', 0), inline=True)
         embed.add_field(name="Winstreak:", value=data.get('current_winstreak', 0), inline=True)
         embed.add_field(name="Best Winstreak:", value=data.get('best_overall_winstreak', 0), inline=True)
-        embed.add_field(name="Coins:", value=data.get('coins', 0), inline=False)
+        embed.add_field(name="Coins:", value=data.get('coins', 0), inline=True)
+        embed.add_field(name="Prestige:", value=prestige, inline=True)
+        embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Kills:", value=data.get('kills', 0), inline=True)
         embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
         embed.add_field(name="K/D Rate:", value=getrate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
@@ -1724,8 +1739,6 @@ async def duels(ctx, *player_and_mode):
         if not mode in duelModes:
             raise exceptions.InvalidArgument("Invalid mode")
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
-        ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
-        prestige = None
         if data.get(f'godlike_{mode.split()[0]}'):
             prestige = "Godlike"
         else:

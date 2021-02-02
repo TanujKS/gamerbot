@@ -439,7 +439,9 @@ async def eval_fn(ctx, *, cmd):
             'commands': commands,
             'ctx': ctx,
             '__import__': __import__,
-            'get': get
+            'get': get,
+            'r': r,
+            "os": os
         }
         exec(compile(parsed, filename="<ast>", mode="exec"), env)
 

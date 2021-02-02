@@ -709,7 +709,9 @@ async def avatar(ctx, *member_and_format):
 
 
 @bot.command()
-async def emoji(ctx, emojiName):
+async def emoji(ctx, *, emojiName):
+    emojiName = emojiName.replace(" ", "_")
+    emojiName = emojiName.replace(":", "")
     emojiVar = get(ctx.guild.emojis, name=emojiName)
     if not emojiVar:
         raise exceptions.NotFound("Invalid emoji")

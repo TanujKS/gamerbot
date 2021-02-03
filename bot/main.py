@@ -1973,15 +1973,14 @@ async def youtube(ctx, *, channel):
 
 @bot.command()
 async def csgolink(ctx, id):
-    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    data = data.get('data', None)
-    if data:
-        await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
-        csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
-        rval = json.dumps(csgoLinks)
-        r.set("csgoLinks", rval)
-    else:
-        raise exceptions.NotFound("Invalid ID")
+    rawData = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
+    data = rawData.get('data')
+    if not data:
+        raise exceptions.NotFound(rawData['errors'][0]['message'])
+    await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
+    csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
+    rval = json.dumps(csgoLinks)
+    r.set("csgoLinks", rval)
 
 
 @bot.command()
@@ -1992,14 +1991,15 @@ async def csgo(ctx, *player):
         member = ctx.message.mentions[0].id
     else:
         member = None
+        player = player[0]
     if member:
         player = csgoLinks.get(member)
         if not player:
             raise exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
-    data = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
-    data = data.get('data')
+    rawData = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
+    data = rawData.get('data')
     if not data:
-        raise exceptions.NotFound("Could not find player, try searching by Steam ID instead. You can run ?csgolink {your_id} so you don't have to keep going back to check your id")
+        raise exceptions.NotFound(rawData['errors'][0]['message'])
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)

@@ -730,6 +730,7 @@ async def addemoji(ctx, emojiName, url):
     emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
     await ctx.send(f"Created {emojiName}: \n{emoji}")
 
+
 @bot.command()
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
@@ -741,10 +742,12 @@ async def poll(ctx, poll, *options):
         embed = discord.Embed(title=poll, description=None, color=0xff0000)
     except discord.HTTPException:
         raise exceptions.InvalidArgument("Poll title must be less than 256 characters")
+    index = 0
     for option in options:
-        embed.add_field(name=emojis[options.index(option)], value="\u200b", inline=True)
+        embed.add_field(name=emojis[index], value="\u200b", inline=True)
         embed.add_field(name=option, value="\u200b", inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
+        index += 1
     embed.set_footer(text=f"Poll by {str(ctx.author)}")
     msg = await ctx.send(embed=embed)
     await ctx.message.delete()

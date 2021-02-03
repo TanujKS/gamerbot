@@ -2,34 +2,41 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-from discord import Webhook, AsyncWebhookAdapter
+
 from discord import FFmpegPCMAudio
 from discord import opus
+import gtts
+from gtts import gTTS
+import ffmpeg
+
 import decouple
 from decouple import config
 import redis
-import ast
-import exceptions
+
 import os
 import sys
-import time
-import json
-import datetime
-from datetime import datetime
-from pytz import timezone, utc
+
 import random
 import requests
 import asyncio
 from collections import OrderedDict
-import gtts
-from gtts import gTTS
-import ffmpeg
+import json
+import ast
+
+import time
+import datetime
+from datetime import datetime
+from pytz import timezone, utc
+
 from mojang import MojangAPI
 from mojang import MojangUser
 from mojang.exceptions import SecurityAnswerError
 from mojang.exceptions import LoginError
+
 from PIL import Image
 from io import BytesIO
+
+import exceptions
 
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
@@ -56,12 +63,14 @@ blackListed = r.lrange("blacklisted", 0, -1)
 for i in range(0, len(blackListed)):
     blackListed[i] = blackListed[i].decode("utf-8")
 
+
 rval = r.get("guildInfo")
 tempGuildInfo = json.loads(rval)
 guildInfo = {}
 
 for g in tempGuildInfo:
     guildInfo[int(g)] = tempGuildInfo[g]
+
 
 rval = r.get("trackingGuilds")
 tempTrackingGuilds = json.loads(rval)
@@ -72,6 +81,7 @@ for t in tempTrackingGuilds:
     for u in trackingGuilds[int(t)]:
         index = trackingGuilds[int(t)].index(u)
         trackingGuilds[int(t)][index]['channel-id'] = int(trackingGuilds[int(t)][index]['channel-id'])
+
 
 rval = r.get("csgoLinks")
 tempCsgoLinks = json.loads(rval)
@@ -689,25 +699,14 @@ async def perms(ctx, *member : discord.Member):
 formats = ['webp', 'png', 'gif', 'jpeg', 'jpg', 'png']
 
 @bot.command()
-async def avatar(ctx, *member_and_format):
-    if len(member_and_format) == 0:
+async def avatar(ctx, *member):
+    if len(member) == 0:
         member = ctx.author
-        format = None
-    elif len(member_and_format) == 1:
-        member = ctx.author
-        format = member_and_format[0]
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
-        if len(member_and_format) == 2:
-            format = member_and_format[1]
-        else:
-            format = None
     else:
         raise exceptions.NotFound("Invalid member")
-    try:
-        await ctx.send(member.avatar_url_as(format=format, size=1024))
-    except discord.InvalidArgument:
-        raise exceptions.InvalidArgument("Format must be 'webp', 'gif' (if animated avatar), 'jpeg', 'jpg', 'png'")
+    await ctx.send(member.avatar_url_as(format=None, size=1024))
 
 
 @bot.command()

@@ -698,7 +698,7 @@ async def perms(ctx, *member : discord.Member):
 
 formats = ['webp', 'png', 'gif', 'jpeg', 'jpg', 'png']
 
-@bot.command()
+@bot.command(aliases=['pfp', 'profile'])
 async def avatar(ctx, *member):
     if len(member) == 0:
         member = ctx.author

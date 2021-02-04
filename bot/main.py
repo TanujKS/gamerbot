@@ -1720,7 +1720,7 @@ async def duels(ctx, *player_and_mode):
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not rawData['player']:
+    if not rawData['player'] or not rawData['player']['stats'].get('Duels'):
         raise exceptions.NotFound(f"{player} has not played Duels")
     data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:

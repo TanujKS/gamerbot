@@ -130,7 +130,7 @@ bot.remove_command('help')
 @bot.event
 async def on_ready():
     print(f"Bot connected with {bot.user} \nID:{bot.user.id}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{bot.user.name} to see what I can do!")
 
     await bot.change_presence(activity=game)
 
@@ -191,7 +191,7 @@ async def on_disconnect():
 @bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use {bot.user.mention} to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{bot.user.name} to see what I can do!")
     await bot.change_presence(activity=game)
 
     try:
@@ -695,8 +695,6 @@ async def perms(ctx, *member : discord.Member):
         embed.add_field(name=perm[0].replace('_', ' ').title(), value=convertPermtoEmoji(member, perm[0]))
     await ctx.send(embed=embed)
 
-
-formats = ['webp', 'png', 'gif', 'jpeg', 'jpg', 'png']
 
 @bot.command(aliases=['pfp', 'profile'])
 async def avatar(ctx, *member):

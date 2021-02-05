@@ -214,10 +214,11 @@ async def on_guild_remove(guild):
     await bot.change_presence(activity=game)
 
     await reports.send(f"Left {guild.name} with {guild.member_count} members")
-    def check(m):
-        return m.author == ctx.author and m.channel == ctx.channel
+
     try:
         dm = await guild.owner.create_dm()
+        def check(m):
+            return m.author == dm.recipient and m.channel == dm
         await dm.send(f"Hello {str(guild.owner)}. I see you have removed GamerBot from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
         response = await bot.wait_for('message', timeout=120, check=check)
         if response == "y":
@@ -1533,9 +1534,9 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
-            embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
-            embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
+            embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True
             embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
+            embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:

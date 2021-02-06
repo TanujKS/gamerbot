@@ -231,7 +231,7 @@ async def on_guild_remove(guild):
             response = await bot.wait_for('message', timeout=120, check=check)
             await dm.send("Thank you. Your feedback helps us make GamerBot a better bot.")
         else:
-            await ctx.send("No problem. Goodbye!")
+            await dm.send("No problem. Goodbye!")
     except Exception as e:
         await reports.send(f"Could not DM {str(guild.owner)} Exception: {e}")
 

@@ -249,7 +249,10 @@ async def on_message(message):
 
         if message.mentions and len(messageList) == 1:
             if message.mentions[0] == message.guild.me:
-                await message.channel.send(f"My prefix in this server is `{determine_prefix(bot, message)}`")
+                try:
+                    await message.channel.send(f"My prefix in this server is `{determine_prefix(bot, message)}`")
+                except discord.errors.Forbidden:
+                    pass
 
         if message.guild:
 
@@ -1873,7 +1876,6 @@ async def checkIfLive():
                             await channel.send(embed=embed)
                             trackingGuilds[guild][index]['pinged'] = "True"
                     else:
-                        print(f"{trackingGuilds[guild][index]['streamer']} is not live")
                         trackingGuilds[guild][index]['pinged'] = "False"
         rval = json.dumps(trackingGuilds)
         r.set("trackingGuilds", rval)

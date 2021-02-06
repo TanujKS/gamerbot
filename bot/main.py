@@ -221,14 +221,18 @@ async def on_guild_remove(guild):
             return m.author == dm.recipient and m.channel == dm
         await dm.send(f"Hello {str(guild.owner)}. I see you have removed GamerBot from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
         response = await bot.wait_for('message', timeout=120, check=check)
-        if response == "y":
+        if response.content == "y":
             await dm.send("Thank you! First, why are you removing GamerBot from your server?")
             response = await bot.wait_for('message', timeout=120, check=check)
-            await reports.send(f"Reason for removal: {response}")
+            await reports.send(f"Reason for removal: {response.content}")
+
             await dm.send("Got it, on a scale of 1-10 how would you rate GamerBot's features, response time, ease of use, etc")
             response = await bot.wait_for('message', timeout=120, check=check)
+            await reports.send(f"Rating: {response.content}")
+
             await dm.send("Thanks! Any other comments/feedback?")
             response = await bot.wait_for('message', timeout=120, check=check)
+            await reports.send(f"Feedback: {response.content}")
             await dm.send("Thank you. Your feedback helps us make GamerBot a better bot.")
         else:
             await dm.send("No problem. Goodbye!")

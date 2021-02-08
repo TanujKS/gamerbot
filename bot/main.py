@@ -1397,7 +1397,7 @@ async def minecraft(ctx, *player):
     await ctx.send(embed=embed)
 
 
-@bot.command()
+@bot.command(aliases=['mclink'])
 async def mcverify(ctx, player):
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
     if not data['player']:

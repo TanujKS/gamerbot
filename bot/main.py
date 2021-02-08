@@ -130,7 +130,7 @@ bot.remove_command('help')
 @bot.event
 async def on_ready():
     print(f"Bot connected with {bot.user} \nID:{bot.user.id}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{bot.user.name} to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{str(bot.user)} to see what I can do!")
 
     await bot.change_presence(activity=game)
 
@@ -191,7 +191,7 @@ async def on_disconnect():
 @bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{bot.user.name} to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{bot.user} to see what I can do!")
     await bot.change_presence(activity=game)
 
     try:
@@ -210,7 +210,7 @@ async def on_guild_join(guild):
 @bot.event
 async def on_guild_remove(guild):
     print(f"Left {guild}")
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{str(bot.user)} to check my prefix")
     await bot.change_presence(activity=game)
 
     await reports.send(f"Left {guild.name} with {guild.member_count} members")
@@ -233,7 +233,7 @@ async def on_guild_remove(guild):
             await dm.send("Thanks! Any other comments/feedback?")
             response = await bot.wait_for('message', timeout=120, check=check)
             await reports.send(f"Feedback: {response.content}")
-            await dm.send("Thank you. Your feedback helps us make GamerBot a better bot.")
+            await dm.send(f"Thank you. Your feedback helps us make {bot.user.name} a better bot.")
         else:
             await dm.send("No problem. Goodbye!")
     except Exception as e:
@@ -1843,22 +1843,6 @@ async def twitch(ctx, channel):
     embed.add_field(name="Views", value=data['view_count'], inline=True)
     followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     embed.add_field(name="Followers", value=followers['total'], inline=True)
-    stream = requests.get(f"https://api.twitch.tv/helix/search/channels?query={channel}/", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    try:
-        x = list(stream['data'])[0]
-        is_live = x['is_live']
-        if is_live:
-            status = "Live"
-            embed.set_thumbnail(url=x['thumbnail_url'])
-        if not is_live:
-            status = "Not Live"
-        embed.add_field(name="Status:", value=status, inline=True)
-        if status == "Live":
-            embed.add_field(name="Stream:", value=x['title'], inline=True)
-        for e in embed.fields:
-            print(e)
-    except IndexError:
-        pass
     await ctx.send(embed=embed)
 
 

@@ -433,7 +433,7 @@ def insert_returns(body):
     if isinstance(body[-1], ast.With):
         insert_returns(body[-1].body)
 
-@bot.command(aliases=['eval'])
+@bot.command(aliases=['eval', 'exec', 'run'])
 @commands.is_owner()
 async def eval_fn(ctx, *, cmd):
     try:
@@ -465,9 +465,9 @@ async def eval_fn(ctx, *, cmd):
         result = (await eval(f"{fn_name}()", env))
         if not result:
             result = "Done"
-        await ctx.send(result)
+        await ctx.send(f"```{result}```")
     except Exception as err:
-        raise exceptions.OtherException(err)
+        raise exceptions.OtherException(f"```{err}```")
 
 
 @bot.command()

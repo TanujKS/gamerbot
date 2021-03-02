@@ -273,7 +273,7 @@ async def on_message(message):
                 await message.delete()
 
 
-raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.Forbidden)
+raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
 passErrors = (commands.CommandNotFound, commands.NotOwner)
 
 @bot.event

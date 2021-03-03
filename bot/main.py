@@ -822,11 +822,11 @@ async def ping(ctx):
 
 
 @bot.command()
-@commands.bot_has_guild_permissions(manage_webhooks=True)
+@commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
 async def quote(ctx, member : discord.Member, *, message):
     message = message.strip("@everyone")
     if not message:
-        raise InvalidArgument("No message provided")
+        raise exceptions.InvalidArgument("No message provided")
     webhooks = await ctx.channel.webhooks()
     webhook = None
     for webhookVar in webhooks:
@@ -923,14 +923,17 @@ async def move(ctx, member, *, channel):
             raise exceptions.NotFound("You are not in a voice channel")
         oldVC = ctx.author.voice.channel
         for member in oldVC.members:
-            await member.move_to(channel)
+            try:
+                await member.move_to(channel)
+            except (discord.HTTPException, commands.errors.CommandInvokeError):
+                raise exceptions.UnAuthorized(f"Missing Permissions")
         await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
             for member in voice_channel.members:
                 try:
                     await member.move_to(channel)
-                except discord.HTTPException:
+                except (discord.HTTPException, commands.errors.CommandInvokeError):
                     raise exceptions.UnAuthorized(f"Missing Permissions")
         await ctx.send(f"Moved all members to {channel.name}")
     else:
@@ -940,7 +943,10 @@ async def move(ctx, member, *, channel):
             raise exceptions.NotFound("Invalid member")
         if not member.voice:
             raise exceptions.NotFound(f"{str(member)} is not in a VC")
-        await member.move_to(channel)
+        try:
+            await member.move_to(channel)
+        except (discord.HTTPException, commands.errors.CommandInvokeError):
+            raise exceptions.UnAuthorized(f"Missing Permissions")
         await ctx.send(f"Moved {str(member)} to {str(channel)}")
 
 

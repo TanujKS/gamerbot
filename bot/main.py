@@ -821,9 +821,12 @@ async def ping(ctx):
     await t.edit(content=f'Pong! `{(t.created_at-ctx.message.created_at).total_seconds() * 1000}ms`')
 
 
-@bot.command()
-@commands.bot_has_guild_permissions(manage_webhooks=True)
+#@bot.command()
+#@commands.bot_has_guild_permissions(manage_webhooks=True)
 async def quote(ctx, member : discord.Member, *, message):
+    message = message.strip("@everyone")
+    if not message:
+        raise InvalidArgument("No message provided")
     webhooks = await ctx.channel.webhooks()
     webhook = None
     for webhookVar in webhooks:

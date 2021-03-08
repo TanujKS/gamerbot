@@ -123,6 +123,9 @@ def determine_prefix(bot, message):
         return guildInfo[guild.id].get('prefix')
     else:
         return defaultPrefix
+
+async def is_owner(ctx):
+    return ctx.author.id == 816440833250689034
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -365,7 +368,7 @@ async def on_reaction_remove(reaction, user):
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
         raise exceptions.OtherException(f"{str(member)} is already blacklisted")
@@ -375,7 +378,7 @@ async def blacklist(ctx, member : discord.Member):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def unblacklist(ctx, member : discord.Member):
     if not member.id in blackListed:
         raise exceptions.OtherException(f"{str(member)} is not blacklisted")
@@ -385,14 +388,14 @@ async def unblacklist(ctx, member : discord.Member):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def setstatus(ctx, *, status):
     game = discord.Game(status)
     await bot.change_presence(activity=game)
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def blacklisted(ctx):
     message = ""
     for x in blackListed:
@@ -401,7 +404,7 @@ async def blacklisted(ctx):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
@@ -411,7 +414,7 @@ async def disablecommand(ctx, commandName):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
@@ -434,7 +437,7 @@ def insert_returns(body):
         insert_returns(body[-1].body)
 
 @bot.command(aliases=['eval', 'exec', 'run'])
-@commands.is_owner()
+@commands.check(is_owner)
 async def eval_fn(ctx, *, cmd):
     try:
         fn_name = "_eval_expr"
@@ -471,7 +474,7 @@ async def eval_fn(ctx, *, cmd):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def restart(ctx):
     await ctx.send("Confirm restart: (y/n)")
     def check(m):

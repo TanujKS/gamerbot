@@ -124,8 +124,10 @@ def determine_prefix(bot, message):
     else:
         return defaultPrefix
 
+ownerID = 816440833250689034
+
 async def is_owner(ctx):
-    return ctx.author.id == 816440833250689034
+    return ctx.author.id == ownerID
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -150,9 +152,7 @@ async def on_ready():
     statusPings = get(supportServer.roles, name="Status Pings")
     r.set("statusPingsMention", statusPings.mention)
 
-    global botmaster
-    botmaster = await bot.application_info()
-    botmaster = botmaster.owner
+    botmaster = bot.get_user(ownerID)
 
     for guild in bot.guilds:
         if not trackingGuilds.get(guild.id):
@@ -511,7 +511,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name=f"Miscellaneous Commands ({prefix}help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name=f"APIs ({prefix}help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
-        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str(botmaster)}")
+        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str()}")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
         embed.add_field(name=f"{prefix}mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)
@@ -905,7 +905,7 @@ async def dm(ctx, message):
 
 @bot.command()
 async def donate(ctx):
-    embed = discord.Embed(title="Donate to GamerBot", description=f"Donations help pay for the server required to run GamerBot and to pay for premium APIs to deliver faster stats. Donating perks can include custom commands or a custom bot for your own server. Please contact {str(botmaster)} for more info.", color=0xff0000)
+    embed = discord.Embed(title="Donate to GamerBot", description=f"Donations help pay for the server required to run GamerBot and to pay for premium APIs to deliver faster stats. Donating perks can include custom commands or a custom bot for your own server. Please contact {str()} for more info.", color=0xff0000)
     await ctx.send(embed=embed)
 #------------------------------------------------------------------------------VOICE CHANNEL MANAGEMENT--------------------------------------------------------------------------------------
 @bot.command()

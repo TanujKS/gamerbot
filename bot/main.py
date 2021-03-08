@@ -152,6 +152,7 @@ async def on_ready():
     statusPings = get(supportServer.roles, name="Status Pings")
     r.set("statusPingsMention", statusPings.mention)
 
+    global botmaster
     botmaster = bot.get_user(ownerID)
 
     for guild in bot.guilds:
@@ -511,7 +512,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to see Minecraft player's stats", inline=False)
         embed.add_field(name=f"Miscellaneous Commands ({prefix}help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name=f"APIs ({prefix}help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
-        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str()}")
+        embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str(botmaster)}")
     elif category[0] == "VC":
         embed=discord.Embed(title="VC Commands", description="Commands I can do to help you manage your voice channels", color=0xff0000)
         embed.add_field(name=f"{prefix}mute (member or 'all' or 'channel-all')", value="Server mutes a member. 'channel-all' mutes all people in the channel you are currently in while 'all' mutes everyone a voice channel in the server. (Requires permission Mute Members)", inline=False)

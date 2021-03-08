@@ -827,7 +827,7 @@ async def ping(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
 async def quote(ctx, member : discord.Member, *, message):
-    message = message.strip("@")
+    message = message.replace("@", "")
     if not message:
         raise exceptions.InvalidArgument("No message provided")
     webhooks = await ctx.channel.webhooks()

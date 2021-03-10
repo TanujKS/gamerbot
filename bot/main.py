@@ -278,7 +278,7 @@ async def on_message(message):
 
 
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
-passErrors = (commands.CommandNotFound, commands.NotOwner)
+passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -600,13 +600,13 @@ async def settings(ctx, *setting):
             elif setting [1] == "off":
                 guildInfo[ctx.guild.id]['antiez'] = False
             else:
-                raise exceptions.InvalidArgument("Argument must be 'on' or 'off'")
+                raise commands.BadArgument("Argument must be 'on' or 'off'")
             embed = discord.Embed(title=f"Anti-EZ is now {convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", description=None, color=0xff0000)
         elif setting[0] == "teamlimit":
             try:
                 setting = int(setting[1])
             except ValueError:
-                raise exceptions.InvalidArgument("Argument must be a number")
+                raise commands.BadArgument("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
@@ -615,18 +615,18 @@ async def settings(ctx, *setting):
             else:
                 setting1 = setting[1]
             if not get(ctx.guild.roles, name=setting1):
-                raise exceptions.InvalidArgument('Invalid role')
+                raise commands.BadArgument('Invalid role')
             guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         elif setting[0] == "prefix":
             guildInfo[ctx.guild.id]['prefix'] = setting[1]
             embed = discord.Embed(title=f"Prefix for {str(bot.user)} in {ctx.guild.name} is now {guildInfo[ctx.guild.id]['prefix']}")
         else:
-            raise exceptions.InvalidArgument("Invalid setting")
+            raise commands.BadArgument("Invalid setting")
         rval = json.dumps(guildInfo)
         r.set("guildInfo", rval)
     else:
-        raise exceptions.InvalidArgument("Invalid arguments")
+        raise commands.BadArgument("Invalid arguments")
     await ctx.send(embed=embed)
 
 
@@ -735,7 +735,7 @@ async def addemoji(ctx, emojiName, url):
     try:
         response = requests.get(url)
     except requests.exceptions.MissingSchema as err:
-        raise exceptions.InvalidArgument(err)
+        raise commands.BadArgument(err)
     img = BytesIO(response.content)
     emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
     await ctx.send(f"Created {emojiName}: \n{emoji}")
@@ -745,13 +745,13 @@ async def addemoji(ctx, emojiName, url):
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
     if len(options) > 8:
-        raise exceptions.InvalidArgument("Maximum of 8 options")
+        raise commands.BadArgument("Maximum of 8 options")
     if len(options) < 2:
-        raise exceptions.InvalidArgument("Minimum of 2 options")
+        raise commands.BadArgument("Minimum of 2 options")
     try:
         embed = discord.Embed(title=poll, description=None, color=0xff0000)
     except discord.HTTPException:
-        raise exceptions.InvalidArgument("Poll title must be less than 256 characters")
+        raise commands.BadArgument("Poll title must be less than 256 characters")
     index = 0
     for option in options:
         embed.add_field(name=emojis[index], value="\u200b", inline=True)
@@ -812,7 +812,7 @@ async def nick(ctx, member : discord.Member, *nick):
     except discord.Forbidden:
         raise exceptions.UnAuthorized(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
     except discord.HTTPException:
-        raise exceptions.InvalidArgument("Nickname must be fewer than 32 characters")
+        raise commands.BadArgument("Nickname must be fewer than 32 characters")
     if nick is None:
         nick = member.name
     await ctx.send(f"Changed {member.name}'s nickname from {oldNick} to {nick}")
@@ -830,7 +830,7 @@ async def ping(ctx):
 async def quote(ctx, member : discord.Member, *, message):
     message = message.replace("@", "")
     if not message:
-        raise exceptions.InvalidArgument("No message provided")
+        raise commands.BadArgument("No message provided")
     webhooks = await ctx.channel.webhooks()
     webhook = None
     for webhookVar in webhooks:
@@ -1560,7 +1560,7 @@ async def bedwars(ctx, *player_and_mode):
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
-            raise exceptions.InvalidArgument("Invalid mode")
+            raise commands.BadArgument("Invalid mode")
         embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
         embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
@@ -1780,7 +1780,7 @@ async def duels(ctx, *player_and_mode):
         player_and_mode.pop(0)
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
-            raise exceptions.InvalidArgument("Invalid mode")
+            raise commands.BadArgument("Invalid mode")
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
         if data.get(f'godlike_{mode.split()[0]}'):
             prestige = "Godlike"

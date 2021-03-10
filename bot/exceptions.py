@@ -7,9 +7,6 @@ class NotFound(Exception):
 class UnAuthorized(Exception):
     pass
 
-class InvalidArgument(Exception):
-    pass
-
 class OtherException(Exception):
     pass
 

@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 text.mp3
+.DS_Store

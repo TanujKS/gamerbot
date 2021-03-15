@@ -291,7 +291,6 @@ async def on_command_error(ctx, error):
         errorMessage = ("Timed out.")
 
     if isinstance(error, raiseErrors):
-        print("is instnaice")
         errorMessage = str(error)
 
     if errorMessage:

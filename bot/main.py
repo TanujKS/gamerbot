@@ -36,8 +36,6 @@ from mojang.exceptions import LoginError
 from PIL import Image
 from io import BytesIO
 
-import exceptions
-
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
@@ -123,6 +121,11 @@ def determine_prefix(bot, message):
         return guildInfo[guild.id].get('prefix')
     else:
         return defaultPrefix
+
+ownerID = 816440833250689034
+
+async def is_owner(ctx):
+    return ctx.author.id == ownerID
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -130,6 +133,11 @@ bot.remove_command('help')
 @bot.event
 async def on_ready():
     print(f"Bot connected with {bot.user} \nID:{bot.user.id}")
+    if len(sys.argv) >= 3:
+        if sys.argv[2] == "owner":
+            bot.add_check(is_owner)
+            print("In owner mode")
+
     game = discord.Game(f"on {len(bot.guilds)} servers. Use @{str(bot.user)} to see what I can do!")
 
     await bot.change_presence(activity=game)
@@ -148,8 +156,7 @@ async def on_ready():
     r.set("statusPingsMention", statusPings.mention)
 
     global botmaster
-    botmaster = await bot.application_info()
-    botmaster = botmaster.owner
+    botmaster = bot.get_user(ownerID)
 
     for guild in bot.guilds:
         if not trackingGuilds.get(guild.id):
@@ -274,28 +281,24 @@ async def on_message(message):
 
 
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
-passErrors = (commands.CommandNotFound, commands.NotOwner)
+passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
 
 @bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
-    for c in exceptions.customErrors:
-        if c in str(error):
-            errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
-            break
 
     if "TimeoutError" in str(error):
         errorMessage = ("Timed out.")
 
     if isinstance(error, raiseErrors):
+        print("is instnaice")
         errorMessage = str(error)
-
-    if isinstance(error, passErrors):
-        return
 
     if errorMessage:
         return await ctx.send(errorMessage)
 
+    if isinstance(error, passErrors):
+        return
 
     if reports:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")
@@ -308,7 +311,6 @@ async def on_command_error(ctx, error):
         embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Error:", value=error, inline=False)
         await reports.send(botmaster.mention, embed=embed)
-    print(error)
 
 
 @bot.event
@@ -365,34 +367,34 @@ async def on_reaction_remove(reaction, user):
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
-        raise exceptions.OtherException(f"{str(member)} is already blacklisted")
+        raise commands.BadArgument(f"{str(member)} is already blacklisted")
     blackListed.append(member.id)
     r.lpush("blacklisted", member.id)
     await ctx.send(f"Blacklisted {str(member)}")
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def unblacklist(ctx, member : discord.Member):
     if not member.id in blackListed:
-        raise exceptions.OtherException(f"{str(member)} is not blacklisted")
+        raise commands.BadArgument(f"{str(member)} is not blacklisted")
     blackListed.remove(member.id)
     r.lrem("blacklisted", 0, member.id)
     await ctx.send(f"Unblacklisted {str(member)}")
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def setstatus(ctx, *, status):
     game = discord.Game(status)
     await bot.change_presence(activity=game)
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def blacklisted(ctx):
     message = ""
     for x in blackListed:
@@ -401,21 +403,21 @@ async def blacklisted(ctx):
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
-        raise exceptions.NotFound("Invalid command")
+        raise commands.BadArgument(f'Command "{commandName}" not found.')
     command.update(enabled=False)
     await ctx.send(f"Disabled command {command}")
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
-        raise exceptions.NotFound("Invalid command")
+        raise commands.BadArgument(f'Command "{commandName}" not found.')
     command.update(enabled=True)
     await ctx.send(f"Enabled command {command}")
 
@@ -434,7 +436,7 @@ def insert_returns(body):
         insert_returns(body[-1].body)
 
 @bot.command(aliases=['eval', 'exec', 'run'])
-@commands.is_owner()
+@commands.check(is_owner)
 async def eval_fn(ctx, *, cmd):
     try:
         fn_name = "_eval_expr"
@@ -467,11 +469,11 @@ async def eval_fn(ctx, *, cmd):
             result = "Done"
         await ctx.send(f"```{result}```")
     except Exception as err:
-        raise exceptions.OtherException(f"```{err}```")
+        raise commands.BadArgument(f"```{err}```")
 
 
 @bot.command()
-@commands.is_owner()
+@commands.check(is_owner)
 async def restart(ctx):
     await ctx.send("Confirm restart: (y/n)")
     def check(m):
@@ -570,12 +572,13 @@ async def help(ctx, *category):
         embed = discord.Embed(title=f"APIs used by {str(bot.user)}", description=f"All APIs used by {str(bot.user)}", color=0xff0000)
         embed.add_field(name=f"Hypixel API", value="https://api.hypixel.net/", inline=False)
         embed.add_field(name=f"Mojang API", value="https://mojang.readthedocs.io/en/latest/", inline=False)
-        embed.add_field(name=f"MC-Heads API", value="https://mc-heads.net/", inline=False)
+        embed.add_field(name=f"Crafatar API", value="https://crafatar.com/", inline=False)
         embed.add_field(name=f"Fortnite API", value="https://fortnite-api.com/", inline=False)
         embed.add_field(name=f"Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name=f"YouTube API", value="https://developers.google.com/youtube/", inline=False)
+        embed.add_field(name="Tracker.gg API", value-"https://tracker.gg", inline=False)
     else:
-        raise exceptions.NotFound("Invalid category")
+        raise commands.BadArgument(f'Category "{category[0]}" not found.')
     await ctx.send(embed=embed)
 
 
@@ -589,20 +592,20 @@ async def settings(ctx, *setting):
         embed.add_field(name=f"Prefix for {str(bot.user)} in this server: `{guildInfo[ctx.guild.id]['prefix']}`", value="?settings prefix some_prefix")
     elif len(setting) == 2:
         if not ctx.author.guild_permissions.administrator:
-            raise exceptions.UnAuthorized(f"You are missing Administrator permission(s) to run this command.")
+            raise commands.MissingPermissions(['administrator'])
         if setting[0] == "antiez":
             if setting[1] == "on":
                 guildInfo[ctx.guild.id]['antiez'] = True
             elif setting [1] == "off":
                 guildInfo[ctx.guild.id]['antiez'] = False
             else:
-                raise exceptions.InvalidArgument("Argument must be 'on' or 'off'")
+                raise commands.BadArgument("Argument must be 'on' or 'off'")
             embed = discord.Embed(title=f"Anti-EZ is now {convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", description=None, color=0xff0000)
         elif setting[0] == "teamlimit":
             try:
                 setting = int(setting[1])
             except ValueError:
-                raise exceptions.InvalidArgument("Argument must be a number")
+                raise commands.BadArgument("Argument must be a number")
             guildInfo[ctx.guild.id]['teamLimit'] = setting
             embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", description=None, color=0xff0000)
         elif setting[0] == "TTVCrole":
@@ -611,18 +614,18 @@ async def settings(ctx, *setting):
             else:
                 setting1 = setting[1]
             if not get(ctx.guild.roles, name=setting1):
-                raise exceptions.InvalidArgument('Invalid role')
+                raise commands.RoleNotFound(setting1)
             guildInfo[ctx.guild.id]['TTVCrole'] = setting1
             embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", description=None, color=0xff0000)
         elif setting[0] == "prefix":
             guildInfo[ctx.guild.id]['prefix'] = setting[1]
             embed = discord.Embed(title=f"Prefix for {str(bot.user)} in {ctx.guild.name} is now {guildInfo[ctx.guild.id]['prefix']}")
         else:
-            raise exceptions.InvalidArgument("Invalid setting")
+            raise commands.BadArgument(f'Setting "{setting[0]}" not found.')
         rval = json.dumps(guildInfo)
         r.set("guildInfo", rval)
     else:
-        raise exceptions.InvalidArgument("Invalid arguments")
+        raise commands.BadArgument("Invalid arguments")
     await ctx.send(embed=embed)
 
 
@@ -633,7 +636,7 @@ async def join(ctx):
     if ctx.author.voice:
         await ctx.author.voice.channel.connect()
     else:
-        raise exceptions.NotFound("You are not in a voice channel.")
+        raise commands.BadArgument("You are not in a voice channel.")
 
 
 @bot.command()
@@ -643,7 +646,7 @@ async def join(ctx):
 async def speak(ctx, *, message):
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
-        raise exceptions.UnAuthorized(f"Role {guildInfo[ctx.guild.id]['TTVCrole']} is required to use TTVC")
+        raise commands.MissingPermissions([f"role {guildInfo[ctx.guild.id]['TTVCrole']} which is required to use Text to Voice Channel."])
     fullmessage = f"{ctx.author.name} says {message}"
     if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
@@ -653,7 +656,7 @@ async def speak(ctx, *, message):
         except discord.ClientException:
             pass
     else:
-        raise exceptions.NotFound("You are not in a voice channel.")
+        raise commands.BadArgument("You are not in a voice channel.")
     await ctx.guild.me.edit(deafen=True)
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
@@ -681,8 +684,8 @@ async def invite(ctx, *args):
             max_uses = args[1]
             reason = args[2]
         except IndexError:
-            raise exceptions.OtherException("Invalid args. 'max_age', 'max_uses', 'reason' ")
-    await ctx.send(f"Invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with reason: {reason}. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
+            raise commands.BadArgument("Invalid arguments. Arguments must have 'max_age', 'max_uses', 'reason'")
+    await ctx.send(f"Created invite with a maximum age of {max_age} seconds, {max_uses} maximum uses, and with reason: {reason}. \n{await ctx.channel.create_invite(max_age=max_age, max_uses=max_uses, reason=reason)}")
 
 
 def convertPermtoEmoji(member, perm):
@@ -711,17 +714,13 @@ async def avatar(ctx, *member):
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
     else:
-        raise exceptions.NotFound("Invalid member")
+         commands.MemberNotFound(" ".join(member))
     await ctx.send(member.avatar_url_as(format=None, size=1024))
 
 
 @bot.command()
-async def emoji(ctx, *, emojiName):
-    emojiName = emojiName.replace(" ", "_")
-    emojiVar = get(ctx.guild.emojis, name=emojiName)
-    if not emojiVar:
-        raise exceptions.NotFound("Invalid emoji")
-    await ctx.send(emojiVar.url)
+async def emoji(ctx, *, emoji : discord.Emoji):
+    await ctx.send(emoji.url)
 
 
 @bot.command()
@@ -730,8 +729,8 @@ async def emoji(ctx, *, emojiName):
 async def addemoji(ctx, emojiName, url):
     try:
         response = requests.get(url)
-    except requests.exceptions.MissingSchema as err:
-        raise exceptions.InvalidArgument(err)
+    except requests.commands.BadArgument.MissingSchema as err:
+        raise commands.BadArgument(err)
     img = BytesIO(response.content)
     emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
     await ctx.send(f"Created {emojiName}: \n{emoji}")
@@ -741,13 +740,13 @@ async def addemoji(ctx, emojiName, url):
 @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
 async def poll(ctx, poll, *options):
     if len(options) > 8:
-        raise exceptions.InvalidArgument("Maximum of 8 options")
+        raise commands.BadArgument("Maximum of 8 options")
     if len(options) < 2:
-        raise exceptions.InvalidArgument("Minimum of 2 options")
+        raise commands.BadArgument("Minimum of 2 options")
     try:
         embed = discord.Embed(title=poll, description=None, color=0xff0000)
     except discord.HTTPException:
-        raise exceptions.InvalidArgument("Poll title must be less than 256 characters")
+        raise commands.BadArgument("Poll title must be less than 256 characters")
     index = 0
     for option in options:
         embed.add_field(name=emojis[index], value="\u200b", inline=True)
@@ -788,7 +787,7 @@ async def closepoll(ctx):
             await reaction.message.edit(embed=embed)
             await reaction.remove(user)
         else:
-            raise exceptions.UnAuthorized(f"Only {dic} can close that poll")
+            raise commands.BadArgument(f"Only {dic} can close that poll")
 
 
 @bot.command()
@@ -806,9 +805,9 @@ async def nick(ctx, member : discord.Member, *nick):
     try:
         await member.edit(nick=nick)
     except discord.Forbidden:
-        raise exceptions.UnAuthorized(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
+        raise commands.BadArgument(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
     except discord.HTTPException:
-        raise exceptions.InvalidArgument("Nickname must be fewer than 32 characters")
+        raise commands.BadArgument("Nickname must be fewer than 32 characters")
     if nick is None:
         nick = member.name
     await ctx.send(f"Changed {member.name}'s nickname from {oldNick} to {nick}")
@@ -824,9 +823,9 @@ async def ping(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
 async def quote(ctx, member : discord.Member, *, message):
-    message = message.strip("@")
+    message = message.replace("@", "")
     if not message:
-        raise exceptions.InvalidArgument("No message provided")
+        raise commands.BadArgument("No message provided")
     webhooks = await ctx.channel.webhooks()
     webhook = None
     for webhookVar in webhooks:
@@ -865,7 +864,7 @@ async def report(ctx):
 @bot.command()
 async def starttimer(ctx):
     if stopWatches.get(ctx.author.id):
-        return await ctx.send("Stop watch already in use")
+        raise commands.BadArgument("Stop watch already in use")
     await ctx.send("Starting stopwatch")
     stopWatches[ctx.author.id] = datetime.utcnow()
 
@@ -874,7 +873,7 @@ async def starttimer(ctx):
 async def stoptimer(ctx):
     startTime = stopWatches.get(ctx.author.id)
     if not startTime:
-        return await ctx.send("No active stopwatches")
+        raise commands.BadArgument("No active stopwatches")
     seconds = round((datetime.utcnow() - startTime).total_seconds())
     await ctx.send(f"""Ended timer. Timer ran for:
 {seconds} seconds
@@ -912,21 +911,21 @@ async def donate(ctx):
 async def move(ctx, member, *, channel):
     if channel == "me":
         if not ctx.author.voice:
-            raise exceptions.NotFound("You are not in a voice channel")
+            raise commands.BadArgument("You are not in a voice channel")
         channel = ctx.author.voice.channel
     else:
         channel = get(ctx.guild.voice_channels, name=channel)
     if not channel:
-        raise exceptions.NotFound("That voice channel doest not exist.")
+        raise commands.ChannelNotFound(channel)
     if member == "channel-all":
         if not ctx.author.voice:
-            raise exceptions.NotFound("You are not in a voice channel")
+            raise commands.BadArgument("You are not in a voice channel")
         oldVC = ctx.author.voice.channel
         for member in oldVC.members:
             try:
                 await member.move_to(channel)
             except (discord.HTTPException, commands.errors.CommandInvokeError):
-                raise exceptions.UnAuthorized(f"Missing Permissions")
+                raise commands.BotMissingPermissions(['view channel', 'connect', 'or move members'])
         await ctx.send(f"Moved all in {oldVC.name} to {channel.name}")
     elif member == "all":
         for voice_channel in ctx.guild.voice_channels:
@@ -934,19 +933,19 @@ async def move(ctx, member, *, channel):
                 try:
                     await member.move_to(channel)
                 except (discord.HTTPException, commands.errors.CommandInvokeError):
-                    raise exceptions.UnAuthorized(f"Missing Permissions")
+                    raise commands.BotMissingPermissions(['view channel', 'connect', 'or move members'])
         await ctx.send(f"Moved all members to {channel.name}")
     else:
         try:
             member = ctx.message.mentions[0]
         except IndexError:
-            raise exceptions.NotFound("Invalid member")
+            raise commands.MemberNotFound(member)
         if not member.voice:
-            raise exceptions.NotFound(f"{str(member)} is not in a VC")
+            raise commands.BadArgument(f"{str(member)} is not in a voice channel")
         try:
             await member.move_to(channel)
         except (discord.HTTPException, commands.errors.CommandInvokeError):
-            raise exceptions.UnAuthorized(f"Missing Permissions")
+            raise commands.BotMissingPermissions(['view channel', 'connect', 'or move members'])
         await ctx.send(f"Moved {str(member)} to {str(channel)}")
 
 
@@ -956,7 +955,7 @@ async def move(ctx, member, *, channel):
 async def mute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
-                raise exceptions.NotFound("You are not in a voice channel")
+                raise commands.BadArgument("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=True)
             await ctx.send(f"Muted all in {ctx.author.voice.channel.name}")
@@ -971,9 +970,9 @@ async def mute(ctx, member):
                 await member.edit(mute=True)
                 await ctx.send(f"Muted {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send(f"{str(member)} is not in a VC")
+                raise commands.BadArgument(f"{str(member)} is not in a voice channel")
             except IndexError:
-                await ctx.send("That is not a valid user")
+                raise commands.MemberNotFound(member)
 
 
 @bot.command()
@@ -982,7 +981,7 @@ async def mute(ctx, member):
 async def deafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice.channel:
-                raise NotFound("You are not in a voice channel")
+                raise commands.BadArgument("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=True)
             await ctx.send(f"Deafened all in {ctx.author.voice.channel.name}")
@@ -997,9 +996,9 @@ async def deafen(ctx, member):
                 await member.edit(deafen=True)
                 await ctx.send(f"Deafened {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send(f"{str(member)} is not in a VC")
+                raise commands.BadArgument(f"{str(member)} is not in a voice channel")
             except IndexError:
-                await ctx.send("That is not a valid user")
+                raise commands.MemberNotFound(member)
 
 
 @bot.command()
@@ -1008,7 +1007,7 @@ async def deafen(ctx, member):
 async def unmute(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
-                raise exceptions.NotFound("You are not in a voice channel")
+                raise commands.BadArgument("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(mute=False)
             await ctx.send(f"Unmuted all in {ctx.author.voice.channel.name}")
@@ -1023,9 +1022,9 @@ async def unmute(ctx, member):
                 await member.edit(mute=False)
                 await ctx.send(f"Unmuted {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send(f"{str(member)} is not in a VC")
+                raise commands.BadArgument(f"{str(member)} is not in a voice channel")
             except IndexError:
-                await ctx.send("That is not a valid user")
+                raise commands.MemberNotFound(member)
 
 
 @bot.command()
@@ -1034,7 +1033,7 @@ async def unmute(ctx, member):
 async def undeafen(ctx, member):
         if member == "channel-all":
             if not ctx.author.voice:
-                raise exceptions.NotFound("You are not in a voice channel")
+                raise commands.ChannelNotFound("You are not in a voice channel")
             for member in ctx.author.voice.channel.members:
                 await member.edit(deafen=False)
             await ctx.send(f"Undeafened all in {ctx.author.voice.channel.name}")
@@ -1049,9 +1048,9 @@ async def undeafen(ctx, member):
                 await member.edit(deafen=False)
                 await ctx.send(f"Undeafend {str(member)}")
             except discord.errors.HTTPException:
-                await ctx.send(f"{str(member)} is not in a VC")
+                raise commands.BadArgument(f"{str(member)} is not in a voice channel")
             except IndexError:
-                await ctx.send("That is not a valid user")
+                raise commands.MemberNotFound(member)
 
 
 @bot.command()
@@ -1060,7 +1059,7 @@ async def undeafen(ctx, member):
 async def dc(ctx, member):
     if member == "channel-all":
         if not ctx.author.voice:
-            raise exceptions.NotFound("You are not in a voice channel")
+            raise commands.ChannelNotFound("You are not in a voice channel")
         for member in ctx.author.voice.channel.members:
             await member.move_to(None)
         await ctx.send(f"Disconnected all in {ctx.author.voice.channel.name}")
@@ -1073,9 +1072,9 @@ async def dc(ctx, member):
         try:
             member = ctx.message.mentions[0]
         except IndexError:
-            raise exceptions.NotFound("That is not a valid user")
+            raise commands.MemberNotFound(member)
         if not member.voice:
-            raise exceptions.NotFound(f"{str(member)} is not in a VC")
+            raise commands.BadArgument(f"{str(member)} is not in a voice channel")
         await member.edit(voice_channel=None)
         await ctx.send(f"Disconnected {str(member)}")
 
@@ -1084,20 +1083,27 @@ async def dc(ctx, member):
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def moveteams(ctx):
+        if not any("Events" in voicechannel.name for voicechannel in ctx.guild.voice_channels):
+            raise commands.BadArgument("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+        if not all(get(ctx.guild.roles, name=team) for team in teams):
+            raise commands.BadArgument("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
+        if not all(get(ctx.guild.voice_channels, name=team) for team in teams):
+            raise commands.BadArgument("Could not find team channels, your server may not be setup for Game Events yet. Run ?setup")
         for voicechannel in ctx.guild.voice_channels:
             if "Events" in str(voicechannel):
                 for member in voicechannel.members:
                     for team in teams:
                         if get(member.roles, name=team):
                             await member.edit(voice_channel=get(ctx.guild.voice_channels, name=team))
-                raise exceptions.NotFound(f"Moved all members to their team voice channels")
-        await ctx.send("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                return await ctx.send(f"Moved all members to their team voice channels")
 
 
 @bot.command()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
 async def moveevents(ctx):
+    if not any("Events" in voicechannel.name for voicechannel in ctx.guild.voice_channels):
+        raise commands.BadArgument("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
     for vc in ctx.guild.voice_channels:
         if "Events" in str(vc):
             events = vc
@@ -1105,7 +1111,7 @@ async def moveevents(ctx):
     for team in teams:
         voicechannel = get(ctx.guild.voice_channels, name=team)
         if not voicechannel:
-            raise exceptions.NotFound(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
+            raise commands.BadArgument(f"Could not find {team} voicechannel. Make sure your server is setup for gaming events using ?setup.")
         for member in voicechannel.members:
             await member.edit(voice_channel=events)
     await ctx.send(f"Moved all members to {events.name}")
@@ -1119,7 +1125,7 @@ async def lockevents(ctx):
         for team in teams:
             channel = get(ctx.guild.voice_channels, name=team)
             if not channel:
-                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise commands.BadArgument("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
             perms = channel.overwrites_for(ctx.guild.default_role)
             perms.connect = False
             await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
@@ -1134,7 +1140,7 @@ async def unlockevents(ctx):
         for team in teams:
             voicechannel = get(ctx.guild.voice_channels, name=team)
             if not voicechannel:
-                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise commands.BadArgument("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
             await voicechannel.set_permissions(ctx.guild.default_role, connect=True)
             await voicechannel.edit(user_limit=None)
         await ctx.send("Unlocked all voice channels")
@@ -1146,9 +1152,9 @@ async def unlockevents(ctx):
 async def eventban(ctx, member : discord.Member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
-            raise exceptions.NotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
+            raise commands.BadArgument("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
         if role in member.roles:
-            await ctx.send("That user is already banned")
+            await ctx.send(f"{str(member)} is already banned")
         else:
             await member.add_roles(role)
             await ctx.send(f"Banned {str(member)} from events")
@@ -1160,7 +1166,7 @@ async def eventban(ctx, member : discord.Member):
 async def eventunban(ctx, member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
-            raise exceptions.NotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
+            raise commands.RoleNotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
         if member == "all":
             for member in role.members:
                 await member.remove_roles(role)
@@ -1172,9 +1178,9 @@ async def eventunban(ctx, member):
                     await member.remove_roles(role)
                     await ctx.send(f"Unbanned {str(member)} from events")
                 else:
-                    await ctx.send("That user is not banned")
+                    raise commands.BadArgument(f"{str(member)} is not banned")
             except IndexError:
-                await ctx.send("Invalid user")
+                raise commands.MemberNotFound(member)
 
 
 @bot.command()
@@ -1184,7 +1190,7 @@ async def createteams(ctx):
         for team in teams:
             role = get(ctx.guild.roles, name=team)
             if not role:
-                raise exceptions.NotFound("Could not find the team roles, your server may not be setup for Game Events yet. Run ?setup")
+                raise commands.BadArgument("Could not find the team roles, your server may not be setup for Game Events yet. Run ?setup")
         await ctx.message.delete()
         msg = await ctx.send("React to get into your teams")
         for emoji in emojis:
@@ -1198,12 +1204,12 @@ async def clearteam(ctx, team : discord.Role):
     if team.name in teams:
         role = get(ctx.guild.roles, name=team)
         if not role:
-            raise exceptions.NotFound("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
+            raise commands.BadArgument("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
         for member in role.members:
             await member.remove_roles(role)
             await ctx.send(f"Cleared {str(role)}")
     else:
-        await ctx.send("Invalid team")
+        raise commands.BadArgument(f'Team "{team}" not found.')
 
 
 @bot.command()
@@ -1213,7 +1219,7 @@ async def clearteams(ctx):
         for team in teams:
             role = get(ctx.guild.roles, name=team)
             if not role:
-                raise exceptions.NotFound("Could not find voice channel, your server may not be setup for Game Events yet. Run ?setup")
+                raise commands.BadArgument("Could not find team roles, your server may not be setup for Game Events yet. Run ?setup")
             for member in role.members:
                 await member.remove_roles(role)
         await ctx.send("Cleared all teams")
@@ -1226,8 +1232,11 @@ async def clearteams(ctx):
 async def setup(ctx):
     def check(m):
         return m.channel == ctx.channel and m.author == ctx.author
-    await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server?")
+    await ctx.send("Alright lets get started setting up your server! What game are you going to be playing on your server? (Or type `cancel`)")
     msg = await bot.wait_for('message', check=check)
+    if msg.content == "cancel":
+        await ctx.send("Cancelled.")
+        return
     await ctx.send(f"Setting up your server for {msg.content} Events. \nThis make take a little while...")
     category = await ctx.guild.create_category(msg.content + " Events")
     announcement = await ctx.guild.create_text_channel(f"{msg.content}-announcement", overwrites=None, category=category)
@@ -1309,7 +1318,7 @@ async def wipe(ctx):
 @bot.command()
 @commands.bot_has_guild_permissions(manage_roles=True)
 @commands.has_guild_permissions(manage_roles=True)
-async def setteam(ctx, team : discord.Role):
+async def setteam(ctx, team : discord.Role, member : discord.Member):
         if team.name in teams:
                 for roles in ctx.author.roles:
                     if roles.name in teams:
@@ -1319,9 +1328,9 @@ async def setteam(ctx, team : discord.Role):
                         await member.add_roles(team)
                         await ctx.send(f"Added {str(member)} to {str(team)}")
                 except IndexError:
-                    await ctx.send("That is not a valid user")
+                    raise commands.MemberNotFound(member)
         else:
-            await ctx.send("Invalid team")
+            raise commands.BadArgument(f'Team "{team}" not found.')
 
 
 #------------------------------------------------------------------------------MINI-GAMES--------------------------------------------------------------------------------------
@@ -1381,24 +1390,25 @@ def hasLink(ctx, player):
     if member:
         player = r.get(member.id)
         if player is None:
-            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode('utf-8')
     return player
 
 
 @bot.command(aliases=['mc'])
 async def minecraft(ctx, *player):
+    player = " ".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        raise exceptions.NotFound(f"{player} does not exist")
+        raise commands.BadArgument(f'Player "{player}" not found.')
     info = MojangAPI.get_profile(uuid)
     name_history = MojangAPI.get_name_history(uuid)
     history = ""
     for name in name_history:
         history += f"\n{name['name']}"
     embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=0xff0000)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{uuid}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}")
     embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from MC Heads")
     embed.add_field(name="Username:", value=info.name, inline=True)
     embed.add_field(name="UUID:", value=info.id, inline=True)
@@ -1408,40 +1418,47 @@ async def minecraft(ctx, *player):
 
 @bot.command(aliases=['mclink'])
 async def mcverify(ctx, player):
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={uuid}").json()
     if not data['player']:
-        raise exceptions.NotFound(f"{player} has not played Hypixel and cannot verify their account")
+        raise commands.BadArgument(f"{player} has not played Hypixel and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD', None)
     if link is None:
-        raise exceptions.NotFound(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+        raise commands.BadArgument(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
         r.set(ctx.author.id, data['player']['displayname'])
     else:
-        raise exceptions.UnAuthorized(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
+        raise commands.BadArgument(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
 @bot.command()
 async def skin(ctx, *player):
+    player = " ".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
-        raise exceptions.NotFound("That player does not exist")
+        raise commands.BadArgument(f'Player "{player}" not found.')
     info = MojangAPI.get_profile(uuid)
     embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=0xff0000)
     embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from MC Heads")
-    embed.set_image(url=f"https://mc-heads.net/body/{uuid}")
+    embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}")
     await ctx.send(embed=embed)
 
 
 @bot.command()
 async def hypixel(ctx, *player):
     player = hasLink(ctx, player)
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if not data['player']:
-        raise exceptions.NotFound(f"{player} has not played Hypixel")
+        raise commands.BadArgument(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     status = None
     ts = data['player'].get('lastLogin')
@@ -1527,11 +1544,14 @@ async def bedwars(ctx, *player_and_mode):
     if member:
         player = r.get(member.id)
         if not player:
-            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not rawData.get('player') or not rawData['player']['stats'].get("Bedwars"):
-        raise exceptions.NotFound(f"{player} has not played Bedwars")
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
+    if not rawData.get('player') or rawData['player']['stats'].get("Bedwars"):
+        raise commands.BadArgument(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']
     if len(player_and_mode) < 2:
             embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1556,7 +1576,7 @@ async def bedwars(ctx, *player_and_mode):
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
         if mode is None:
-            raise exceptions.InvalidArgument("Invalid mode")
+            raise commands.BadArgument("Invalid mode")
         embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
         embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
@@ -1570,7 +1590,7 @@ async def bedwars(ctx, *player_and_mode):
         embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
         embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
         embed.add_field(name="W/L Rate", value=getrate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1635,11 +1655,14 @@ async def skywars(ctx, *player_and_mode):
     if member:
         player = r.get(member.id)
         if player is None:
-            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if not rawData.get('player') or not rawData['player']['stats'].get("SkyWars"):
-        raise exceptions.NotFound(f"{player} has not played SkyWars")
+        raise commands.BadArgument(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
     if len(player_and_mode) <= 1:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1705,8 +1728,8 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="Losses:", value=data.get("losses_team_insane", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_team_insane", 0), data.get("losses_team_insane", 0)), inline=True)
         else:
-            raise exceptions.NotFound("Invalid mode")
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
+            raise commands.BadArgument("Invalid mode")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1732,11 +1755,16 @@ async def duels(ctx, *player_and_mode):
     if member:
         player = r.get(member.id)
         if player is None:
-            raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
+            raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
-    if not rawData['player'] or not rawData['player']['stats'].get('Duels'):
-        raise exceptions.NotFound(f"{player} has not played Duels")
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
+    if rawData.get("success") is False:
+        raise commands.BadArgument(f"Hypixel API returned an error: {rawData.get('cause')}")
+    if not rawData.get('player') or not rawData['player']['stats'].get('Duels'):
+        raise commands.BadArgument(f"{player} has not played Duels")
     data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=0xff0000)
@@ -1776,7 +1804,7 @@ async def duels(ctx, *player_and_mode):
         player_and_mode.pop(0)
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
-            raise exceptions.InvalidArgument("Invalid mode")
+            raise commands.BadArgument(f'Mode "{mode}" not found.')
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
         if data.get(f'godlike_{mode.split()[0]}'):
             prestige = "Godlike"
@@ -1800,7 +1828,7 @@ async def duels(ctx, *player_and_mode):
         embed.add_field(name="Wins:", value=data.get(f'{mode}_wins', 0), inline=True)
         embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
         embed.add_field(name="W/L Rate:", value=getrate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1810,7 +1838,7 @@ async def fortnite(ctx, player):
     player = player.replace(" ", "%20")
     data = requests.get(f"https://fortnite-api.com/v1/stats/br/v2?name={player}").json()
     if data['status'] != 200:
-        raise exceptions.NotFound("Invalid player")
+        raise commands.BadArgument(f'Player "{player}" not found.')
     else:
         embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=0xff0000)
         embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
@@ -1834,7 +1862,7 @@ async def fortnite(ctx, player):
 async def twitch(ctx, channel):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user.get('data'):
-        raise exceptions.NotFound("Invalid channel")
+        raise commands.ChannelNotFound(channel)
     data = (user['data'])[0]
     embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
     embed.set_thumbnail(url=data['profile_image_url'])
@@ -1878,11 +1906,12 @@ async def checkIfLive():
         r.set("trackingGuilds", rval)
         await asyncio.sleep(60)
 
+
 @bot.command()
 async def twitchtrack(ctx, channel, *, message):
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user:
-        raise exceptions.UnAuthorized("Invalid channel")
+        raise commands.ChannelNotFound(channel)
     x = (user['data'])[0]
     trackingGuilds[ctx.guild.id].append({})
     index = len(trackingGuilds[ctx.guild.id]) - 1
@@ -1909,7 +1938,7 @@ def findTwitchTrack(ctx, streamer):
 async def deltrack(ctx, *, streamer):
     track = findTwitchTrack(ctx, streamer)
     if track is None:
-        raise exceptions.NotFound("Invalid streamer")
+        raise commands.ChannelNotFound(channel)
     trackingGuilds[ctx.guild.id].pop(track)
     await ctx.send(f"No longer tracking {streamer}")
     rval = json.dumps(trackingGuilds)
@@ -1931,9 +1960,9 @@ async def youtube(ctx, *, channel):
     data = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}").json()
     errors = data.get('error')
     if errors:
-        raise exceptions.CustomException("YouTube returned an error!")
+        raise commands.BadArgument("YouTube returned an error!")
     if not data.get('items'):
-        raise exceptions.NotFound("Invalid channel")
+        raise commands.ChannelNotFound(channel)
     channel_id = data['items'][0]['snippet']['channelId']
     stats = requests.get(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}").json()
     embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=0xff0000)
@@ -1974,7 +2003,7 @@ async def csgolink(ctx, id):
     rawData = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = rawData.get('data')
     if not data:
-        raise exceptions.NotFound(rawData['errors'][0]['message'])
+        raise commands.BadArgument(rawData['errors'][0]['message'])
     await ctx.send(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
     csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
     rval = json.dumps(csgoLinks)
@@ -1993,11 +2022,11 @@ async def csgo(ctx, *player):
     if member:
         player = csgoLinks.get(member)
         if not player:
-            raise exceptions.NotFound(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
+            raise commands.BadArgument(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run ?csgolink")
     rawData = requests.get(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY}).json()
     data = rawData.get('data')
     if not data:
-        raise exceptions.NotFound(rawData['errors'][0]['message'])
+        raise commands.BadArgument(rawData['errors'][0]['message'])
     embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=0xff0000)
     embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
     embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)

@@ -1396,7 +1396,6 @@ def hasLink(ctx, player):
 
 @bot.command(aliases=['mc'])
 async def minecraft(ctx, *player):
-    player = "".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
@@ -1435,7 +1434,6 @@ async def mcverify(ctx, player):
 
 @bot.command()
 async def skin(ctx, *player):
-    player = "".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:

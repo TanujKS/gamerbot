@@ -288,14 +288,14 @@ async def on_command_error(ctx, error):
             errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
             break
 
-    if "TimeoutError" in str(error):
-        errorMessage = ("Timed out.")
+    if isinstance(error, passErrors):
+        errorMessage = None
 
     if isinstance(error, raiseErrors):
         errorMessage = str(error)
 
-    if isinstance(error, passErrors):
-        return
+    if "TimeoutError" in str(error):
+        errorMessage = ("Timed out.")
 
     if errorMessage:
         return await ctx.send(errorMessage)

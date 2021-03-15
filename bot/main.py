@@ -1441,7 +1441,10 @@ async def skin(ctx, *player):
 @bot.command()
 async def hypixel(ctx, *player):
     player = hasLink(ctx, player)
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise exceptions.NotFound(f"{player} does not exist")
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if not data['player']:
         raise exceptions.NotFound(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
@@ -1533,7 +1536,10 @@ async def bedwars(ctx, *player_and_mode):
         if not player:
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise exceptions.NotFound(f"{player} does not exist")
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if not rawData.get('player') or not rawData['player']['stats'].get("Bedwars"):
         raise exceptions.NotFound(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']
@@ -1641,7 +1647,10 @@ async def skywars(ctx, *player_and_mode):
         if player is None:
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise exceptions.NotFound(f"{player} does not exist")
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if not rawData.get('player') or not rawData['player']['stats'].get("SkyWars"):
         raise exceptions.NotFound(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
@@ -1738,7 +1747,10 @@ async def duels(ctx, *player_and_mode):
         if player is None:
             raise exceptions.NotFound(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
-    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={player}").json()
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise exceptions.NotFound(f"{player} does not exist")
+    rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()    
     if not rawData['player'] or not rawData['player']['stats'].get('Duels'):
         raise exceptions.NotFound(f"{player} has not played Duels")
     data = rawData['player']['stats']['Duels']

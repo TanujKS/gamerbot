@@ -283,23 +283,20 @@ passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure
 @bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
-    for c in exceptions.customErrors:
-        if c in str(error):
-            errorMessage = str(error).replace(f"Command raised an exception: {c}: ", "")
-            break
-
-    if isinstance(error, passErrors):
-        errorMessage = None
-
-    if isinstance(error, raiseErrors):
-        errorMessage = str(error)
 
     if "TimeoutError" in str(error):
         errorMessage = ("Timed out.")
 
+    if isinstance(error, raiseErrors):
+        print("is instnaice")
+        errorMessage = str(error)
+
+
     if errorMessage:
         return await ctx.send(errorMessage)
 
+    if isinstance(error, passErrors):
+        return
 
     if reports:
         await ctx.send("Error. This has been reported and will be reviewed shortly.")
@@ -312,9 +309,8 @@ async def on_command_error(ctx, error):
         embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Error:", value=error, inline=False)
         await reports.send(botmaster.mention, embed=embed)
-    print(error)
 
-
+        
 @bot.event
 async def on_reaction_add(reaction, user):
     if not user.bot:

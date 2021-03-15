@@ -1396,7 +1396,7 @@ def hasLink(ctx, player):
 
 @bot.command(aliases=['mc'])
 async def minecraft(ctx, *player):
-    player = " ".join(player)
+    player = "".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
@@ -1435,7 +1435,7 @@ async def mcverify(ctx, player):
 
 @bot.command()
 async def skin(ctx, *player):
-    player = " ".join(player)
+    player = "".join(player)
     player = hasLink(ctx, player)
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
@@ -1549,6 +1549,8 @@ async def bedwars(ctx, *player_and_mode):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
+    if rawData.get("success") is False:
+        raise commands.BadArgument(rawData.get('cause'))
     if not rawData.get('player') or rawData['player']['stats'].get("Bedwars"):
         raise commands.BadArgument(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']

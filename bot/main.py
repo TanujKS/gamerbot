@@ -1406,7 +1406,7 @@ async def minecraft(ctx, *player):
     for name in name_history:
         history += f"\n{name['name']}"
     embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=0xff0000)
-    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay")
     embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from MC Heads")
     embed.add_field(name="Username:", value=info.name, inline=True)
     embed.add_field(name="UUID:", value=info.id, inline=True)
@@ -1441,7 +1441,7 @@ async def skin(ctx, *player):
     info = MojangAPI.get_profile(uuid)
     embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=0xff0000)
     embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from MC Heads")
-    embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}")
+    embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}?overlay")
     await ctx.send(embed=embed)
 
 
@@ -1455,7 +1455,7 @@ async def hypixel(ctx, *player):
     if not data['player']:
         raise commands.BadArgument(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
-    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     status = None
     ts = data['player'].get('lastLogin')
@@ -1589,7 +1589,7 @@ async def bedwars(ctx, *player_and_mode):
         embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
         embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
         embed.add_field(name="W/L Rate", value=getrate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
-    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1728,7 +1728,7 @@ async def skywars(ctx, *player_and_mode):
             embed.add_field(name="W/L Rate:", value=getrate(data.get("wins_team_insane", 0), data.get("losses_team_insane", 0)), inline=True)
         else:
             raise commands.BadArgument("Invalid mode")
-    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 
@@ -1827,7 +1827,7 @@ async def duels(ctx, *player_and_mode):
         embed.add_field(name="Wins:", value=data.get(f'{mode}_wins', 0), inline=True)
         embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
         embed.add_field(name="W/L Rate:", value=getrate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
-    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}")
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
     embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from MC Heads")
     await ctx.send(embed=embed)
 

@@ -575,7 +575,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"Fortnite API", value="https://fortnite-api.com/", inline=False)
         embed.add_field(name=f"Twitch API", value="https://dev.twitch.tv/docs/api/", inline=False)
         embed.add_field(name=f"YouTube API", value="https://developers.google.com/youtube/", inline=False)
-        embed.add_field(name="Tracker.gg API", value-"https://tracker.gg", inline=False)
+        embed.add_field(name="Tracker.gg API", value="https://tracker.gg", inline=False)
     else:
         raise commands.BadArgument(f'Category "{category[0]}" not found.')
     await ctx.send(embed=embed)

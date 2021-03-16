@@ -1417,10 +1417,10 @@ async def mcverify(ctx, player):
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
-    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&name={uuid}").json()
-    if not data['player']:
+    data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
+    if not data.get('player'):
         raise commands.BadArgument(f"{player} has not played Hypixel and cannot verify their account")
-    link = data['player']['socialMedia']['links'].get('DISCORD', None)
+    link = data['player']['socialMedia']['links'].get('DISCORD')
     if link is None:
         raise commands.BadArgument(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):

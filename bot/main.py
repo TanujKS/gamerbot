@@ -707,13 +707,11 @@ async def perms(ctx, *member : discord.Member):
 
 
 @bot.command(aliases=['pfp', 'profile'])
-async def avatar(ctx, *member):
+async def avatar(ctx, *member : discord.Member):
     if len(member) == 0:
         member = ctx.author
     elif ctx.message.mentions:
         member = ctx.message.mentions[0]
-    else:
-         commands.MemberNotFound(" ".join(member))
     await ctx.send(member.avatar_url_as(format=None, size=1024))
 
 

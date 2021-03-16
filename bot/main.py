@@ -905,15 +905,15 @@ async def donate(ctx):
 @commands.guild_only()
 @commands.bot_has_guild_permissions(move_members=True)
 @commands.has_guild_permissions(move_members=True)
-async def move(ctx, member, *, channel):
-    if channel == "me":
+async def move(ctx, member, *, channelName):
+    if channelName == "me":
         if not ctx.author.voice:
             raise commands.BadArgument("You are not in a voice channel")
         channel = ctx.author.voice.channel
     else:
-        channel = get(ctx.guild.voice_channels, name=channel)
+        channel = get(ctx.guild.voice_channels, name=channelName)
     if not channel:
-        raise commands.ChannelNotFound(channel)
+        raise commands.ChannelNotFound(channelName)
     if member == "channel-all":
         if not ctx.author.voice:
             raise commands.BadArgument("You are not in a voice channel")

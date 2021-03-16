@@ -1163,7 +1163,7 @@ async def eventban(ctx, member : discord.Member):
 async def eventunban(ctx, member):
         role = get(ctx.guild.roles, name="Banned from event")
         if not role:
-            raise commands.RoleNotFound("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
+            raise commands.BadArgument("Could not find role, your server may not be setup for Game Events yet. Run ?setup")
         if member == "all":
             for member in role.members:
                 await member.remove_roles(role)

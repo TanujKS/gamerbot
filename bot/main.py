@@ -22,6 +22,7 @@ import asyncio
 from collections import OrderedDict
 import json
 import ast
+import math
 
 import time
 import datetime
@@ -101,6 +102,14 @@ def convertBooltoStr(bool : bool):
         return "On"
     if bool is False:
         return "Off"
+
+
+def convertBooltoExpress(bool :bool):
+    if bool is True:
+        return "Yes"
+    if bool is False:
+        return "No"
+
 
 defaultPrefix = '?'
 
@@ -550,6 +559,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"{prefix}donate", value="Information about donating to GamerBot", inline=False)
         embed.add_field(name=f"{prefix}starttimer", value="Starts a stopwatch", inline=False)
         embed.add_field(name=f"{prefix}stoptimer", value="Stops a stopwatch", inline=False)
+        embed.add_field(name=f"{prefix}unpinall", value="Unpins all messages in a channel", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name=f"{prefix}minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
@@ -557,6 +567,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"{prefix}skin (minecraft_player)", value="Shows the skin of a Minecraft player", inline=False)
         embed.add_field(name=f"{prefix}hypixel (minecraft_player)", value="Shows Hypixel stats about a Minecraft player", inline=False)
         embed.add_field(name=f"{prefix}bedwars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Bedwars player \nOptional modes are: solos, doubles, 3v3v3v3, 4v4v4v4, 4v4", inline=False)
+        embed.add_field(name=f"{prefix}hypixelguild (minecraft_player)", value="Shows Hypixel Guild stats about a Minecraft player", inline=False)
         embed.add_field(name=f"{prefix}skywars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Skywars player \nOptional modes are: solos normal, solos insane, teams normal, teams insane", inline=False)
         embed.add_field(name=f"{prefix}duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, op, sumo, skywars, uhc doubles, combo, bridge", inline=False)
         embed.add_field(name=f"{prefix}fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
@@ -579,6 +590,23 @@ async def help(ctx, *category):
     else:
         raise commands.BadArgument(f'Category "{category[0]}" not found.')
     await ctx.send(embed=embed)
+
+
+@bot.command()
+@commands.has_guild_permissions(manage_messages=True)
+@commands.bot_has_guild_permissions(manage_messages=True)
+async def unpinall(ctx):
+    await ctx.send(f"Are you sure you want me too unpin {len(await ctx.channel.pins())} messages? (y/n)")
+    def check(m):
+        responses = ['y', 'n']
+        return ctx.author == m.author and ctx.channel == m.channel and msg.content in responses
+    msg = await bot.wait_for('message', timeout=60.0, check=check)
+    if msg.content == "y":
+        for message in await ctx.channel.pins():
+            await message.unpin()
+        await ctx.send(f"Unpinned all messages")
+    elif msg.content == "n":
+        await ctx.send("Cancelled")
 
 
 @bot.command()
@@ -1418,8 +1446,8 @@ async def mcverify(ctx, player):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if not data.get('player'):
-        raise commands.BadArgument(f"{player} has not played Hypixel and cannot verify their account")
+    if not data.get('player') or not data['player'].get('socialMedia'):
+        raise commands.BadArgument(f"{player} has not played Hypixel or has not linked Discord and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD')
     if link is None:
         raise commands.BadArgument(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
@@ -1454,7 +1482,7 @@ async def hypixel(ctx, *player):
         raise commands.BadArgument(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay")
-    embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar")
+    embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
     status = None
     ts = data['player'].get('lastLogin')
     if ts is None:
@@ -1500,7 +1528,7 @@ async def hypixel(ctx, *player):
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     EXP = round(data['player'].get("networkExp"), 0)
-    level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
+    level = math.floor(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
     karma = data['player'].get("karma", 0)
     embed.add_field(name="EXP:", value=EXP, inline=True)
     embed.add_field(name="Level:", value=level, inline=True)
@@ -1518,7 +1546,63 @@ async def hypixel(ctx, *player):
         embed.add_field(name="\u200b", value="\u200b", inline=True)
     except KeyError:
         embed.add_field(name="Guild:", value="None", inline=True)
+    if data['player'].get("socialMedia"):
+        for link in data['player']['socialMedia']['links']:
+            embed.add_field(name=link, value=data['player']['socialMedia']['links'][link], inline=False)
+
     await ctx.send(embed=embed)
+
+
+EXP_NEEDED = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000]
+
+def getGuildLevel(exp):
+    level = 0
+
+    for i in range(1000):
+
+        need = 0
+        if  i >= len(EXP_NEEDED):
+            need = EXP_NEEDED[len(EXP_NEEDED) - 1]
+        else:
+            need = EXP_NEEDED[i]
+
+        if (exp - need) < 0:
+            return math.floor(((level + (exp / need)) * 100) / 100)
+
+        level += 1
+        exp -= need
+
+    return 1000
+
+@bot.command()
+async def hypixelguild(ctx, *player):
+    player = hasLink(ctx, player)
+    uuid = MojangAPI.get_uuid(player)
+    if not uuid:
+        raise commands.BadArgument(f'Player "{player}" not found.')
+    id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={uuid}").json()
+    guild = requests.get(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}").json()
+    if guild.get("success") is False:
+        raise commands.BadArgument(f"{player} is not in a guild.")
+    embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile",description=f"Guild stats for {guild['guild']['name']}", color=0xff0000)
+    embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay")
+    embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+    embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
+    embed.add_field(name="ID:", value=len(guild['guild']['_id']), inline=True)
+    embed.add_field(name="Members:", value=len(guild['guild']['members']), inline=True)
+    embed.add_field(name="EXP:", value=guild['guild']['exp'], inline=True)
+    embed.add_field(name="Level:", value=getGuildLevel(guild['guild']['exp']))
+    embed.add_field(name="Public:", value=convertBooltoExpress(guild['guild']['publiclyListed']))
+    embed.add_field(name="Winners:", value=guild['guild']['achievements']['WINNERS'])
+    embed.add_field(name="Experience Kings:", value=guild['guild']['achievements']['EXPERIENCE_KINGS'])
+    embed.add_field(name="Online Players:", value=guild['guild']['achievements']['ONLINE_PLAYERS'])
+    for member in guild['guild']['members']:
+        if member['uuid'] == uuid:
+            embed.add_field(name="\u200b", value="\u200b", inline=False)
+            embed.add_field(name="Player Stats:", value="\u200b", inline=False)
+            embed.add_field(name="Rank", value=member['rank'])
+            embed.add_field(name="Quest Participation", value=member['questParticipation'])
+            return await ctx.send(embed=embed)
 
 
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
@@ -1588,7 +1672,7 @@ async def bedwars(ctx, *player_and_mode):
         embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
         embed.add_field(name="W/L Rate", value=getrate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
-    embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar")
+    embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
     await ctx.send(embed=embed)
 
 
@@ -1630,7 +1714,7 @@ def getSkyWarsLevel(xp : int):
             if not xp > number:
                 closestnumber = xps[xps.index(number)-1]
                 break
-        return round(xps.index(closestnumber) + 1)
+        return math.floor(xps.index(closestnumber) + 1)
 
 skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal", "doubles normal", "double normal"): "teams normal", ("teams insane", "team insane", "doubles insane", "double insane"): "teams insane"}
 xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
@@ -1727,7 +1811,7 @@ async def skywars(ctx, *player_and_mode):
         else:
             raise commands.BadArgument("Invalid mode")
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
-    embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar")
+    embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
     await ctx.send(embed=embed)
 
 
@@ -1826,7 +1910,7 @@ async def duels(ctx, *player_and_mode):
         embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
         embed.add_field(name="W/L Rate:", value=getrate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay")
-    embed.set_footer(text="Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar")
+    embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
     await ctx.send(embed=embed)
 
 

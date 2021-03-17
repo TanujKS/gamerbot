@@ -37,6 +37,9 @@ from mojang.exceptions import LoginError
 from PIL import Image
 from io import BytesIO
 
+from googletrans import Translator
+from googletrans.constants import LANGUAGES
+
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
@@ -135,6 +138,8 @@ ownerID = 816440833250689034
 
 async def is_owner(ctx):
     return ctx.author.id == ownerID
+
+translator = Translator()
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -560,6 +565,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"{prefix}starttimer", value="Starts a stopwatch", inline=False)
         embed.add_field(name=f"{prefix}stoptimer", value="Stops a stopwatch", inline=False)
         embed.add_field(name=f"{prefix}unpinall", value="Unpins all messages in a channel", inline=False)
+        embed.add_field(name=f"{prefix}translate", value="Uses Google Translate to translate a message into English", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name=f"{prefix}minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
@@ -654,6 +660,13 @@ async def settings(ctx, *setting):
     else:
         raise commands.BadArgument("Invalid arguments")
     await ctx.send(embed=embed)
+
+
+@bot.command()
+async def translate(ctx, *, message):
+    await ctx.send(f"Translating {message}")
+    translation = translator.translate(message, dest='en')
+    await ctx.send(f"```{LANGUAGES[translation.src.lower()]} -----> {LANGUAGES[translation.dest]} \n{message} -----> {translation.text}```")
 
 
 @bot.command()

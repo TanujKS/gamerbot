@@ -1651,6 +1651,12 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
+
+            ceilingRate = math.ceil(getrate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)))
+            total = ceilingRate * data.get("final_deaths_bedwars", 0)
+            res = total - data.get("final_kills_bedwars", 0)
+
+            embed.add_field(name=f"Final Kills needed for a Final K/D Rate of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
             embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
             embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)

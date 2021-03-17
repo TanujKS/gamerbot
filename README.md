@@ -34,4 +34,6 @@ YouTube API: https://developers.google.com/youtube/
 
 Tracker.gg API: https://tracker.gg
 
+Google Translate API: https://pypi.org/project/googletrans/
+
 Thank you, and happy gaming :)

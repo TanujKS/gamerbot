@@ -24,12 +24,14 @@ Hypixel API: https://api.hypixel.net/
 
 Mojang API: https://mojang.readthedocs.io/en/latest/
 
-MC-Heads API: https://mc-heads.net/
+Crafatar API: https://crafatar.com/
 
 Fortnite API: https://fortnite-api.com/
 
 Twitch API: https://dev.twitch.tv/docs/api/
 
 YouTube API: https://developers.google.com/youtube/
+
+Tracker.gg API: https://tracker.gg
 
 Thank you, and happy gaming :)

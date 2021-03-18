@@ -10,3 +10,4 @@ python-decouple
 redis
 Pillow
 googletrans==3.1.0a0
+PyDictionary

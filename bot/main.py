@@ -40,6 +40,7 @@ from io import BytesIO
 from googletrans import Translator
 from googletrans.constants import LANGUAGES
 
+import PyDictionary
 from PyDictionary import PyDictionary
 
 
@@ -569,7 +570,8 @@ async def help(ctx, *category):
         embed.add_field(name=f"{prefix}starttimer", value="Starts a stopwatch", inline=False)
         embed.add_field(name=f"{prefix}stoptimer", value="Stops a stopwatch", inline=False)
         embed.add_field(name=f"{prefix}unpinall", value="Unpins all messages in a channel", inline=False)
-        embed.add_field(name=f"{prefix}translate", value="Uses Google Translate to translate a message into English", inline=False)
+        embed.add_field(name=f"{prefix}translate (sentence)", value="Uses Google Translate to translate a message into English", inline=False)
+        embed.add_field(name=f"{prefix}define (word)", value="Returns the defintion of an English word", inline=False)
     elif category[0] == "stats":
         embed=discord.Embed(title="Game Stat Commands", description="Commands to see a player's stats in various games", color=0xff0000)
         embed.add_field(name=f"{prefix}minecraft (minecraft_player)", value="Shows stats about a Minecraft player", inline=False)
@@ -680,7 +682,7 @@ async def define(ctx, word):
     message = ""
     meanings = dictionary.meaning(word)
     for item in meanings:
-        message += f"\n{item}"
+        message += f"\n{item}:"
         for meaning in meanings[item]:
             message += f"\n     {meaning}"
 

@@ -301,7 +301,7 @@ async def on_message(message):
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
 passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
 
-@bot.event
+#bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
 
@@ -1559,7 +1559,7 @@ async def hypixel(ctx, *player):
     embed.add_field(name="Last Game Played:", value=(mostRecentGameType))
     embed.add_field(name="\u200b", value="\u200b", inline=True)
     embed.add_field(name="\u200b", value="\u200b", inline=True)
-    EXP = round(data['player'].get("networkExp"), 0)
+    EXP = round(data['player'].get("networkExp", 0), 0)
     level = math.floor(1 + (-8750. + (8750**2 + 5000*EXP)**.5) / 2500)
     karma = data['player'].get("karma", 0)
     embed.add_field(name="EXP:", value=EXP, inline=True)
@@ -1578,7 +1578,7 @@ async def hypixel(ctx, *player):
         embed.add_field(name="\u200b", value="\u200b", inline=True)
     except KeyError:
         embed.add_field(name="Guild:", value="None", inline=True)
-    if data['player'].get("socialMedia"):
+    if data['player'].get("socialMedia") and data['player']['socialMedia'].get('links'):
         for link in data['player']['socialMedia']['links']:
             embed.add_field(name=link, value=data['player']['socialMedia']['links'][link], inline=False)
 
@@ -1663,7 +1663,7 @@ async def bedwars(ctx, *player_and_mode):
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if rawData.get("success") is False:
         raise commands.BadArgument(rawData.get('cause'))
-    if not rawData.get('player') or not rawData['player']['stats'].get("Bedwars"):
+    if not rawData.get('player') or not rawData['player'].get('status') or not rawData['player']['stats'].get("Bedwars"):
         raise commands.BadArgument(f"{player} has not played Bedwars")
     data = rawData['player']['stats']['Bedwars']
     if len(player_and_mode) < 2:
@@ -1783,7 +1783,7 @@ async def skywars(ctx, *player_and_mode):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if not rawData.get('player') or not rawData['player']['stats'].get("SkyWars"):
+    if not rawData.get('player') or not rawData['player'].get('stats') or rawData['player']['stats'].get("SkyWars"):
         raise commands.BadArgument(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
     if len(player_and_mode) <= 1:
@@ -1885,7 +1885,7 @@ async def duels(ctx, *player_and_mode):
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
     if rawData.get("success") is False:
         raise commands.BadArgument(f"Hypixel API returned an error: {rawData.get('cause')}")
-    if not rawData.get('player') or not rawData['player']['stats'].get('Duels'):
+    if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get('Duels'):
         raise commands.BadArgument(f"{player} has not played Duels")
     data = rawData['player']['stats']['Duels']
     if len(player_and_mode) < 2:

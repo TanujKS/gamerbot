@@ -301,7 +301,7 @@ async def on_message(message):
 raiseErrors = (commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.MissingRequiredArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden)
 passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
 
-#bot.event
+@bot.event
 async def on_command_error(ctx, error):
     errorMessage = None
 

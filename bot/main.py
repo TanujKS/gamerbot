@@ -328,6 +328,7 @@ async def on_command_error(ctx, error):
         embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Error:", value=error, inline=False)
         await reports.send(botmaster.mention, embed=embed)
+    print(error)
 
 
 @bot.event
@@ -1783,7 +1784,7 @@ async def skywars(ctx, *player_and_mode):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get("SkyWars"):
+    if not rawData.get('player') or not rawData['player'].get('stats') or not   rawData['player']['stats'].get("SkyWars"):
         raise commands.BadArgument(f"{player} has not played SkyWars")
     data = rawData['player']['stats']['SkyWars']
     if len(player_and_mode) <= 1:
@@ -1857,7 +1858,7 @@ async def skywars(ctx, *player_and_mode):
 
 
 duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge",}
-ranks = ['grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
+ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
 
 @bot.command()
 async def duels(ctx, *player_and_mode):
@@ -1891,16 +1892,13 @@ async def duels(ctx, *player_and_mode):
     if len(player_and_mode) < 2:
         embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=0xff0000)
         mode = "all_modes"
-        if data.get(f'godlike_{mode}'):
-            prestige = "Godlike"
-        else:
-            for ra in ranks:
-                prestigeNumber = data.get(f'{mode}_{ra}_title_prestige', None)
-                if prestigeNumber:
-                    if ra == "rookie" and prestigeNumber == 1:
-                        break
-                    prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+        for ra in ranks:
+            prestigeNumber = data.get(f'{mode}_{ra}_title_prestige', None)
+            if prestigeNumber:
+                if ra == "rookie" and prestigeNumber == 1:
                     break
+                prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+                break
         embed.add_field(name="Games Played:", value=data.get('wins', 0) + data.get('losses', 0), inline=True)
         embed.add_field(name="Winstreak:", value=data.get('current_winstreak', 0), inline=True)
         embed.add_field(name="Best Winstreak:", value=data.get('best_overall_winstreak', 0), inline=True)
@@ -1927,17 +1925,14 @@ async def duels(ctx, *player_and_mode):
         mode = " ".join(player_and_mode)
         if not mode in duelModes:
             raise commands.BadArgument(f'Mode "{mode}" not found.')
-        embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
-        if data.get(f'godlike_{mode.split()[0]}'):
-            prestige = "Godlike"
-        else:
-            for ra in ranks:
-                prestigeNumber = data.get(f'{mode.split()[0]}_{ra}_title_prestige', None)
-                if prestigeNumber:
-                    if ra == "rookie" and prestigeNumber == 1:
-                        break
-                    prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+        embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=0xff0000)
+        for ra in ranks:
+            prestigeNumber = data.get(f'{mode.split()[0]}_{ra}_title_prestige', None)
+            if prestigeNumber:
+                if ra == "rookie" and prestigeNumber == 1:
                     break
+                prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
+                break
         mode = duelModes[mode]
         embed.add_field(name="Prestige", value=prestige, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)

@@ -40,6 +40,8 @@ from io import BytesIO
 from googletrans import Translator
 from googletrans.constants import LANGUAGES
 
+from PyDictionary import PyDictionary
+
 
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
@@ -60,6 +62,9 @@ if shutDown == "True":
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 stopWatches = {}
+translator = Translator()
+dictionary = PyDictionary()
+
 
 blackListed = r.lrange("blacklisted", 0, -1)
 for i in range(0, len(blackListed)):
@@ -139,7 +144,6 @@ ownerID = 816440833250689034
 async def is_owner(ctx):
     return ctx.author.id == ownerID
 
-translator = Translator()
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -668,6 +672,19 @@ async def translate(ctx, *, message):
     await ctx.send(f"Translating {message}")
     translation = translator.translate(message, dest='en')
     await ctx.send(f"```{LANGUAGES[translation.src.lower()]} -----> {LANGUAGES[translation.dest]} \n{message} -----> {translation.text}```")
+
+
+@bot.command()
+async def define(ctx, word):
+
+    message = ""
+    meanings = dictionary.meaning(word)
+    for item in meanings:
+        message += f"\n{item}"
+        for meaning in meanings[item]:
+            message += f"\n     {meaning}"
+
+    await ctx.send(f'Defintion of {word}: ```{message}```')
 
 
 @bot.command()

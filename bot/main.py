@@ -40,7 +40,6 @@ from io import BytesIO
 from googletrans import Translator
 from googletrans.constants import LANGUAGES
 
-import PyDictionary
 from PyDictionary import PyDictionary
 
 

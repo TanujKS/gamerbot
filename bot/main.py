@@ -144,6 +144,7 @@ ownerID = 816440833250689034
 async def is_owner(ctx):
     return ctx.author.id == ownerID
 
+
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
 bot.remove_command('help')
@@ -185,8 +186,15 @@ async def on_ready():
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
 
+    disabledCommands = ['twitchtrack', 'twitchtracklist', 'deltrack']
 
-    await bot.loop.create_task(checkIfLive())
+    for disabled in disabledCommands:
+        command = get(bot.commands, name=disabled)
+        if not command:
+            raise Exception("Invalid command", disabled)
+        command.update(enabled=False)
+
+    #await bot.loop.create_task(checkIfLive())
 
 
 async def sendStatusMessage(bot, statusMessage):

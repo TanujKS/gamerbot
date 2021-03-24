@@ -1519,7 +1519,7 @@ async def hypixel(ctx, *player):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     data = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if not data['player']:
+    if not data.get('player') or not data['player'].get('displayname'):
         raise commands.BadArgument(f"{player} has not played Hypixel")
     embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=0xff0000)
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay")

@@ -686,9 +686,10 @@ async def translate(ctx, *, message):
 
 @bot.command()
 async def define(ctx, word):
-
     message = ""
     meanings = dictionary.meaning(word)
+    if not meanings:
+        raise commands.BadArgument(f"{word} is not a recognized word")
     for item in meanings:
         message += f"\n{item}:"
         for meaning in meanings[item]:

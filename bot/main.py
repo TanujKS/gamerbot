@@ -112,10 +112,10 @@ def convertBooltoStr(bool : bool):
         return "Off"
 
 
-def convertBooltoExpress(bool :bool):
-    if bool is True:
+def convertBooltoExpress(bool : bool):
+    if bool:
         return "Yes"
-    if bool is False:
+    if not bool:
         return "No"
 
 
@@ -1634,7 +1634,7 @@ async def hypixelguild(ctx, *player):
     embed.add_field(name="Members:", value=len(guild['guild']['members']), inline=True)
     embed.add_field(name="EXP:", value=guild['guild']['exp'], inline=True)
     embed.add_field(name="Level:", value=getGuildLevel(guild['guild']['exp']))
-    embed.add_field(name="Public:", value=convertBooltoExpress(guild['guild']['publiclyListed']))
+    embed.add_field(name="Public:", value=convertBooltoExpress(guild['guild'].get('publiclyListed')))
     embed.add_field(name="Winners:", value=guild['guild']['achievements']['WINNERS'])
     embed.add_field(name="Experience Kings:", value=guild['guild']['achievements']['EXPERIENCE_KINGS'])
     embed.add_field(name="Online Players:", value=guild['guild']['achievements']['ONLINE_PLAYERS'])

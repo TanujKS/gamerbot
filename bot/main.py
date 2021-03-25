@@ -1643,7 +1643,7 @@ async def hypixelguild(ctx, *player):
             embed.add_field(name="\u200b", value="\u200b", inline=False)
             embed.add_field(name="Player Stats:", value="\u200b", inline=False)
             embed.add_field(name="Rank", value=member['rank'])
-            embed.add_field(name="Quest Participation", value=member['questParticipation'])
+            embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
             return await ctx.send(embed=embed)
 
 

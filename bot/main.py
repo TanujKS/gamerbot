@@ -796,7 +796,7 @@ async def emoji(ctx, *, emoji : discord.Emoji):
 async def addemoji(ctx, emojiName, url):
     try:
         response = requests.get(url)
-    except requests.commands.BadArgument.MissingSchema as err:
+    except requests.exceptions.MissingSchema as err:
         raise commands.BadArgument(err)
     img = BytesIO(response.content)
     emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())

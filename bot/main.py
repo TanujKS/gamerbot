@@ -799,7 +799,10 @@ async def addemoji(ctx, emojiName, url):
     except requests.exceptions.MissingSchema as err:
         raise commands.BadArgument(str(err))
     img = BytesIO(response.content)
-    emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
+    try:
+        emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
+    except discord.HTTPException:
+        raise commands.BadArgument("Max numbers of emojis has been reached")
     await ctx.send(f"Created {emojiName}: \n{emoji}")
 
 

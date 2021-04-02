@@ -165,7 +165,7 @@ async def on_ready():
 
     global reports
 
-    supportServer = bot.get_guild(816778178907209738)
+    supportServer = get(bot.guilds, id=816778178907209738)
 
     reports = get(supportServer.channels, name="reports")
 

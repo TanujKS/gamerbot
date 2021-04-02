@@ -167,7 +167,7 @@ async def on_ready():
     global statusPings
     global statusChannel
 
-    supportServer = bot.get_guild(763824152493686795)
+    supportServer = bot.get_guild(816778178907209738)
 
     reports = get(supportServer.channels, name="reports")
     statusChannel = get(supportServer.channels, name="bot-status")

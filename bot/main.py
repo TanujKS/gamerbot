@@ -164,15 +164,10 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=game)
 
     global reports
-    global statusPings
-    global statusChannel
 
     supportServer = bot.get_guild(816778178907209738)
 
     reports = get(supportServer.channels, name="reports")
-    statusChannel = get(supportServer.channels, name="bot-status")
-    statusPings = get(supportServer.roles, name="Status Pings")
-    r.set("statusPingsMention", statusPings.mention)
 
     global botmaster
     botmaster = bot.get_user(ownerID)
@@ -196,31 +191,7 @@ async def on_ready():
 
     #await bot.loop.create_task(checkIfLive())
 
-
-async def sendStatusMessage(bot, statusMessage):
-    if bot.user.name == "GamerBot":
-        mention = r.get("statusPingsMention").decode('utf-8')
-
-        data = {"content": f"{str(bot.user)} is now **{statusMessage}** \n{mention}", "username": "GamerBot Status", "avatar_url": f"{str(bot.user.avatar_url)}"}
-
-        result = requests.post(STATUS_WEBHOOK, data=json.dumps(data), headers={"Content-Type": "application/json"})
-
-        try:
-            result.raise_for_status()
-        except requests.exceptions.HTTPError as err:
-            print(f"ERROR: {err}")
-
-
-@bot.event
-async def on_connect():
-    await sendStatusMessage(bot, "Online")
-
-
-@bot.event
-async def on_disconnect():
-    await sendStatusMessage(bot, "Offline")
-
-
+    
 @bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")

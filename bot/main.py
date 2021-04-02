@@ -139,11 +139,6 @@ def determine_prefix(bot, message):
     else:
         return defaultPrefix
 
-ownerID = 816440833250689034
-
-async def is_owner(ctx):
-    return ctx.author.id == ownerID
-
 
 #----------------------------------------------------------------------------BOT-----------------------------------------------------------------------------
 bot = commands.Bot(command_prefix=determine_prefix, intents=discord.Intents.all(), case_insensitive=True)
@@ -170,7 +165,8 @@ async def on_ready():
     reports = get(supportServer.channels, name="reports")
 
     global botmaster
-    botmaster = bot.get_user(ownerID)
+    botmaster = bot.application_info()
+    botmaster = botmaster.owner
 
     for guild in bot.guilds:
         if not trackingGuilds.get(guild.id):
@@ -191,7 +187,7 @@ async def on_ready():
 
     #await bot.loop.create_task(checkIfLive())
 
-    
+
 @bot.event
 async def on_guild_join(guild):
     print(f"Joined {guild}")
@@ -364,7 +360,7 @@ async def on_reaction_remove(reaction, user):
 #-------------------------------------------------------------------------------COMMANDS---------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------OWNER ONLY--------------------------------------------------------------------------------------
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def blacklist(ctx, member : discord.Member):
     if member.id in blackListed:
         raise commands.BadArgument(f"{str(member)} is already blacklisted")
@@ -374,7 +370,7 @@ async def blacklist(ctx, member : discord.Member):
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def unblacklist(ctx, member : discord.Member):
     if not member.id in blackListed:
         raise commands.BadArgument(f"{str(member)} is not blacklisted")
@@ -384,14 +380,14 @@ async def unblacklist(ctx, member : discord.Member):
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def setstatus(ctx, *, status):
     game = discord.Game(status)
     await bot.change_presence(activity=game)
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def blacklisted(ctx):
     message = ""
     for x in blackListed:
@@ -400,7 +396,7 @@ async def blacklisted(ctx):
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def disablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
@@ -410,7 +406,7 @@ async def disablecommand(ctx, commandName):
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def enablecommand(ctx, commandName):
     command = get(bot.commands, name=commandName)
     if not command:
@@ -433,7 +429,7 @@ def insert_returns(body):
         insert_returns(body[-1].body)
 
 @bot.command(aliases=['eval', 'exec', 'run'])
-@commands.check(is_owner)
+@commands.is_owner()
 async def eval_fn(ctx, *, cmd):
     try:
         fn_name = "_eval_expr"
@@ -470,7 +466,7 @@ async def eval_fn(ctx, *, cmd):
 
 
 @bot.command()
-@commands.check(is_owner)
+@commands.is_owner()
 async def restart(ctx):
     await ctx.send("Confirm restart: (y/n)")
     def check(m):
@@ -504,7 +500,7 @@ async def help(ctx, *category):
         embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name=f"VC Commands ({prefix}help VC):", value="Commands to help you manage your Voice Channels:", inline=False)
         embed.add_field(name=f"Team Commands ({prefix}help teams)", value="Commands that help you manage your teams for your game nights", inline=False)
-        embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to see Minecraft player's stats", inline=False)
+        embed.add_field(name=f"Game Stats Commands ({prefix}help stats)", value="Commands to view statistics for numerous games", inline=False)
         embed.add_field(name=f"Miscellaneous Commands ({prefix}help misc)", value="All other commands I can do!", inline=False)
         embed.add_field(name=f"APIs ({prefix}help apis)", value=f"APIs used by the {str(bot.user)}", inline=False)
         embed.set_footer(text=f"{str(bot.user)} is a bot created and maintained by {str(botmaster)}")

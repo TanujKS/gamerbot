@@ -1830,7 +1830,7 @@ async def skywars(ctx, *player_and_mode):
     await ctx.send(embed=embed)
 
 
-duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge", "bridge 3v3v3v3": "bridge_3v3v3v3_bridge"}
+duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3"}
 ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
 
 @bot.command()
@@ -1907,9 +1907,14 @@ async def duels(ctx, *player_and_mode):
                 prestige = f'{ra.capitalize()} {write_roman(prestigeNumber)}'
                 break
         mode = duelModes[mode]
+        print(mode)
         embed.add_field(name="Prestige", value=prestige, inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+        embed.add_field(name="Current Winstreak", value=data.get(f"current_winstreak_mode_{mode}", 0), inline=True)
+        embed.add_field(name="Best Winstreak", value=data.get(f"best_winstreak_mode_{mode}", 0), inline=True)
+        if mode == "bridge_duel":
+            mode = "bridge"
+        if mode == "bridge_3v3v3v3":
+            mode = "bridge_3v3v3v3_bridge"
         embed.add_field(name="Kills:", value=data.get(f'{mode}_kills', 0), inline=True)
         embed.add_field(name="Deaths:", value=data.get(f'{mode}_deaths', 0), inline=True)
         embed.add_field(name="K/D Rate:", value=getrate(data.get(f'{mode}_kills', 0), data.get(f'{mode}_deaths', 0)), inline=True)

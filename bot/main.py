@@ -548,7 +548,7 @@ async def help(ctx, *category):
         embed.add_field(name=f"{prefix}bedwars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Bedwars player \nOptional modes are: solos, doubles, 3v3v3v3, 4v4v4v4, 4v4", inline=False)
         embed.add_field(name=f"{prefix}hypixelguild (minecraft_player)", value="Shows Hypixel Guild stats about a Minecraft player", inline=False)
         embed.add_field(name=f"{prefix}skywars (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Skywars player \nOptional modes are: solos normal, solos insane, teams normal, teams insane", inline=False)
-        embed.add_field(name=f"{prefix}duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, op, sumo, skywars, uhc doubles, combo, bridge", inline=False)
+        embed.add_field(name=f"{prefix}duels (minecraft_player) (optional_mode)", value="Shows stats about a Hypixel Duels player \nOptional modes are classic, uhc, uhc doubles, op, op doubles, sumo, skywars, skywars doubles, combo, bridge, bridge doubles, bridge 2v2v2v2, bridge 3v3v3v3, and bridge teams", inline=False)
         embed.add_field(name=f"{prefix}fortnite (fortnite_player)", value="Shows stats about a Fortnite player", inline=False)
         embed.add_field(name=f"{prefix}twitch (channel)", value="Shows stats of a Twitch streamer", inline=False)
         embed.add_field(name=f"{prefix}twitchtrack (twitch_channel) (message to send when streamer goes live)", value="Track Twitch streamers and get notified whenever they stream", inline=False)
@@ -1830,7 +1830,7 @@ async def skywars(ctx, *player_and_mode):
     await ctx.send(embed=embed)
 
 
-duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
+duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "op doubles": "op_doubles", "combo": "combo_duel", "skywars": "sw_duel", "skywars doubles": "sw_doubles", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
 ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
 bridgeModes = ["bridge_3v3v3v3", "bridge_doubles", "bridge_four", "bridge_2v2v2v2"]
 

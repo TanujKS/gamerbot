@@ -1830,7 +1830,7 @@ async def skywars(ctx, *player_and_mode):
     await ctx.send(embed=embed)
 
 
-duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3"}
+duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "combo": "combo_duel", "skywars": "sw_duel", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles"}
 ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
 
 @bot.command()
@@ -1913,15 +1913,15 @@ async def duels(ctx, *player_and_mode):
         embed.add_field(name="Best Winstreak", value=data.get(f"best_winstreak_mode_{mode}", 0), inline=True)
         if mode == "bridge_duel":
             mode = "bridge"
-        if mode == "bridge_3v3v3v3":
-            mode = "bridge_3v3v3v3_bridge"
+        if mode == "bridge_3v3v3v3" or mode == "bridge_doubles":
+            mode += "_bridge"
         embed.add_field(name="Kills:", value=data.get(f'{mode}_kills', 0), inline=True)
         embed.add_field(name="Deaths:", value=data.get(f'{mode}_deaths', 0), inline=True)
         embed.add_field(name="K/D Rate:", value=getrate(data.get(f'{mode}_kills', 0), data.get(f'{mode}_deaths', 0)), inline=True)
         if mode == "bridge":
             mode = "bridge_duel"
-        if mode == "bridge_3v3v3v3_bridge":
-            mode = "bridge_3v3v3v3"
+        if mode == "bridge_3v3v3v3_bridge" or mode == "bridge_doubles_bridge":
+            mode = mode[:-7]
         embed.add_field(name="Wins:", value=data.get(f'{mode}_wins', 0), inline=True)
         embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
         embed.add_field(name="W/L Rate:", value=getrate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)

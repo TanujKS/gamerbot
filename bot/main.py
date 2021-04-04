@@ -46,7 +46,7 @@ from PyDictionary import PyDictionary
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
     globals()[k] = os.environ.get(k)
-    if globals()[k] is None:
+    if globals()[k] == None:
         try:
             globals()[k] = config(k)
         except decouple.UndefinedValueError:
@@ -106,9 +106,9 @@ def multi_key_dict_get(d : dict, k):
 
 
 def convertBooltoStr(bool : bool):
-    if bool is True:
+    if bool == True:
         return "On"
-    if bool is False:
+    if bool == False:
         return "Off"
 
 
@@ -165,7 +165,7 @@ async def on_ready():
     reports = get(supportServer.channels, name="reports")
 
     global botmaster
-    botmaster = bot.application_info()
+    botmaster = await bot.application_info()
     botmaster = botmaster.owner
 
     for guild in bot.guilds:
@@ -177,15 +177,7 @@ async def on_ready():
     rval = json.dumps(guildInfo)
     r.set("guildInfo", rval)
 
-    disabledCommands = ['twitchtrack', 'twitchtracklist', 'deltrack']
-
-    for disabled in disabledCommands:
-        command = get(bot.commands, name=disabled)
-        if not command:
-            raise Exception("Invalid command", disabled)
-        command.update(enabled=False)
-
-    #await bot.loop.create_task(checkIfLive())
+    await bot.loop.create_task(checkIfLive())
 
 
 @bot.event
@@ -680,9 +672,11 @@ async def join(ctx):
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 @commands.cooldown(5, 60, commands.BucketType.member)
 async def speak(ctx, *, message):
+    if len(message) > 160:
+        raise commands.BadArgument("Message must be less than 160 characters")
     role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
     if not role:
-        raise commands.MissingPermissions([f"role {guildInfo[ctx.guild.id]['TTVCrole']} which is required to use Text to Voice Channel."])
+        raise commands.BadArgument(f"You are missing role {guildInfo[ctx.guild.id]['TTVCrole']} to use Text to Voice Channel")
     fullmessage = f"{ctx.author.name} says {message}"
     if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
@@ -725,9 +719,9 @@ async def invite(ctx, *args):
 
 
 def convertPermtoEmoji(member, perm):
-    if getattr(member.guild_permissions, perm) is True:
+    if getattr(member.guild_permissions, perm) == True:
         return "✅"
-    if getattr(member.guild_permissions, perm) is False:
+    if getattr(member.guild_permissions, perm) == False:
         return "❌"
 
 @bot.command()
@@ -845,7 +839,7 @@ async def nick(ctx, member : discord.Member, *nick):
         raise commands.BadArgument(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
     except discord.HTTPException:
         raise commands.BadArgument("Nickname must be fewer than 32 characters")
-    if nick is None:
+    if nick == None:
         nick = member.name
     await ctx.send(f"Changed {member.name}'s nickname from {oldNick} to {nick}")
 
@@ -1426,7 +1420,7 @@ def hasLink(ctx, player):
         player = player[0]
     if member:
         player = r.get(member.id)
-        if player is None:
+        if player == None:
             raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode('utf-8')
     return player
@@ -1461,7 +1455,7 @@ async def mcverify(ctx, player):
     if not data.get('player') or not data['player'].get('socialMedia'):
         raise commands.BadArgument(f"{player} has not played Hypixel or has not linked Discord and cannot verify their account")
     link = data['player']['socialMedia']['links'].get('DISCORD')
-    if link is None:
+    if link == None:
         raise commands.BadArgument(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
     if link == str(ctx.author):
         await ctx.send(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
@@ -1497,7 +1491,7 @@ async def hypixel(ctx, *player):
     embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
     status = None
     ts = data['player'].get('lastLogin')
-    if ts is None:
+    if ts == None:
         d = "Never"
         status = "Offline"
     else:
@@ -1594,7 +1588,7 @@ async def hypixelguild(ctx, *player):
         raise commands.BadArgument(f'Player "{player}" not found.')
     id = requests.get(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={uuid}").json()
     guild = requests.get(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}").json()
-    if guild.get("success") is False:
+    if guild.get("success", False) == False:
         raise commands.BadArgument(f"{player} is not in a guild.")
     embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile",description=f"Guild stats for {guild['guild']['name']}", color=0xff0000)
     embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay")
@@ -1621,7 +1615,7 @@ bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "t
 
 @bot.command(aliases=['bw'])
 async def bedwars(ctx, *player_and_mode):
-    if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) is not None:
+    if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) != None:
         member = ctx.author
         if len(player_and_mode) == 1:
             player_and_mode = list(player_and_mode)
@@ -1641,7 +1635,7 @@ async def bedwars(ctx, *player_and_mode):
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if rawData.get("success") is False:
+    if rawData.get("success") == False:
         raise commands.BadArgument(rawData.get('cause'))
     if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get("Bedwars"):
         raise commands.BadArgument(f"{player} has not played Bedwars")
@@ -1674,7 +1668,7 @@ async def bedwars(ctx, *player_and_mode):
             embed.add_field(name="B/L Rate:", value=getrate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
     else:
         mode = multi_key_dict_get(bedwarsModes, player_and_mode[1])
-        if mode is None:
+        if mode == None:
             raise commands.BadArgument("Invalid mode")
         embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=0xff0000)
         embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
@@ -1743,7 +1737,7 @@ xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 @bot.command(aliases=["sw"])
 async def skywars(ctx, *player_and_mode):
     mode = " ".join(player_and_mode)
-    if len(player_and_mode) == 0 or multi_key_dict_get(skywarsModes, mode) is not None:
+    if len(player_and_mode) == 0 or multi_key_dict_get(skywarsModes, mode) != None:
         member = ctx.author
         if len(player_and_mode) > 0:
             player_and_mode = list(player_and_mode)
@@ -1756,7 +1750,7 @@ async def skywars(ctx, *player_and_mode):
         player = player_and_mode[0]
     if member:
         player = r.get(member.id)
-        if player is None:
+        if player == None:
             raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     uuid = MojangAPI.get_uuid(player)
@@ -1789,7 +1783,7 @@ async def skywars(ctx, *player_and_mode):
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
-            embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('losses', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
+            embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
             embed.add_field(name="Kills:", value=data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=getrate(data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0)), inline=True)
@@ -1843,7 +1837,7 @@ ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron'
 async def duels(ctx, *player_and_mode):
     prestige = None
     mode = " ".join(player_and_mode)
-    if len(player_and_mode) == 0 or multi_key_dict_get(duelModes, mode) is not None:
+    if len(player_and_mode) == 0 or multi_key_dict_get(duelModes, mode) != None:
         member = ctx.author
         if len(player_and_mode) > 0:
             player_and_mode = list(player_and_mode)
@@ -1856,14 +1850,14 @@ async def duels(ctx, *player_and_mode):
         player = player_and_mode[0]
     if member:
         player = r.get(member.id)
-        if player is None:
+        if player == None:
             raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
         player = player.decode("utf-8")
     uuid = MojangAPI.get_uuid(player)
     if not uuid:
         raise commands.BadArgument(f'Player "{player}" not found.')
     rawData = requests.get(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}").json()
-    if rawData.get("success") is False:
+    if rawData.get("success") == False:
         raise commands.BadArgument(f"Hypixel API returned an error: {rawData.get('cause')}")
     if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get('Duels'):
         raise commands.BadArgument(f"{player} has not played Duels")
@@ -1954,12 +1948,8 @@ async def fortnite(ctx, player):
         await ctx.send(embed=embed)
 
 
-@bot.command()
-async def twitch(ctx, channel):
-    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
-    if not user.get('data'):
-        raise commands.ChannelNotFound(channel)
-    data = (user['data'])[0]
+
+def twitchProfile(channel, data):
     embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=0xff0000)
     embed.set_thumbnail(url=data['profile_image_url'])
     embed.add_field(name="Username:", value=data['display_name'], inline=True)
@@ -1976,35 +1966,75 @@ async def twitch(ctx, channel):
     embed.add_field(name="Views", value=data['view_count'], inline=True)
     followers = requests.get(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     embed.add_field(name="Followers", value=followers['total'], inline=True)
-    await ctx.send(embed=embed)
+    embed.set_footer(text=f"Stats provided by the Twitch API \nNot the streamer your looking for? Type 'see more' to see more {channel}s and then run '?twitchbyid (id_of_the_channel_you_want)'")
+    return embed
+
+
+@bot.command()
+async def twitchbyid(ctx, id):
+    rawData = requests.get(f"https://api.twitch.tv/helix/users?id={id}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+    if not rawData.get('data'):
+        raise commands.ChannelNotFound(channel)
+    await twitch(ctx, rawData['data'][0]['login'])
+
+
+@bot.command()
+async def twitch(ctx, channel):
+    user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
+
+    if not user.get('data'):
+        raise commands.ChannelNotFound(channel)
+
+    data = (user['data'])[0]
+    await ctx.send(embed=twitchProfile(channel, data))
+
+    def ytCheck(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
+    try:
+        seemore = await bot.wait_for('message', timeout=30, check=ytCheck)
+    except asyncio.TimeoutError:
+        return
+
+    for x in user['data']:
+        if x != user['data'][0]:
+            await ctx.send(embed=twitchProfile(channel, x))
 
 
 async def checkIfLive():
     while True:
         for guild in trackingGuilds:
             for track in trackingGuilds[guild]:
-                    index = trackingGuilds[guild].index(track)
-                    data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
-                    x = list(data['data'])[0]
-                    is_live = x['is_live']
-                    if is_live:
-                        if trackingGuilds[guild][index]['pinged'] == "False":
-                            embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
-                            embed.set_thumbnail(url=x['thumbnail_url'])
-                            embed.add_field(name=x['title'], value="\u200b", inline=False)
-                            guildSend = bot.get_guild(guild)
-                            channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
-                            await channel.send(embed=embed)
-                            trackingGuilds[guild][index]['pinged'] = "True"
-                    else:
-                        trackingGuilds[guild][index]['pinged'] = "False"
+                index = trackingGuilds[guild].index(track)
+                data = requests.get(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH}).json()
+                returned = list(data['data'])
+                for channel in returned:
+                    if channel['id'] == str(trackingGuilds[guild][index]['id']):
+                        x = channel
+                        is_live = x['is_live']
+                        if is_live:
+                            if trackingGuilds[guild][index]['pinged'] == "False":
+                                embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=0xff0000)
+                                embed.set_thumbnail(url=x['thumbnail_url'])
+                                embed.add_field(name=x['title'], value="\u200b", inline=False)
+                                guildSend = bot.get_guild(guild)
+                                channel = guildSend.get_channel(trackingGuilds[guild][index]['channel-id'])
+                                await channel.send(embed=embed)
+                                trackingGuilds[guild][index]['pinged'] = "True"
+                        else:
+                            trackingGuilds[guild][index]['pinged'] = "False"
+                        break
         rval = json.dumps(trackingGuilds)
         r.set("trackingGuilds", rval)
         await asyncio.sleep(60)
 
 
 @bot.command()
-async def twitchtrack(ctx, channel, *, message):
+async def twitchtrack(ctx, channel, *message):
+    if not message:
+        message = f"{channel} is live"
+    else:
+        " ".join(message)
+
     user = requests.get(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"}).json()
     if not user:
         raise commands.ChannelNotFound(channel)
@@ -2015,6 +2045,7 @@ async def twitchtrack(ctx, channel, *, message):
     trackingGuilds[ctx.guild.id][index]['streamer'] = channel
     trackingGuilds[ctx.guild.id][index]['pinged'] = "False"
     trackingGuilds[ctx.guild.id][index]['message'] = message
+    trackingGuilds[ctx.guild.id][index]['id'] = x['id']
     embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][index]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][index]['streamer']}", color=0xff0000)
     embed.set_thumbnail(url=x['profile_image_url'])
     embed.add_field(name="This is an example stream", value="\u200b", inline=False)
@@ -2033,7 +2064,7 @@ def findTwitchTrack(ctx, streamer):
 @bot.command()
 async def deltrack(ctx, *, streamer):
     track = findTwitchTrack(ctx, streamer)
-    if track is None:
+    if track == None:
         raise commands.ChannelNotFound(channel)
     trackingGuilds[ctx.guild.id].pop(track)
     await ctx.send(f"No longer tracking {streamer}")

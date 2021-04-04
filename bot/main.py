@@ -1789,7 +1789,7 @@ async def skywars(ctx, *player_and_mode):
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=0xff0000)
             embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
-            embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('losses', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
+            embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
             embed.add_field(name="Kills:", value=data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=getrate(data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0)), inline=True)

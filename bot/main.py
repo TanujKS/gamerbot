@@ -662,7 +662,10 @@ async def define(ctx, word):
 @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
 async def join(ctx):
     if ctx.author.voice:
-        await ctx.author.voice.channel.connect()
+        try:
+            await ctx.author.voice.channel.connect()
+        except discord.errors.ClientException as error:
+            raise commands.BadArgument(str(error))
     else:
         raise commands.BadArgument("You are not in a voice channel.")
 

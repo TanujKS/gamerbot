@@ -9,8 +9,8 @@ import gtts
 from gtts import gTTS
 import ffmpeg
 
-import decouple
-from decouple import config
+from dotenv import load_dotenv
+
 import redis
 
 import os
@@ -42,15 +42,14 @@ from googletrans.constants import LANGUAGES
 
 from PyDictionary import PyDictionary
 
+import youtube_dl
 
+load_dotenv()
 keys = ['HYPIXEL_KEY', 'TWITCH_CLIENT_ID', 'YT_KEY', 'TWITCH_AUTH', 'TOKEN', 'REDIS_URL', 'TRN_API_KEY', 'ALT_TOKEN', 'STATUS_WEBHOOK']
 for k in keys:
-    globals()[k] = os.environ.get(k)
+    globals()[k] = os.getenv(k)
     if globals()[k] == None:
-        try:
-            globals()[k] = config(k)
-        except decouple.UndefinedValueError:
-            raise Exception(f"Could not initialise key: {k}")
+        raise Exception(f"Could not initialise key: {k}")
 
 r = redis.from_url(REDIS_URL)
 
@@ -152,7 +151,7 @@ async def on_ready():
             bot.add_check(is_owner)
             print("In owner mode")
 
-    game = discord.Game(f"on {len(bot.guilds)} servers. Use @{str(bot.user)} to see what I can do!")
+    game = discord.Game(f"on {len(bot.guilds)} servers. Use ?help to see what I can do!")
 
     await bot.change_presence(activity=game)
 
@@ -665,9 +664,16 @@ async def join(ctx):
         try:
             await ctx.author.voice.channel.connect()
         except discord.errors.ClientException as error:
-            raise commands.BadArgument(str(error))
+            pass
     else:
         raise commands.BadArgument("You are not in a voice channel.")
+
+
+@bot.command()
+@commands.guild_only()
+async def leave(ctx):
+    if ctx.guild.voice_client:
+        await ctx.guild.voice_client.disconnect()
 
 
 @bot.command()
@@ -684,12 +690,7 @@ async def speak(ctx, *, message):
     if ctx.guild.me.voice:
         vc = ctx.guild.voice_client
     elif ctx.author.voice:
-        try:
-            vc = await ctx.author.voice.channel.connect()
-        except discord.ClientException:
-            pass
-    else:
-        raise commands.BadArgument("You are not in a voice channel.")
+        await join(ctx)
     await ctx.guild.me.edit(deafen=True)
     tts = gtts.gTTS(fullmessage, lang="en")
     tts.save("text.mp3")
@@ -908,19 +909,17 @@ async def stoptimer(ctx):
     startTime = stopWatches.get(ctx.author.id)
     if not startTime:
         raise commands.BadArgument("No active stopwatches")
-    seconds = round((datetime.utcnow() - startTime).total_seconds())
-    await ctx.send(f"""Ended timer. Timer ran for:
-{seconds} seconds
-{round(seconds/60)} minutes
-{round((seconds/60)/60)} hours
-""")
+    seconds = (datetime.utcnow() - startTime).total_seconds()
+    await ctx.send(f"Ended timer. Timer ran for: {datetime.timedelta(seconds=seconds)}")
     del stopWatches[ctx.author.id]
 
 
 @bot.command()
 @commands.has_guild_permissions(administrator=True)
-async def dm(ctx, message):
-    dmedMessage = "Succesfuly DMed:"
+async def dm(ctx, *, message):
+    if not ctx.message.role_mentions and not ctx.message.mentions:
+        raise commands.BadArgument("No members or roles provided")
+    dmedMessage = "Succesfully DMed"
     for role in ctx.message.role_mentions:
         dmedMessage += f"\nAll members with {role.name}"
         for member in role.members:

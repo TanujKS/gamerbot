@@ -745,13 +745,13 @@ async def perms(ctx, *member : discord.Member):
 async def avatar(ctx, *member : discord.Member):
     if len(member) == 0:
         member = ctx.author
-    elif ctx.message.mentions:
-        member = ctx.message.mentions[0]
+    else:
+        member = member[0]
     await ctx.send(member.avatar_url_as(format=None, size=1024))
 
 
 @bot.command()
-async def emoji(ctx, *, emoji : discord.Emoji):
+async def emoji(ctx, emoji : discord.Emoji):
     await ctx.send(emoji.url)
 
 

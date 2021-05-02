@@ -30,9 +30,6 @@ from datetime import datetime
 from pytz import timezone, utc
 
 from mojang import MojangAPI
-from mojang import MojangUser
-from mojang.exceptions import SecurityAnswerError
-from mojang.exceptions import LoginError
 
 from PIL import Image
 from io import BytesIO

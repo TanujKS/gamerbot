@@ -1615,7 +1615,7 @@ async def hypixelguild(ctx, *player):
 
 bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
 
-@bot.command(aliases=['bw'])
+@bot.command(aliases=['bw', 'bws'])
 async def bedwars(ctx, *player_and_mode):
     if len(player_and_mode) == 0 or multi_key_dict_get(bedwarsModes, player_and_mode[0]) != None:
         member = ctx.author

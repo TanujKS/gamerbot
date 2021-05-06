@@ -48,8 +48,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f'Player "{player}" not found.')
         info = MojangAPI.get_profile(uuid)
         embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=embedColors["Red"])
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
-        embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from Crafatar")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{info.name}?{round(time.time())}")
+        embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from MC-Heads")
         embed.add_field(name="Username:", value=info.name, inline=True)
         embed.add_field(name="UUID:", value=info.id, inline=True)
 
@@ -90,8 +90,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f'Player "{player}" not found.')
         info = MojangAPI.get_profile(uuid)
         embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=embedColors["Red"])
-        embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from Crafatar")
-        embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}?overlay&?{round(time.time())}")
+        embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from MC-Heads")
+        embed.set_thumbnail(url=f"https://mc-heads.net/body/{uuid}?{round(time.time())}")
         await ctx.reply(embed=embed)
 
 
@@ -105,8 +105,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not data.get('player') or not data['player'].get('displayname'):
             raise commands.BadArgument(f"{player} has not played Hypixel")
         embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=embedColors["Red"])
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay&?{round(time.time())}")
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{data['player']['displayname']}?{round(time.time())}")
+        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from MC-Heads \nStats requested by {str(ctx.author)}")
         status = None
         ts = data['player'].get('lastLogin')
         if ts:
@@ -210,8 +210,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if guild.get("success") == None:
             raise commands.BadArgument(f"{player} is not in a guild.")
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile",description=f"Guild stats for {guild['guild']['name']}", color=embedColors["Red"])
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{player}?{round(time.time())}")
+        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from MC-Heads \nStats requested by {str(ctx.author)}")
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="ID:", value=len(guild['guild']['_id']), inline=True)
         embed.add_field(name="Members:", value=len(guild['guild']['members']), inline=True)
@@ -342,8 +342,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_beds_broken_bedwars", deaths=f"{mode}_beds_lost_bedwars")
             embed.add_field(name=f"Final kills needed for a FK/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['displayname']}?{round(time.time())}")
+        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from MC-Heads \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed, mention_author=False)
 
 
@@ -484,8 +484,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="W/L Rate:", value=self.getrate(data.get("wins_team_insane", 0), data.get("losses_team_insane", 0)), inline=True)
             else:
                 raise commands.BadArgument("Invalid mode")
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&{round(time.time())}")
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['displayname']}?{round(time.time())}")
+        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from MC-Heads \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed, mention_author=False)
 
 
@@ -599,8 +599,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins", deaths=f"{mode}_losses")
             embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+        embed.set_thumbnail(url=f"https://mc-heads.net/head/{rawData['player']['displayname']}?{round(time.time())}")
+        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from MC-Heads \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed, mention_author=False)
 
 

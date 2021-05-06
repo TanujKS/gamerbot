@@ -24,7 +24,7 @@ Hypixel API: https://api.hypixel.net/
 
 Mojang API: https://mojang.readthedocs.io/en/latest/
 
-Crafatar API: https://crafatar.com/
+MC-Heads API: https://mc-heads.net/
 
 Fortnite API: https://fortnite-api.com/
 

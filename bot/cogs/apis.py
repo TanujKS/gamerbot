@@ -19,8 +19,8 @@ class APIHelp(commands.Cog, name="APIs"):
         pass
 
 
-    @commands.command(name="Crafatar API", help="https://crafatar.com/")
-    async def CrafatarAPI(self, ctx):
+    @commands.command(name="MC-Heads API", help="https://mc-heads.net/")
+    async def MCHeadsAPI(self, ctx):
         pass
 
 

@@ -28,7 +28,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if len(player) == 0:
             member = ctx.author
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player)
+            member = await MemberConverter.convert(ctx, player[0])
         else:
             member = None
             player = player[0]

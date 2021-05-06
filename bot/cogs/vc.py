@@ -145,7 +145,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
         else:
             vc = await self.join(ctx)
 
-        path = f"./TTVC/{ctx.message.id}.mp3"
+        path = f"bot/TTVC/{ctx.message.id}.mp3"
         tts = gtts.gTTS(fullmessage, lang="en")
         tts.save(path)
 

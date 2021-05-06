@@ -40,7 +40,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         return player
 
 
-    @commands.command(description="'player' can be a Minecraft player or left blank to get your own statistics", help="Gets statistics of a Minecraft player", aliases=['mc'])
+    @commands.command(description="<player> can be a Minecraft player or left blank to get your own statistics", help="Gets statistics of a Minecraft player", aliases=['mc'])
     async def minecraft(self, ctx, *player):
         player = await self.hasLink(ctx, player)
         uuid = MojangAPI.get_uuid(player)
@@ -82,7 +82,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
-    @commands.command(description="'player' can be a Minecraft player or left blank to get your own skin", help="Gets the skin of a Minecraft player")
+    @commands.command(description="<player> can be a Minecraft player or left blank to get your own skin", help="Gets the skin of a Minecraft player")
     async def skin(self, ctx, *player):
         player = await self.hasLink(ctx, player)
         uuid = MojangAPI.get_uuid(player)
@@ -95,7 +95,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         await ctx.reply(embed=embed)
 
 
-    @commands.command(description="'player' can be a Minecraft player or left blank to get your own statistics", help="Gets the Hypixel statistics of a Minecraft player")
+    @commands.command(description="<player> can be a Minecraft player or left blank to get your own statistics", help="Gets the Hypixel statistics of a Minecraft player")
     async def hypixel(self, ctx, *player):
         player = await self.hasLink(ctx, player)
         uuid = MojangAPI.get_uuid(player)
@@ -177,7 +177,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         await ctx.reply(embed=embed, mention_author=False)
 
 
-    @commands.command(description="'player' can be a Minecraft player or left blank to get your own Hypixel guild statistics", help="Gets the statistics of a Hypixel guild of a Minecraft player")
+    @commands.command(description="<player> can be a Minecraft player or left blank to get your own Hypixel guild statistics", help="Gets the statistics of a Hypixel guild of a Minecraft player")
     async def hypixelguild(self, ctx, *player):
 
         EXP_NEEDED = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000]
@@ -245,7 +245,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         return ceilingRate, total, res
 
 
-    @commands.command(description=f"'player' can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
     async def bedwars(self, ctx, *player_and_mode):
         if len(player_and_mode) == 0 or utils.multi_key_dict_get(bedwarsModes, player_and_mode[0]) != None:
             member = ctx.author
@@ -372,7 +372,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         return "".join([a for a in roman_num(num)])
 
 
-    @commands.command(description=f"'player' can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
     async def skywars(self, ctx, *player_and_mode):
         def getSkyWarsLevel(xp : int):
             if xp >= 15000:
@@ -489,7 +489,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         await ctx.reply(embed=embed, mention_author=False)
 
 
-    @commands.command(description=f"'player' can be a Minecraft player or left blank to get your own Duels statistics \n Mode can be {utils.getHypixelHelp(duelModes)} or left blank to get overall statistics", help="Gets the Duels statistics of a Minecraft player")
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Duels statistics \n Mode can be {utils.getHypixelHelp(duelModes)} or left blank to get overall statistics", help="Gets the Duels statistics of a Minecraft player")
     async def duels(self, ctx, *player_and_mode):
         ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
         bridgeModes = ["bridge_3v3v3v3", "bridge_doubles", "bridge_four", "bridge_2v2v2v2"]

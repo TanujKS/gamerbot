@@ -128,26 +128,28 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
             await ctx.guild.voice_client.disconnect()
 
 
-    def voice_channel_check():
-        def predicate(ctx):
-            if ctx.author.voice and ctx.author.voice.channel == ctx.guild.me.voice.channel:
-                return True
+    def speak_check():
+        async def predicate(ctx):
+            if ctx.author.voice:
+                if not ctx.author.voice.self_deaf and not ctx.author.voice.deaf:
+                    if ctx.guild.me.voice:
+                        if ctx.author.voice.channel == ctx.guild.me.voice.channel:
+                            return True
+                        else:
+                            raise commands.BadArgument("You must be in the same voice channel as GamerBot to use this command")
+                    else:
+                        return True
+                else:
+                    raise commands.BadArgument("You cannot use this command while deafened")
             else:
-                raise commands.BadArgument(f"You must be in the same voice channel as {self.bot.user.name} to use this command")
-        return commands.check(predicate)
-
-
-    def deafen_check():
-        def predicate(ctx):
-            if not ctx.author.voice.self_deaf:
-                return True
-            else:
-                raise commands.BadArgument("You cannot use this command while deafened")
+                raise commands.BadArgument("You must be in a voice channel to use this command")
         return commands.check(predicate)
 
 
     def ttvc_check():
         def predicate(ctx):
+            guildInfo = utils.loadGuildInfo(r)
+
             if get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole']):
                 return True
             else:
@@ -158,12 +160,9 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
     @commands.command(description="Requires TTVC role which can be set with ?settings", help="Uses Text to Speech to talk in a voice channel")
     @commands.has_guild_permissions(speak=True)
     @commands.bot_has_guild_permissions(speak=True)
+    @speak_check()
     @ttvc_check()
-    @voice_channel_check()
-    @deafen_check()
     async def speak(self, ctx, *, message):
-        guildInfo = utils.loadGuildInfo(r)
-
         if ctx.guild.voice_client:
             vc = ctx.guild.voice_client
         else:

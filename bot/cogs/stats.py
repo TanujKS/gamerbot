@@ -58,16 +58,16 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=embedColors["Red"])
             embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
             embed.add_field(name="ID:", value=data['data']['account']['id'], inline=False)
-            embed.add_field(name="BattlePass Level:", value=data['data']['battlePass']['level'], inline=False)
-            embed.add_field(name="BattlePass Progress:", value=data['data']['battlePass']['progress'], inline=False)
-            embed.add_field(name="Score", value=data['data']['stats']['all']['overall']['score'], inline=False)
-            embed.add_field(name="Overall Kills:", value=data['data']['stats']['all']['overall']['kills'], inline=False)
-            embed.add_field(name="Overall Deaths", value=data['data']['stats']['all']['overall']['deaths'], inline=False)
-            embed.add_field(name="Overall K/D Rate", value=data['data']['stats']['all']['overall']['kd'], inline=False)
-            embed.add_field(name="Overall Games Played", value=data['data']['stats']['all']['overall']['matches'], inline=False)
-            embed.add_field(name="Overall Wins", value=data['data']['stats']['all']['overall']['wins'], inline=False)
-            embed.add_field(name="Overall Losses", value=data['data']['stats']['all']['overall']['deaths'], inline=False)
-            embed.add_field(name="Overall W/L Rate", value=round(data['data']['stats']['all']['overall']['wins']/data['data']['stats']['all']['overall']['deaths'], 2), inline=False)
+            embed.add_field(name="BattlePass Level:", value=data['data']['battlePass']['level'])
+            embed.add_field(name="BattlePass Progress:", value=data['data']['battlePass']['progress'])
+            embed.add_field(name="Score", value=data['data']['stats']['all']['overall']['score'])
+            embed.add_field(name="Overall Kills:", value=data['data']['stats']['all']['overall']['kills'])
+            embed.add_field(name="Overall Deaths", value=data['data']['stats']['all']['overall']['deaths'])
+            embed.add_field(name="Overall K/D Rate", value=data['data']['stats']['all']['overall']['kd'])
+            embed.add_field(name="Overall Games Played", value=data['data']['stats']['all']['overall']['matches'])
+            embed.add_field(name="Overall Wins", value=data['data']['stats']['all']['overall']['wins'])
+            embed.add_field(name="Overall Losses", value=data['data']['stats']['all']['overall']['deaths'])
+            embed.add_field(name="Overall W/L Rate", value=round(data['data']['stats']['all']['overall']['wins']/data['data']['stats']['all']['overall']['deaths'], 2))
             embed.set_footer(text="Stats provided using the unofficial Fortnite-API")
             embed.set_thumbnail(url="https://logodix.com/logo/45400.jpg")
             await ctx.reply(embed=embed, mention_author=False)
@@ -224,7 +224,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
                 await ctx.reply(embed=embed, mention_author=False)
 
 
-    @commands.command(description="'id' must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])
+    @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])
     async def csgoverify(self, ctx, id):
         csgoLinks = utils.loadCSGOLinks(r)
         rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY})
@@ -236,7 +236,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         utils.saveData(r, "csgoLinks", csgoLinks)
 
 
-    @commands.command(description="'player' must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Gets the statistics of a CS:GO player")
+    @commands.command(description="<player> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Gets the statistics of a CS:GO player")
     async def csgo(self, ctx, *player):
         csgoLinks = utils.loadCSGOLinks(r)
         if len(player) == 0:

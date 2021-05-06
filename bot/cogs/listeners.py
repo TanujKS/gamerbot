@@ -166,7 +166,6 @@ class Listeners(commands.Cog):
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
             await self.on_command_error(ctx, error)
 
-
         if isinstance(originalerror, commands.MissingRequiredArgument):
             return await ctx.send_help(ctx.command.name)
 
@@ -230,9 +229,8 @@ class Listeners(commands.Cog):
         guildInfo = utils.loadGuildInfo(r)
         trackingGuilds = utils.loadTrackingGuilds(r)
 
-        #status = discord.Game(f"on {len(self.bot.guilds)} servers | Use ?help to see what I can do")
-        status = discord.Game(f"major internal update :D")
-        await self.bot.change_presence(activity=status)
+        statusList = [f"on {len(self.bot.guilds)} servers | Use ?help to see what I can do", "major internal update :D", "whatever game you like", "why do bots not have custom statuses <(｀^´)>"]
+        await self.bot.change_presence(activity=discord.Game(random.choice(statusList)))
 
         for guild in self.bot.guilds:
             if not trackingGuilds.get(guild.id):

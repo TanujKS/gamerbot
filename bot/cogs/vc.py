@@ -136,7 +136,12 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
                         if ctx.author.voice.channel == ctx.guild.me.voice.channel:
                             return True
                         else:
-                            raise commands.BadArgument("You must be in the same voice channel as GamerBot to use this command")
+                            if len(ctx.guild.me.voice.channel.members) == 1:
+                                await ctx.guild.voice_client.disconnect()
+                                await ctx.author.voice.channel.connect()
+                                return True
+                            else:
+                                raise commands.BadArgument("You must be in the same voice channel as GamerBot to use this command")
                     else:
                         return True
                 else:

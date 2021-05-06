@@ -28,7 +28,7 @@ bot = commands.Bot(
 )
 
 
-for file in os.listdir("cogs"):
+for file in os.listdir("bot/cogs"):
     if file.endswith(".py"):
         fileName = file[:-3]
         bot.load_extension(f"cogs.{fileName}")

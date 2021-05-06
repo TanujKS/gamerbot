@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # Other
-/bot/TTVC
 .DS_Store

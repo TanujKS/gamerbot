@@ -138,12 +138,18 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
         if not role:
             raise commands.BadArgument(f"You are missing role {guildInfo[ctx.guild.id]['TTVCrole']} to use Text to Voice Channel")
 
-        fullmessage = f"{ctx.author.name} says {message}"
-
         if ctx.guild.voice_client:
             vc = ctx.guild.voice_client
         else:
             vc = await self.join(ctx)
+
+        if not ctx.author.voice or ctx.author.voice.channel != ctx.guild.me.voice.channel:
+            raise commands.BadArgument(f"You must be in the same voice channel as {self.bot.user.name} to use this command")
+
+        if ctx.author.voice.self_deaf:
+            raise commands.BadArgument("You can't use this command while deafened")
+
+        fullmessage = f"{ctx.author.name} says {message}"
 
         path = f"bot/TTVC/{ctx.message.id}.mp3"
         tts = gtts.gTTS(fullmessage, lang="en")

@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-text.mp3
+# Other
+/bot/TTVC
 .DS_Store

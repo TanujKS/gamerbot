@@ -14,8 +14,6 @@ The code is fully public in this repository for you to see how all the commands 
 # Credits:
 discord.py lib: https://discordpy.readthedocs.io/en/latest/index.html
 
-?eval command: https://gist.github.com/nitros12/2c3c265813121492655bc95aa54da6b9
-
 Python packages used: https://github.com/TanujKS/gamerbot/blob/main/requirements.txt
 
 # APIs:

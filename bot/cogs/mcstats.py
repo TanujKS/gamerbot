@@ -91,7 +91,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         info = MojangAPI.get_profile(uuid)
         embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=embedColors["Red"])
         embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from MC-Heads")
-        embed.set_thumbnail(url=f"https://mc-heads.net/body/{uuid}?{round(time.time())}")
+        embed.set_image(url=f"https://mc-heads.net/body/{info.name}?{round(time.time())}")
         await ctx.reply(embed=embed)
 
 

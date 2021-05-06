@@ -9,7 +9,7 @@ GamerBot also comes with many other useful commands, such as polling and nick-na
 Invite link can be found at http://gamerbot.ga
 
 
-The code is fully public in this repository for you to see how all the commands work. GamerBot#8134 is hosted on Heroku: Cloud Application Platform and is coded 100% in Python 3.8.7.
+The code is fully public in this repository for you to see how all the commands work. GamerBot#8134 is hosted on Heroku: Cloud Application Platform and is coded 100% in Python 3.9
 
 # Credits:
 discord.py lib: https://discordpy.readthedocs.io/en/latest/index.html

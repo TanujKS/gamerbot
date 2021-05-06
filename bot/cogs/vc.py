@@ -128,26 +128,46 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
             await ctx.guild.voice_client.disconnect()
 
 
+    def voice_channel_check():
+        def predicate(ctx):
+            if ctx.author.voice and ctx.author.voice.channel == ctx.guild.me.voice.channel:
+                return True
+            else:
+                raise commands.BadArgument(f"You must be in the same voice channel as {self.bot.user.name} to use this command")
+        return commands.check(predicate)
+
+
+    def deafen_check():
+        def predicate(ctx):
+            if not ctx.author.voice.self_deaf:
+                return True
+            else:
+                raise commands.BadArgument("You cannot use this command while deafened")
+        return commands.check(predicate)
+
+
+    def ttvc_check():
+        def predicate(ctx):
+            if get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole']):
+                return True
+            else:
+                raise commands.BadArgument(f"You are missing role {guildInfo[ctx.guild.id]['TTVCrole']} to use Text to Voice Channel")
+        return commands.check(predicate)
+
+
     @commands.command(description="Requires TTVC role which can be set with ?settings", help="Uses Text to Speech to talk in a voice channel")
     @commands.has_guild_permissions(speak=True)
     @commands.bot_has_guild_permissions(speak=True)
+    @ttvc_check()
+    @voice_channel_check()
+    @deafen_check()
     async def speak(self, ctx, *, message):
         guildInfo = utils.loadGuildInfo(r)
-
-        role = get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole'])
-        if not role:
-            raise commands.BadArgument(f"You are missing role {guildInfo[ctx.guild.id]['TTVCrole']} to use Text to Voice Channel")
 
         if ctx.guild.voice_client:
             vc = ctx.guild.voice_client
         else:
             vc = await self.join(ctx)
-
-        if not ctx.author.voice or ctx.author.voice.channel != ctx.guild.me.voice.channel:
-            raise commands.BadArgument(f"You must be in the same voice channel as {self.bot.user.name} to use this command")
-
-        if ctx.author.voice.self_deaf:
-            raise commands.BadArgument("You can't use this command while deafened")
 
         fullmessage = f"{ctx.author.name} says {message}"
 

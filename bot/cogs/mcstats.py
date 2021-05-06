@@ -334,13 +334,13 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
             embed.add_field(name="W/L Rate", value=self.getrate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins_bedwars", deaths=f"{mode}_losses_bedwars")
-            embed.add_field(name=f"Final kills needed for a FK/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
             embed.add_field(name="Beds Broken:", value=data.get(f"{mode}_beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get(f"{mode}_beds_lost_bedwars", 0), inline=True)
             embed.add_field(name="B/L Rate:", value=self.getrate(data.get(f"{mode}_beds_broken_bedwars", 0), data.get(f"{mode}_beds_lost_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_beds_broken_bedwars", deaths=f"{mode}_beds_lost_bedwars")
-            embed.add_field(name=f"Final kills needed for a FK/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Beds needed for a B/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")

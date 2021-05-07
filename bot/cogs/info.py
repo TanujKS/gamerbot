@@ -33,7 +33,7 @@ class Info(commands.Cog):
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Gets information of a member")
     async def memberinfo(self, ctx, member : discord.Member):
         embed = await self.getUserInfo(ctx, member)
-        embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S ') + f" {regions[str(ctx.guild.region)]} Time")
+        embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
         await ctx.send(embed=embed, mention_author=False)
 
 
@@ -44,8 +44,10 @@ class Info(commands.Cog):
 
         embed = discord.Embed(title=f"{guild.name}'s Information", color=embedColors["Red"])
         embed.set_thumbnail(url=ctx.guild.icon_url)
-
-
+        embed.add_field(name="Name:", value=guild.name)
+        embed.add_field(name="ID:", value=guild.id)
+        embed.add_field(name=f"Created at:", value=(guild.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
+        embed.add_field(name="Members:", )
 
 
 def setup(bot):

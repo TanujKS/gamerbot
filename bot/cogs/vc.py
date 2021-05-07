@@ -111,14 +111,17 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
     @commands.bot_has_guild_permissions(use_voice_activation=True, connect=True, speak=True)
     async def join(self, ctx):
         if ctx.author.voice:
-            try:
-                vc = await ctx.author.voice.channel.connect()
-                await ctx.guild.me.edit(deafen=True)
-            except (discord.errors.ClientException, discord.errors.Forbidden):
-                pass
-            return vc
+            if not ctx.guild.voice_client:
+                await ctx.author.voice.channel.connect()
+                await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
+            else:
+                if len(ctx.guild.me.voice.channel.members) == 1:
+                    await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
+                else:
+                    raise commands.BadArgument("Already in a voice channel")
         else:
             raise commands.BadArgument("You are not in a voice channel.")
+        return ctx.guild.voice_client
 
 
     @commands.command(help="Leaves the voice channel GamerBot is in")
@@ -128,26 +131,15 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
             await ctx.guild.voice_client.disconnect()
 
 
-    def speak_check():
+    def deafen_check():
         async def predicate(ctx):
             if ctx.author.voice:
                 if not ctx.author.voice.self_deaf and not ctx.author.voice.deaf:
-                    if ctx.guild.me.voice:
-                        if ctx.author.voice.channel == ctx.guild.me.voice.channel:
-                            return True
-                        else:
-                            if len(ctx.guild.me.voice.channel.members) == 1:
-                                await ctx.guild.voice_client.disconnect()
-                                await ctx.author.voice.channel.connect()
-                                return True
-                            else:
-                                raise commands.BadArgument("You must be in the same voice channel as GamerBot to use this command")
-                    else:
-                        return True
+                    return True
                 else:
                     raise commands.BadArgument("You cannot use this command while deafened")
             else:
-                raise commands.BadArgument("You must be in a voice channel to use this command")
+                return True
         return commands.check(predicate)
 
 
@@ -165,13 +157,10 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
     @commands.command(description="Requires TTVC role which can be set with ?settings", help="Uses Text to Speech to talk in a voice channel")
     @commands.has_guild_permissions(speak=True)
     @commands.bot_has_guild_permissions(speak=True)
-    @speak_check()
+    @deafen_check()
     @ttvc_check()
     async def speak(self, ctx, *, message):
-        if ctx.guild.voice_client:
-            vc = ctx.guild.voice_client
-        else:
-            vc = await self.join(ctx)
+        vc = await self.join(ctx)
 
         fullmessage = f"{ctx.author.name} says {message}"
 

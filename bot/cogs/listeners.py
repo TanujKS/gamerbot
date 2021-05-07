@@ -25,6 +25,12 @@ class Listeners(commands.Cog):
         print("Loaded", __name__)
 
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Logged into", self.bot.user)
+        print("ID:", self.bot.user.id)
+
+
     async def bot_check(self, ctx):
         blackListed = utils.loadBlacklisted(r)
         if ctx.author.id not in blackListed:

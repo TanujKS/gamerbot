@@ -34,12 +34,6 @@ for file in os.listdir("bot/cogs"):
         bot.load_extension(f"cogs.{fileName}")
 
 
-@bot.event
-async def on_ready():
-    print("Logged into", bot.user)
-    print("ID:", bot.user.id)
-
-
 
 
 bot.run(keys[sys.argv[1]])

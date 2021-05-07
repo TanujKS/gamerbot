@@ -133,7 +133,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
         response = response.content
 
         if response == "y":
-            await self.bot.logout()
+            await self.bot.close()
         elif response == "n":
             await ctx.reply("Cancelled", mention_author=False)
 

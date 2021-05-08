@@ -62,7 +62,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
         else:
             voicechannel = await VoiceChannelConverter.convert(ctx, voicechannel)
 
-        for member in self.editMemberVoice(ctx, member, "Moving"):
+        for member in await self.editMemberVoice(ctx, member, "Moving"):
             await member.edit(voice_channel=voicechannel)
 
 

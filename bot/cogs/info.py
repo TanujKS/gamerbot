@@ -35,7 +35,7 @@ class Info(commands.Cog):
     async def memberinfo(self, ctx, member : discord.Member):
         embed = await self.getUserInfo(ctx, member)
         embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
-        await ctx.send(embed=embed, mention_author=False)
+        await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
 
 
     @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"], enabled=False, hidden=True)
@@ -52,12 +52,24 @@ class Info(commands.Cog):
         embed.add_field(name="Members:", value=len([member for member in ctx.guild.members if not member.bot]))
         embed.add_field(name="Bots:", value=len([bot for bot in ctx.guild.members if bot.bot]))
         embed.add_field(name="Total Members:", value=guild.member_count)
-        embed.add_field(name="Maximum Members:", value=guild.max_members)
-        embed.add_field(name="Maximum Video Members", value=guild.max_video_channel_users)
+        embed.add_field(name="Region:", value=str(ctx.guild.region))
+        embed.add_field(name="Region:", value=regions[str(ctx.guild.region)])
+        embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Owner:", value=str(ctx.guild.owner))
         embed.add_field(name="Owner ID:", value=guild.owner_id)
-        await ctx.reply(embed=embed, mention_author=False)
+        embed.add_field(name="Owner Mention:", value=guild.owner.mention)
+        embed.add_field(name="Emoji Limit:", value=f"{guild.emoji_limit} Emojis")
+        embed.add_field(name="Filesize Limit:", value=f"{guild.filesize_limit} Bytes")
+        embed.add_field(name="Bitrate Limit:", value=f"{guild.bitrate_limit} Bits")
 
+        def getMFALevel(mfaint : int):
+            if int == 0:
+                return "Not required"
+            if int == 1:
+                return "Required"
+
+        embed.add_field(name="Multi-Factor Authenticat")
+        await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
 
 
 

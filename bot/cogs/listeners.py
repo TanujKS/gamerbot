@@ -136,6 +136,11 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, originalerror):
         error = originalerror.original if isinstance(originalerror, commands.CommandInvokeError) else originalerror
+        print(type(error))
+        if isinstance(error, commands.DisabledCommand):
+            if ctx.author.id == self.owner_id:
+                await ctx.send("Bypassed disabled command")
+                return await ctx.reinvoke()
 
         if isinstance(error, exceptions.raiseErrors):
             error = exceptions.EmbedError(title=str(error))
@@ -234,6 +239,9 @@ class Listeners(commands.Cog):
     async def updateStatus(self):
         guildInfo = utils.loadGuildInfo(r)
         trackingGuilds = utils.loadTrackingGuilds(r)
+
+        appinfo = await self.bot.application_info()
+        self.owner_id = appinfo.owner.id
 
         statusList = [f"on {len(self.bot.guilds)} servers | Use ?help to see what I can do", "major internal update :D", "whatever game you like", "why do bots not have custom statuses <(｀^´)>"]
         await self.bot.change_presence(activity=discord.Game(random.choice(statusList)))

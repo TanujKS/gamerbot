@@ -31,6 +31,7 @@ class Info(commands.Cog):
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Gets information of a member")
+    @commands.guild_only()
     async def memberinfo(self, ctx, member : discord.Member):
         embed = await self.getUserInfo(ctx, member)
         embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
@@ -38,16 +39,27 @@ class Info(commands.Cog):
 
 
     @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"], enabled=False, hidden=True)
+    @commands.guild_only()
     async def guildinfo(self, ctx, *guild : discord.Guild):
         if not guild:
             guild = ctx.guild
 
-        embed = discord.Embed(title=f"{guild.name}'s Information", color=embedColors["Red"])
+        embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=embedColors["Red"])
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.add_field(name="Name:", value=guild.name)
         embed.add_field(name="ID:", value=guild.id)
-        embed.add_field(name=f"Created at:", value=(guild.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
-        embed.add_field(name="Members:", )
+        embed.add_field(name="Created at:", value=(guild.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
+        embed.add_field(name="Members:", value=len([member for member in ctx.guild.members if not member.bot]))
+        embed.add_field(name="Bots:", value=len([bot for bot in ctx.guild.members if bot.bot]))
+        embed.add_field(name="Total Members:", value=guild.member_count)
+        embed.add_field(name="Maximum Members:", value=guild.max_members)
+        embed.add_field(name="Maximum Video Members", value=guild.max_video_channel_users)
+        embed.add_field(name="Owner:", value=str(ctx.guild.owner))
+        embed.add_field(name="Owner ID:", value=guild.owner_id)
+        await ctx.reply(embed=embed, mention_author=False)
+
+
+
 
 
 def setup(bot):

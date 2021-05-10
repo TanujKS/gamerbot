@@ -24,6 +24,7 @@ bot = commands.Bot(
     description="Help for GamerBot commands \nThe full code for GamerBot can be found at https://github.com/TanujKS/gamerbot",
     intents=discord.Intents.all(),
     case_insensitive=True,
+    allowed_mentions=discord.AllowedMentions(roles=False, users=True, everyone=False),
     help_command=EmbedHelpCommand()
 )
 

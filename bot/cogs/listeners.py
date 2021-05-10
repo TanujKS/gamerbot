@@ -136,7 +136,7 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, originalerror):
         error = originalerror.original if isinstance(originalerror, commands.CommandInvokeError) else originalerror
-        print(type(error))
+
         if isinstance(error, commands.DisabledCommand):
             if ctx.author.id == self.owner_id:
                 await ctx.send("Bypassed disabled command")

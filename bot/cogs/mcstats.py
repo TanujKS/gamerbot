@@ -263,7 +263,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if member:
             player = r.get(member.id)
             if not player:
-                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx)}")
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
             player = player.decode("utf-8")
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
@@ -401,7 +401,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if member:
             player = r.get(member.id)
             if player == None:
-                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
             player = player.decode("utf-8")
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
@@ -510,7 +510,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if member:
             player = r.get(member.id)
             if player == None:
-                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
             player = player.decode("utf-8")
         uuid = MojangAPI.get_uuid(player)
         if not uuid:

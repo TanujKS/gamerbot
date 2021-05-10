@@ -8,10 +8,9 @@ import pytz
 from pytz import timezone, utc
 
 
-class Info(commands.Cog):
+class Info(commands.Cog, description="Commands for getting information on users, members, etc"):
     def __init__(self, bot):
         self.bot = bot
-        self.description = "Commands for getting information on users, members, etc"
         print("Loaded", __name__)
 
 
@@ -22,6 +21,14 @@ class Info(commands.Cog):
         embed.add_field(name="ID:", value=user.id)
         embed.add_field(name="Account creation date:", value=(user.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S ') + f" {regions[str(ctx.guild.region)]} Time")
         return embed
+
+
+    @commands.command(help="Gets source code of GamerBot")
+    async def sourcecode(self, ctx):
+        embed = discord.Embed(color=embedColors["Red"])
+        embed.add_field(name="Source Code:", value="https://github.com/gamerbot")
+        embed.add_field(name="Invite Link:", value="http://gamerbot.ga")
+        await ctx.reply(embed=embed)
 
 
     @commands.command(description="<user> can be the name, id, or mention of a user", help="Gets information of a user")

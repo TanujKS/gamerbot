@@ -16,7 +16,6 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             if command.name not in self.nonSetupCommands:
                 command.description += "\nServer must be setup with the setup command"
 
-        self.description = "Commands for team and event management"
         print("Loaded", __name__)
 
 
@@ -38,7 +37,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             perms.connect = False
             await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
             await channel.edit(user_limit=guildInfo[ctx.guild.id]['teamLimit'])
-        await ctx.reply("Locked all team voice channels", mention_author=False)
+        await ctx.reply("Locked all team voice channels")
 
 
     @commands.command(help="Unlocks all team voice channels")
@@ -49,7 +48,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             voicechannel = get(ctx.guild.voice_channels, name=team)
             await voicechannel.set_permissions(ctx.guild.default_role, connect=True)
             await voicechannel.edit(user_limit=None)
-        await ctx.reply("Unlocked all voice channels", mention_author=False)
+        await ctx.reply("Unlocked all voice channels")
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Bans a member from particpating in events")
@@ -59,11 +58,11 @@ class Teams(commands.Cog, description="Commands for team and event management"):
         role = get(ctx.guild.roles, name="Banned from event")
 
         if role in member.roles:
-            await ctx.reply(f"{str(member)} is already banned", mention_author=False)
+            await ctx.reply(f"{str(member)} is already banned")
 
         else:
             await member.add_roles(role)
-            await ctx.reply(f"Banned {str(member)} from events", mention_author=False)
+            await ctx.reply(f"Banned {str(member)} from events")
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Bans a member from particpating in events")
@@ -77,14 +76,14 @@ class Teams(commands.Cog, description="Commands for team and event management"):
         if member == "all":
             for member in role.members:
                 await member.remove_roles(role)
-                await ctx.reply(f"Unbanned {str(member)} from events", mention_author=False)
+                await ctx.reply(f"Unbanned {str(member)} from events")
 
         else:
             member = MemberConverter.convert(ctx, member)
 
             if role in member.roles:
                 await member.remove_roles(role)
-                await ctx.reply(f"Unbanned {str(member)} from events", mention_author=False)
+                await ctx.reply(f"Unbanned {str(member)} from events")
             else:
                 raise commands.BadArgument(f"{str(member)} is not banned")
 
@@ -94,7 +93,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
     @commands.has_guild_permissions(manage_roles=True, manage_messages=True)
     async def createteams(self, ctx):
         await ctx.message.delete()
-        msg = await ctx.send("React to get into your teams", mention_author=False)
+        msg = await ctx.send("React to get into your teams")
 
         for emoji in emojis:
             await msg.add_reaction(emoji)
@@ -127,7 +126,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
 
         for member in role.members:
             await member.remove_roles(role)
-            await ctx.reply(f"Cleared {str(role)}", mention_author=False)
+            await ctx.reply(f"Cleared {str(role)}")
 
 
     @commands.command(help=f"Same as clearteam but clears all teams")
@@ -140,7 +139,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             for member in role.members:
                 await member.remove_roles(role)
 
-            await ctx.reply("Cleared all teams", mention_author=False)
+            await ctx.reply("Cleared all teams")
 
 
     @commands.command(description="", help="Creates the roles and channels for GamerBot to manage gaming events")
@@ -150,7 +149,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
     async def setup(self, ctx):
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author
-        await ctx.reply("Alright lets get started setting up your server! What game are you going to be playing on your server? (Or type `cancel`)", mention_author=False)
+        await ctx.reply("Alright lets get started setting up your server! What game are you going to be playing on your server? (Or type `cancel`)")
 
         msg = await self.bot.wait_for('message', check=check)
         if msg.content == "cancel":
@@ -214,7 +213,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
 
                 await asyncio.sleep(5)
 
-        await ctx.reply(f"Your server is setup! \n**DO NOT change the name of the voicechannels or the roles that {self.bot.user.name} has created as it may mess up certain commands**", mention_author=False)
+        await ctx.reply(f"Your server is setup! \n**DO NOT change the name of the voicechannels or the roles that {self.bot.user.name} has created as it may mess up certain commands**")
 
 
     @commands.command(description="", help="Deletes the roles and channels for GamerBot to manage gaming events", checks=None)
@@ -244,10 +243,10 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             if role:
                 await role.delete()
 
-            await ctx.reply("Wiped all event channels and roles", mention_author=False)
+            await ctx.reply("Wiped all event channels and roles")
 
         if response.content == "n":
-            await ctx.reply("Cancelled the wipe", mention_author=False)
+            await ctx.reply("Cancelled the wipe")
 
 
     @commands.command(description="<team> can be a name, id, or mention of a role called Team 1, Team 2, ... Team 8", help="Removes all members from a team")
@@ -263,7 +262,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
                 if role:
                     await member.remove_roles(role)
             await member.add_roles(team)
-            await ctx.reply(f"Added {str(member)} to {str(team)}", mention_author=False)
+            await ctx.reply(f"Added {str(member)} to {str(team)}")
 
 
     @commands.command(help="Moves all members in the main event voice channel to their team voice channels")
@@ -277,7 +276,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
                         if get(member.roles, name=team):
                             voicechannel = get(ctx.guild.voice_channels, name=team)
                             await member.edit(voice_channel=voicechannel)
-                await ctx.reply(f"Moved all members to their team voice channels", mention_author=False)
+                await ctx.reply(f"Moved all members to their team voice channels")
 
                 break
 
@@ -296,7 +295,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             for member in voicechannel.members:
                 await member.edit(voice_channel=events)
 
-        await ctx.reply(f"Moved all members to {events.name}", mention_author=False)
+        await ctx.reply(f"Moved all members to {events.name}")
 
 
 

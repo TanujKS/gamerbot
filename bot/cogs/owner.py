@@ -8,10 +8,9 @@ from discord.utils import get
 import ast
 
 
-class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only be used by an Owner")):
+class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=dict(hidden=True, description="Can only be used by an Owner")):
     def __init__(self, bot):
         self.bot = bot
-        self.description = "Commands for bot Owners"
         print("Loaded", __name__)
 
 
@@ -26,7 +25,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
             raise commands.BadArgument(f"{str(user)} is already blacklisted")
         blackListed.append(user.id)
         r.lpush("blacklisted", user.id)
-        await ctx.reply(f"Blacklisted {str(user)}", mention_author=False)
+        await ctx.reply(f"Blacklisted {str(user)}")
 
 
     @commands.command(help="Unblacklists a user")
@@ -36,7 +35,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
             raise commands.BadArgument(f"{str(user)} is not blacklisted")
         blackListed.remove(user.id)
         r.lrem("blacklisted", 0, user.id)
-        await ctx.reply(f"Unblacklisted {str(user)}", mention_author=False)
+        await ctx.reply(f"Unblacklisted {str(user)}")
 
 
     @commands.command(help="Returns a list of blacklisted users")
@@ -48,7 +47,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
             message += str(user)
             message += "\n"
 
-        await ctx.reply(f"List of blacklisted members: {message}", mention_author=False)
+        await ctx.reply(f"List of blacklisted members: {message}")
 
 
     @commands.command(help="Disables a command")
@@ -57,7 +56,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
         if not command:
             raise commands.BadArgument(f'Command "{commandName}" not found.')
         command.update(enabled=False)
-        await ctx.reply(f"Disabled command {command}", mention_author=False)
+        await ctx.reply(f"Disabled command {command}")
 
 
     @commands.command(help="Enables a command")
@@ -66,7 +65,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
         if not command:
             raise commands.BadArgument(f'Command "{commandName}" not found.')
         command.update(enabled=True)
-        await ctx.reply(f"Enabled command {command}", mention_author=False)
+        await ctx.reply(f"Enabled command {command}")
 
 
     @commands.command(help="Evalutes code in Python", aliases=['eval', 'exec', 'run'])
@@ -115,7 +114,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
             if not result:
                 result = "Done"
 
-            await ctx.reply(f"```{result}```", mention_author=False)
+            await ctx.reply(f"```{result}```")
 
         except Exception as err:
             raise commands.BadArgument(f"```{err}```")
@@ -123,7 +122,7 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
 
     @commands.command(help="Restarts the bot")
     async def restart(self, ctx):
-        await ctx.reply("Confirm restart: (y/n)", mention_author=False)
+        await ctx.reply("Confirm restart: (y/n)")
 
         def check(m):
             responses = ['y', 'n']
@@ -135,12 +134,12 @@ class Owner(commands.Cog, command_attrs=dict(hidden=True, description="Can only 
         if response == "y":
             await self.bot.close()
         elif response == "n":
-            await ctx.reply("Cancelled", mention_author=False)
+            await ctx.reply("Cancelled")
 
 
     @commands.command(help="Shuts down the bot")
     async def shutdown(self, ctx):
-        await ctx.reply("Confirm shutdown: (y/n)", mention_author=False)
+        await ctx.reply("Confirm shutdown: (y/n)")
         def check(m):
             responses = ["y", "n"]
             return m.author == ctx.author and m.channel == ctx.channel and m.content in responses

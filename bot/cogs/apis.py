@@ -2,10 +2,9 @@ import discord
 from discord.ext import commands
 
 
-class APIHelp(commands.Cog, name="APIs"):
+class APIHelp(commands.Cog, name="APIs", description="List of all APIs used by GamerBot"):
     def __init__(self, bot):
         self.bot = bot
-        self.description = "List of all APIs used by GamerBot"
         print("Loaded", __name__)
 
 

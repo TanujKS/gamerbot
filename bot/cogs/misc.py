@@ -17,13 +17,11 @@ import datetime as dtime
 from datetime import datetime
 
 
-class Misc(commands.Cog):
+class Misc(commands.Cog, description="Miscellaneous Commands"):
     def __init__(self, bot):
         self.bot = bot
         self.bot.help_command.cog = self
         self.stopWatches = {}
-
-        self.description = "Miscellaneous Commands"
         print("Loaded", __name__)
 
 
@@ -32,7 +30,7 @@ class Misc(commands.Cog):
     @commands.bot_has_guild_permissions(manage_messages=True)
     async def unpinall(self, ctx):
         pins = await ctx.channel.pins()
-        await ctx.reply(f"Are you sure you want me too unpin all {len(pins)} messages? (y/n)", mention_author=False)
+        await ctx.reply(f"Are you sure you want me too unpin all {len(pins)} messages? (y/n)")
         def check(m):
             responses = ['y', 'n']
             return ctx.author == m.author and ctx.channel == m.channel and msg.content in responses
@@ -40,9 +38,9 @@ class Misc(commands.Cog):
         if msg.content == "y":
             for message in pins:
                 await message.unpin()
-            await ctx.reply(f"Unpinned all messages", mention_author=False)
+            await ctx.reply(f"Unpinned all messages")
         elif msg.content == "n":
-            await ctx.reply("Cancelled", mention_author=False)
+            await ctx.reply("Cancelled")
 
 
     @commands.command(help="Changes server-specific configurations")
@@ -98,7 +96,7 @@ class Misc(commands.Cog):
         else:
             raise commands.BadArgument("Invalid arguments")
 
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(help="Uses Google Translate to translate a message into English")
@@ -140,7 +138,7 @@ class Misc(commands.Cog):
         if max_uses == 0:
             max_uses = "infinite"
 
-        await ctx.reply(f"Created invite with a maximum age of {max_age}, {max_uses} maximum uses, and with reason: {reason}. \n{inviteLink}", mention_author=False)
+        await ctx.reply(f"Created invite with a maximum age of {max_age}, {max_uses} maximum uses, and with reason: {reason}. \n{inviteLink}")
 
 
     @commands.command(description="member_or_role can be the name, id, or mention of a role or member", help="Returns the permissions for a role of member in the current server")
@@ -172,7 +170,7 @@ class Misc(commands.Cog):
         for perm in permissions:
             embed.add_field(name=perm[0].replace('_', ' ').title(), value=convertPermtoEmoji(member_or_role, perm[0], permissions))
 
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(description="'user' can be the name, id, or mention of a Discord user", help="Returns the profile picture of a Discord user", aliases=['pfp', 'profile'])
@@ -182,12 +180,12 @@ class Misc(commands.Cog):
         else:
             user = user[0]
 
-        await ctx.reply(user.avatar_url, mention_author=False)
+        await ctx.reply(user.avatar_url)
 
 
     @commands.command(description="'emoji' can be the name, or id of an emoji", help="Returns a CDN of an emoji")
     async def emoji(self, ctx, emoji : discord.Emoji):
-        await ctx.reply(emoji.url, mention_author=False)
+        await ctx.reply(emoji.url)
 
 
     @commands.command(help="Creates a new emoji from an image URL")
@@ -201,7 +199,7 @@ class Misc(commands.Cog):
         img = BytesIO(response)
         emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
 
-        await ctx.reply(f"Created {emojiName}: \n{emoji}", mention_author=False)
+        await ctx.reply(f"Created {emojiName}: \n{emoji}")
 
 
     @commands.command(description="Poll must have more than 2 options and less than 8 options \nPoll title must be less than 256 characters", help="Creates a poll where users can only vote once")
@@ -223,7 +221,7 @@ class Misc(commands.Cog):
             embed.add_field(name="\u200b", value="\u200b", inline=True)
 
         embed.set_footer(text=f"Poll by {str(ctx.author)}")
-        msg = await ctx.send(embed=embed, mention_author=False)
+        msg = await ctx.send(embed=embed)
         await ctx.message.delete()
         for i in range(0, len(options)):
             await msg.add_reaction(emojis[i])
@@ -234,7 +232,7 @@ class Misc(commands.Cog):
     async def closepoll(self, ctx):
         def closePollCheck(reaction, user):
             return user == ctx.author and str(reaction) == "❌"
-        close = await ctx.reply("React to the poll I must close with an ❌", mention_author=False)
+        close = await ctx.reply("React to the poll I must close with an ❌")
         reaction, user = await self.bot.wait_for('reaction_add', timeout=120.0, check=closePollCheck)
         dic = reaction.message.embeds[0].to_dict()
 
@@ -278,13 +276,13 @@ class Misc(commands.Cog):
             raise commands.BadArgument("Nickname must be fewer than 32 characters")
 
 
-        await ctx.reply(f"Changed {str(member)}'s nickname from {oldNick} to {member.display_name}", mention_author=False)
+        await ctx.reply(f"Changed {str(member)}'s nickname from {oldNick} to {member.display_name}")
 
 
     @commands.command(description="For accurate ping readings, this is ratelimited to 1 use every 5 seconds per guild", help=f"Checks GamerBot's Ping")
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def ping(self, ctx):
-        t = await ctx.reply("Pong!", mention_author=False)
+        t = await ctx.reply("Pong!")
         await t.edit(content=f'Pong! `{(t.created_at-ctx.message.created_at).total_seconds() * 1000}ms`')
 
 
@@ -303,7 +301,7 @@ class Misc(commands.Cog):
     async def report(self, ctx):
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author
-        await ctx.reply("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes", mention_author=False)
+        await ctx.reply("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
         message = await self.bot.wait_for('message', timeout=180, check=check)
         embed = discord.Embed(title="Report", description=None, color=embedColors["Red"])
         embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
@@ -312,7 +310,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Reporter:", value=str(ctx.author), inline=True)
         embed.add_field(name="Reporter ID:", value=ctx.author.id, inline=True)
         embed.add_field(name="Report:", value=message.content, inline=False)
-        await ctx.reply("Your report is submitted", embed=embed, mention_author=False)
+        await ctx.reply("Your report is submitted", embed=embed)
         await utils.sendReport(ctx, "Report", embed=embed)
 
 
@@ -320,7 +318,7 @@ class Misc(commands.Cog):
     async def starttimer(self, ctx):
         if self.stopWatches.get(ctx.author.id):
             raise commands.BadArgument("Stop watch already in use")
-        await ctx.reply("Starting stopwatch", mention_author=False)
+        await ctx.reply("Starting stopwatch")
         self.stopWatches[ctx.author.id] = datetime.utcnow()
 
 
@@ -330,7 +328,7 @@ class Misc(commands.Cog):
         if not startTime:
             raise commands.BadArgument("No active stopwatches")
         seconds = (datetime.utcnow() - startTime).total_seconds()
-        await ctx.reply(f"Ended timer. Timer ran for: {datetime.timedelta(seconds=seconds)}", mention_author=False)
+        await ctx.reply(f"Ended timer. Timer ran for: {datetime.timedelta(seconds=seconds)}")
         del self.stopWatches[ctx.author.id]
 
 
@@ -352,7 +350,7 @@ class Misc(commands.Cog):
             dm = await member.create_dm()
             await dm.send(message)
 
-        await ctx.reply(dmedMessage, mention_author=False)
+        await ctx.reply(dmedMessage)
 
 
     @commands.command(description="'member' can be the name, id, or mention of a member or 'bot'", help="Starts a game of rock, paper, scissors with a member or GamerBot")
@@ -376,7 +374,7 @@ class Misc(commands.Cog):
             member = await MemberConverter.convert(ctx, member)
             await ctx.send(f"{member.mention}! {ctx.author.mention} challenges you to rock paper scissors!")
 
-            await ctx.reply(f"{ctx.author.mention} DM me your move", mention_author=False)
+            await ctx.reply(f"{ctx.author.mention} DM me your move")
 
             dm = await ctx.author.create_dm()
             await dm.send("Please choose from `rock`, `paper`, or `scissors`")
@@ -403,7 +401,7 @@ class Misc(commands.Cog):
             embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
         if move1.content == "paper" and move2.content == "scissors":
             embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=embedColors["Red"])
-        await ctx.reply(embed=embedVar, mention_author=False)
+        await ctx.reply(embed=embedVar)
 
 
 

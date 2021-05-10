@@ -70,7 +70,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             embed.add_field(name="Overall W/L Rate", value=round(data['data']['stats']['all']['overall']['wins']/data['data']['stats']['all']['overall']['deaths'], 2))
             embed.set_footer(text="Stats provided using the unofficial Fortnite-API")
             embed.set_thumbnail(url="https://logodix.com/logo/45400.jpg")
-            await ctx.reply(embed=embed, mention_author=False)
+            await ctx.reply(embed=embed)
 
 
     async def twitchProfile(self, channel, data):
@@ -110,7 +110,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             raise commands.ChannelNotFound(channel)
 
         data = (user['data'])[0]
-        await ctx.reply(embed=await self.twitchProfile(channel, data), mention_author=False)
+        await ctx.reply(embed=await self.twitchProfile(channel, data))
 
         def ytCheck(m):
             return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
@@ -146,7 +146,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed.set_thumbnail(url=x['profile_image_url'])
         embed.add_field(name="This is an example stream", value="\u200b", inline=False)
         channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][-1]["channel-id"])
-        await channelSend.send(embed=embed, mention_author=False)
+        await channelSend.send(embed=embed)
         utils.saveData(r, "trackingGuilds", trackingGuilds)
 
 
@@ -165,7 +165,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             raise commands.ChannelNotFound(streamer)
         trackingGuilds[ctx.guild.id].pop(track)
 
-        await ctx.reply(f"No longer tracking {streamer}", mention_author=False)
+        await ctx.reply(f"No longer tracking {streamer}")
         utils.saveData(r, "trackingGuilds", trackingGuilds)
 
 
@@ -176,7 +176,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         for track in trackingGuilds[ctx.guild.id]:
             index = trackingGuilds[ctx.guild.id].index(track)
             embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(help="Gets the statistics of a YouTuber", aliases=["yt"])
@@ -202,7 +202,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
         embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
         embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel.replace('%20', ' ')}s and then run '?youtube (id_of_the_channel_you_want)'")
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
         def ytCheck(m):
             return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
@@ -221,7 +221,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
                     description = "None"
                 embed.add_field(name="Description:", value=description, inline=True)
                 embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
-                await ctx.reply(embed=embed, mention_author=False)
+                await ctx.reply(embed=embed)
 
 
     @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])
@@ -231,7 +231,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         data = rawData.get('data')
         if not data:
             raise commands.BadArgument(rawData['errors'][0]['message'])
-        await ctx.reply(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**", mention_author=False)
+        await ctx.reply(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
         csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
         utils.saveData(r, "csgoLinks", csgoLinks)
 
@@ -277,7 +277,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed.add_field(name="Ties:", value=data['segments'][0]['stats']['ties']['value'], inline=True)
         embed.add_field(name="W/L Rate:", value=round(data['segments'][0]['stats']['wins']['value']/data['segments'][0]['stats']['losses']['value'], 2), inline=True)
         embed.add_field(name="W/L Percentage:", value=f"{round(data['segments'][0]['stats']['wlPercentage']['value'], 2)}", inline=True)
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
 

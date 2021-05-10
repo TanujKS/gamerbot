@@ -104,7 +104,7 @@ class Misc(commands.Cog):
     @commands.command(help="Uses Google Translate to translate a message into English")
     async def translate(self, ctx, *, message):
         embed = discord.Embed(title=f'Translation of "{message}"', color=embedColors["Red"])
-        translation = self.translator.translate(message, dest='en')
+        translation = Translator().translate(message, dest='en')
         embed.add_field(name=LANGUAGES[translation.src.lower()].capitalize(), value=message, inline=False)
         embed.add_field(name=LANGUAGES[translation.dest].capitalize(), value=translation.text, inline=False)
         await ctx.send(embed=embed)
@@ -113,7 +113,7 @@ class Misc(commands.Cog):
     @commands.command(help="Returns the definition of a word")
     async def define(self, ctx, word):
         embed = discord.Embed(title=f"Definition of '{word}'", color=embedColors["Red"])
-        meanings = self.dictionary.meaning(word)
+        meanings = PyDictionary().meaning(word)
 
         if not meanings:
             raise commands.BadArgument(f"Could not find a defintion for {word}")
@@ -304,7 +304,7 @@ class Misc(commands.Cog):
         def check(m):
             return m.channel == ctx.channel and m.author == ctx.author
         await ctx.reply("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes", mention_author=False)
-        message = await bot.wait_for('message', timeout=180, check=check)
+        message = await self.bot.wait_for('message', timeout=180, check=check)
         embed = discord.Embed(title="Report", description=None, color=embedColors["Red"])
         embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
         embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)

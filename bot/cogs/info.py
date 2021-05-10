@@ -68,7 +68,7 @@ class Info(commands.Cog):
             if int == 1:
                 return "Required"
 
-        embed.add_field(name="Multi-Factor Authenticat")
+        embed.add_field(name="Multi-Factor Authentication")
         await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
 
 

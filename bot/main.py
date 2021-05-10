@@ -21,10 +21,11 @@ keys = {
 
 bot = commands.Bot(
     command_prefix=utils.determine_prefix,
-    description="Help for GamerBot commands \nThe full code for GamerBot can be found at https://github.com/TanujKS/gamerbot",
+    description="Help for GamerBot commands",
     intents=discord.Intents.all(),
     case_insensitive=True,
-    help_command=EmbedHelpCommand()
+    help_command=EmbedHelpCommand(),
+    allowed_mentions=discord.AllowedMentions.none()
 )
 
 

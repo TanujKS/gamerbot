@@ -160,7 +160,7 @@ class Listeners(commands.Cog):
                 except discord.errors.Forbidden:
                     pass
 
-            await ctx.reply(embed=embed, mention_author=False)
+            await ctx.reply(embed=embed)
 
         else:
             print(type(error), error)

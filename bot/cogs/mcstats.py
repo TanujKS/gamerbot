@@ -59,7 +59,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             history += f"\n{entry['name']}"
         embed.add_field(name="Past Usernames (From oldest down to latest):", value=history, inline=False)
 
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(help="Links your Discord to a Hypixel account", aliases=['mclink'])
@@ -174,7 +174,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             for link in data['player']['socialMedia']['links']:
                 embed.add_field(name=link, value=data['player']['socialMedia']['links'][link], inline=False)
 
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(description="<player> can be a Minecraft player or left blank to get your own Hypixel guild statistics", help="Gets the statistics of a Hypixel guild of a Minecraft player")
@@ -227,7 +227,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="Player Stats:", value="\u200b", inline=False)
                 embed.add_field(name="Rank", value=member['rank'])
                 embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
-                await ctx.reply(embed=embed, mention_author=False)
+                await ctx.reply(embed=embed)
                 break
 
 
@@ -263,7 +263,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if member:
             player = r.get(member.id)
             if not player:
-                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx)}")
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
             player = player.decode("utf-8")
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
@@ -344,7 +344,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     def write_roman(self, num : int):
@@ -486,7 +486,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 raise commands.BadArgument("Invalid mode")
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
     @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Duels statistics \n Mode can be {utils.getHypixelHelp(duelModes)} or left blank to get overall statistics", help="Gets the Duels statistics of a Minecraft player")
@@ -601,7 +601,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
-        await ctx.reply(embed=embed, mention_author=False)
+        await ctx.reply(embed=embed)
 
 
 

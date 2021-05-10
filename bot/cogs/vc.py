@@ -17,7 +17,6 @@ import ffmpeg
 class VC(commands.Cog, description="Commands for managing member in voice channels"):
     def __init__(self, bot):
         self.bot = bot
-        self.description = "Commands for managing members in voice channels"
         print("Loaded", __name__)
 
 
@@ -30,14 +29,14 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
 
             members = ctx.author.voice.channel.members
 
-            await ctx.reply(f"{action} all members in {ctx.author.voice.channel.name}", mention_author=False)
+            await ctx.reply(f"{action} all members in {ctx.author.voice.channel.name}")
 
         elif member == "all":
             for voicechannel in ctx.guild.voice_channels:
                 for member in voicechannel.members:
                     members.append(member)
 
-            await ctx.reply(f"{action} all members in {ctx.guild.name}", mention_author=False)
+            await ctx.reply(f"{action} all members in {ctx.guild.name}")
 
         else:
             member = await MemberConverter.convert(ctx, member)
@@ -46,7 +45,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
 
             members.append(member)
 
-            await ctx.reply(f"{action} {str(member)}", mention_author=False)
+            await ctx.reply(f"{action} {str(member)}")
 
         return members
 

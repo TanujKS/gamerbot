@@ -5,13 +5,10 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
-import random
 import math
 
 import time
-import datetime
-from datetime import datetime
-from pytz import timezone, utc
+from pytz import timezone
 
 from collections import OrderedDict
 

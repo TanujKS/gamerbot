@@ -1,4 +1,4 @@
-from utils import utils, constants
+from utils import constants
 
 import discord
 from discord.ext import commands

@@ -5,8 +5,7 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
-import pytz
-from pytz import timezone, utc
+from pytz import timezone
 
 
 class Info(commands.Cog, description="Commands for getting information on users, members, etc"):

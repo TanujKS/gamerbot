@@ -10,7 +10,6 @@ from discord.utils import get
 from discord import FFmpegPCMAudio
 from discord import opus
 import gtts
-from gtts import gTTS
 import ffmpeg
 
 

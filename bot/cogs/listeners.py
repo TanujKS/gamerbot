@@ -5,12 +5,6 @@ import discord
 from discord.ext import commands, tasks
 from discord.utils import get
 
-from datetime import datetime
-
-import redis
-
-import json
-
 import random
 
 import asyncio
@@ -171,7 +165,7 @@ class Listeners(commands.Cog):
             embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
             embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
             embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
-            embed.add_field(name="Time", value=datetime.now(), inline=False)
+            embed.add_field(name="Time", value=message.created_at, inline=False)
             embed.add_field(name="Command:", value=ctx.command.name, inline=False)
             embed.add_field(name="Error:", value=type(error), inline=True)
             embed.add_field(name="Error:", value=error, inline=True)

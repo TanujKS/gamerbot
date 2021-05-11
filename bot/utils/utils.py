@@ -8,15 +8,10 @@ from discord.utils import get
 from discord import Webhook, AsyncWebhookAdapter
 import aiohttp
 
-import asyncio
-
 import json
 
-import redis
-
 from datetime import datetime
-import pytz
-from pytz import timezone, utc
+from pytz import timezone
 
 
 def saveData(r, key, value):

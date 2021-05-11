@@ -22,30 +22,30 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
     async def blacklist(self, ctx, user : discord.User):
         blackListed = utils.loadBlacklisted(r)
         if user.id in blackListed:
-            raise commands.BadArgument(f"{str(user)} is already blacklisted")
+            raise commands.BadArgument(f"{user.mention} is already blacklisted")
         blackListed.append(user.id)
         r.lpush("blacklisted", user.id)
-        await ctx.reply(f"Blacklisted {str(user)}")
+        await ctx.reply(f"Blacklisted {user.mention}")
 
 
     @commands.command(help="Unblacklists a user")
     async def unblacklist(self, ctx, user : discord.User):
         blackListed = utils.loadBlacklisted(r)
         if not user.id in blackListed:
-            raise commands.BadArgument(f"{str(user)} is not blacklisted")
+            raise commands.BadArgument(f"{user.mention} is not blacklisted")
         blackListed.remove(user.id)
         r.lrem("blacklisted", 0, user.id)
-        await ctx.reply(f"Unblacklisted {str(user)}")
+        await ctx.reply(f"Unblacklisted {user.mention}")
 
 
     @commands.command(help="Returns a list of blacklisted users")
     async def blacklisted(self, ctx):
         blackListed = utils.loadBlacklisted(r)
+        mentions = [user.mention for user in [self.bot.get_user(x) for x in blackListed]]
         message = ""
-        for x in blackListed:
-            user = self.bot.get_user(x)
-            message += str(user)
+        for mention in mentions:
             message += "\n"
+            message += mention
 
         await ctx.reply(f"List of blacklisted members: {message}")
 
@@ -156,3 +156,4 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
 def setup(bot):
     bot.add_cog(Owner(bot))
+user.mention

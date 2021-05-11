@@ -156,4 +156,3 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
 def setup(bot):
     bot.add_cog(Owner(bot))
-user.mention

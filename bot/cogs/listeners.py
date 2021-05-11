@@ -19,6 +19,7 @@ import asyncio
 class Listeners(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
         self.updateStatus.start()
 
         self.hidden = True
@@ -186,8 +187,8 @@ class Listeners(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         guildInfo = utils.loadGuildInfo(r)
 
-        if not user.bot:
-            if reaction.message.content == "React to get into your teams" and reaction.message.author == self.bot.user:
+        if not user.bot and reaction.message.author == self.bot.user:
+            if reaction.message.content == "React to get into your teams":
                 if not get(user.roles, name="Banned from event"):
                     if str(reaction) in emojis:
                         team = teams[emojis.index(str(reaction))]
@@ -205,23 +206,18 @@ class Listeners(commands.Cog):
                 dic = reaction.message.embeds[0].to_dict()
                 if dic['title'].startswith("(closed)"):
                     await reaction.remove(user)
-            except:
-                pass
-
-            try:
-                dic = reaction.message.embeds[0].to_dict()
-                footer = dic['footer']['text']
-                if footer.startswith("Poll by"):
+                elif dic['footer']['text'].startswith("Poll by"):
                     if str(reaction) in emojis:
-                        for thereaction in reaction.message.reactions:
-                            if not thereaction == reaction:
-                                await thereaction.remove(user)
+                        for eachreaction in reaction.message.reactions:
+                            if not str(eachreaction) == str(reaction):
+                                await eachreaction.remove(user)
                     else:
                         await reaction.remove(user)
-            except:
+            except IndexError:
                 pass
 
-            if reaction.message.content == "Teams are now closed." and reaction.message.author == self.bot.user:
+
+            if reaction.message.content == "Teams are now closed.":
                 await reaction.remove(user)
 
 

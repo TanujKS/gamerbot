@@ -206,9 +206,12 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
         id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={uuid}")
-        guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}")
-        if guild.get("success") == None:
-            raise commands.BadArgument(f"{player} is not in a guild.")
+        success = id.get('guild')
+        if success:
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}")
+            success = guild.get('success')
+        if success == None:
+            raise commands.BadArgument(f"Player {player} is not in a guild.")
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile",description=f"Guild stats for {guild['guild']['name']}", color=embedColors["Red"])
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")

@@ -58,11 +58,11 @@ class Teams(commands.Cog, description="Commands for team and event management"):
         role = get(ctx.guild.roles, name="Banned from event")
 
         if role in member.roles:
-            await ctx.reply(f"{str(member)} is already banned")
+            await ctx.reply(f"{member.mention} is already banned")
 
         else:
             await member.add_roles(role)
-            await ctx.reply(f"Banned {str(member)} from events")
+            await ctx.reply(f"Banned {member.mention} from events")
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Bans a member from particpating in events")
@@ -76,16 +76,16 @@ class Teams(commands.Cog, description="Commands for team and event management"):
         if member == "all":
             for member in role.members:
                 await member.remove_roles(role)
-                await ctx.reply(f"Unbanned {str(member)} from events")
+                await ctx.reply(f"Unbanned {member.mention} from events")
 
         else:
             member = MemberConverter.convert(ctx, member)
 
             if role in member.roles:
                 await member.remove_roles(role)
-                await ctx.reply(f"Unbanned {str(member)} from events")
+                await ctx.reply(f"Unbanned {member.mention} from events")
             else:
-                raise commands.BadArgument(f"{str(member)} is not banned")
+                raise commands.BadArgument(f"{member.mention} is not banned")
 
 
     @commands.command(help="Creates an interactive menu where members can select a team")
@@ -262,7 +262,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
                 if role:
                     await member.remove_roles(role)
             await member.add_roles(team)
-            await ctx.reply(f"Added {str(member)} to {str(team)}")
+            await ctx.reply(f"Added {member.mention} to {str(team)}")
 
 
     @commands.command(help="Moves all members in the main event voice channel to their team voice channels")

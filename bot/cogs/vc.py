@@ -28,7 +28,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
 
             members = ctx.author.voice.channel.members
 
-            await ctx.reply(f"{action} all members in {ctx.author.voice.channel.name}")
+            await ctx.reply(f"{action} all members in {ctx.author.voice.channel.mention}")
 
         elif member == "all":
             for voicechannel in ctx.guild.voice_channels:
@@ -40,11 +40,11 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
         else:
             member = await Converters.MemberConverter.convert(ctx, member)
             if not member.voice:
-                raise commands.BadArgument(f"{str(member)} is not in a voice channel")
+                raise commands.BadArgument(f"{member.mention} is not in a voice channel")
 
             members.append(member)
 
-            await ctx.reply(f"{action} {str(member)}")
+            await ctx.reply(f"{action} {member.mention}")
 
         return members
 

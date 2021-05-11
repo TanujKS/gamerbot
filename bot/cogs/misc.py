@@ -271,12 +271,12 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             await member.edit(nick=nick)
 
         except discord.Forbidden:
-            raise commands.BadArgument(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
+            raise commands.BadArgument(f"Could not change {member.mention}'s nickname because their highest role is higher than mine.")
         except discord.HTTPException:
             raise commands.BadArgument("Nickname must be fewer than 32 characters")
 
 
-        await ctx.reply(f"Changed {str(member)}'s nickname from {oldNick} to {member.display_name}")
+        await ctx.reply(f"Changed {member.mention}'s nickname from {oldNick} to {member.display_name}")
 
 
     @commands.command(description="For accurate ping readings, this is ratelimited to 1 use every 5 seconds per guild", help=f"Checks GamerBot's Ping")
@@ -346,7 +346,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                 dm = await member.create_dm()
                 await dm.send(message)
         for member in ctx.message.mentions:
-            dmedMessage += f"\n{str(member)}"
+            dmedMessage += f"\n{member.mention}"
             dm = await member.create_dm()
             await dm.send(message)
 

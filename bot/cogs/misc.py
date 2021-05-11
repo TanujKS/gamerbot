@@ -114,7 +114,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         meanings = PyDictionary().meaning(word)
 
         if not meanings:
-            raise commands.BadArgument(f"Could not find a defintion for {word}")
+            raise commands.BadArgument(f"Could not find a defintion for '{word}'")
 
         for item in meanings:
             message = ""
@@ -173,13 +173,13 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         await ctx.reply(embed=embed)
 
 
-    @commands.command(description="'user' can be the name, id, or mention of a Discord user", help="Returns the profile picture of a Discord user", aliases=['pfp', 'profile'])
+    @commands.command(description="<user> can be the name, id, or mention of a Discord user", help="Returns the profile picture of a Discord user", aliases=['pfp', 'profile'])
     async def avatar(self, ctx, *user : discord.User):
         user = ctx.author if not user else user[0]
         await ctx.reply(user.avatar_url)
 
 
-    @commands.command(description="'emoji' can be the name, or id of an emoji", help="Returns a CDN of an emoji")
+    @commands.command(description="<emoji> can be the name, or id of an emoji", help="Returns a CDN of an emoji")
     async def emoji(self, ctx, emoji : discord.Emoji):
         await ctx.reply(emoji.url)
 
@@ -226,7 +226,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             await msg.add_reaction(emojis[i])
 
 
-    @commands.command(description="You can only close your own poll", help="Closes a poll tallying the results and preventing anymore votes", enabled=False)
+    @commands.command(description="You can only close your own poll", help="Closes a poll tallying the results and preventing anymore votes", enabled=False, hidden=True)
     @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
     async def closepoll(self, ctx):
         def closePollCheck(reaction, user):
@@ -257,7 +257,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             raise commands.BadArgument(f"Only {dic} can close that poll")
 
 
-    @commands.command(description="'member' can be the name, id, or mention of a member \nNickname must be fewer than 32 characters", help="Changes a member's nickname")
+    @commands.command(description="<member> can be the name, id, or mention of a member \nNickname must be fewer than 32 characters", help="Changes a member's nickname")
     @commands.bot_has_guild_permissions(manage_nicknames=True)
     @commands.has_permissions(manage_nicknames=True)
     async def nick(self, ctx, member : discord.Member, nick=None):
@@ -278,14 +278,14 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         await ctx.reply(f"Changed {member.mention}'s nickname from {oldNick} to {member.display_name}")
 
 
-    @commands.command(description="For accurate ping readings, this is ratelimited to 1 use every 5 seconds per guild", help=f"Checks GamerBot's Ping")
+    @commands.command(description="For accurate ping readings, this is ratelimited to 1 use every 5 seconds per guild", help="Checks GamerBot's Ping")
     @commands.cooldown(1, 60, commands.BucketType.guild)
     async def ping(self, ctx):
         t = await ctx.reply("Pong!")
         await t.edit(content=f'Pong! `{(t.created_at-ctx.message.created_at).total_seconds() * 1000}ms`')
 
 
-    @commands.command(description="'member' can be the name, id, or mention of a member", help="Quotes a member")
+    @commands.command(description="<member> can be the name, id, or mention of a member", help="Quotes a member")
     @commands.bot_has_guild_permissions(manage_webhooks=True, manage_messages=True)
     async def quote(self, ctx, member : discord.Member, *, message):
         webhook = get(await ctx.channel.webhooks(), name="quotebot")
@@ -302,12 +302,12 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             return m.channel == ctx.channel and m.author == ctx.author
         await ctx.reply("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
         message = await self.bot.wait_for('message', timeout=180, check=check)
-        embed = discord.Embed(title="Report", description=None, color=constants.RED)
+        embed = discord.Embed(title="Report", color=constants.RED)
         embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
         embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
-        embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
-        embed.add_field(name="Reporter:", value=str(ctx.author), inline=True)
-        embed.add_field(name="Reporter ID:", value=ctx.author.id, inline=True)
+        embed.add_field(name="Guild Owner:", value=ctx.guild.owner.mention, inline=True)
+        embed.add_field(name="Channel:", value=ctx.channel.mention, inline=True)
+        embed.add_field(name="Reporter:", value=ctx.author.mention, inline=False)
         embed.add_field(name="Report:", value=message.content, inline=False)
         await ctx.reply("Your report is submitted", embed=embed)
         await utils.sendReport(ctx, "Report", embed=embed)
@@ -378,7 +378,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             dm = await ctx.author.create_dm()
             await dm.send("Please choose from `rock`, `paper`, or `scissors`")
 
-            move1 = await bot.wait_for('message', timeout=60.0, check=rpsCheck1)
+            move1 = await self.bot.wait_for('message', timeout=60.0, check=rpsCheck1)
             await ctx.send(f"{member.mention} DM me your move")
 
             dm = await member.create_dm()
@@ -387,17 +387,17 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             move2 = await self.bot.wait_for('message', timeout = 60.0, check=rpsCheck2)
 
         if move1.content == move2.content:
-            embedVar = discord.Embed(title=f"{str(move1.author)} and {str(move2.author)} Tie! ", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0xfbff00)
+            embedVar = discord.Embed(title=f"{str(move1.author)} and {str(move2.author)} Tie! ", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=constants.RED)
         if move1.content == "rock" and move2.content == "scissors":
-            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
+            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=constants.RED)
         if move1.content == "scissors" and move2.content == "rock":
             embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         if move1.content == "rock" and move2.content == "paper":
             embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         if move1.content == "scissors" and move2.content == "paper":
-            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
+            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=constants.RED)
         if move1.content == "paper" and move2.content == "rock":
-            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
+            embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=constants.RED)
         if move1.content == "paper" and move2.content == "scissors":
             embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         await ctx.reply(embed=embedVar)

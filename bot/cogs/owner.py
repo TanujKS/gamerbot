@@ -1,5 +1,5 @@
-from utils.constants import r
 from utils import utils
+from utils.constants import r
 
 import discord
 from discord.ext import commands

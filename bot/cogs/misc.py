@@ -1,5 +1,5 @@
-from utils import utils
-from utils.constants import r, embedColors, emojis, Converters
+from utils import utils, constants
+from utils.constants import r, emojis, Converters
 
 import discord
 from discord.ext import commands
@@ -48,7 +48,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         guildInfo = utils.loadGuildInfo(r)
 
         if len(setting) == 0:
-            embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description=f"To edit a setting use '{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings (setting) (on/off, 1/2/3, etc)", color=embedColors["Red"])
+            embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description=f"To edit a setting use '{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings (setting) (on/off, 1/2/3, etc)", color=constants.RED)
             embed.add_field(name=f"Anti-Ez: `{utils.convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}`", value=f"{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings antiez on/off")
             embed.add_field(name=f"Maximum members allowed on one team: `{guildInfo[ctx.guild.id]['teamLimit']}`", value=f"{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings teamlimit 1/2/3...")
             embed.add_field(name=f"Role required to use speak (Text to Voice Channel): `{guildInfo[ctx.guild.id]['TTVCrole']}`", value=f"{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings TTVCrole some_role")
@@ -65,7 +65,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                     guildInfo[ctx.guild.id]['antiez'] = False
                 else:
                     raise commands.BadArgument("Argument must be 'on' or 'off'")
-                embed = discord.Embed(title=f"Anti-EZ is now {utils.convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", color=embedColors["Red"])
+                embed = discord.Embed(title=f"Anti-EZ is now {utils.convertBooltoStr(guildInfo[ctx.guild.id]['antiez'])}", color=constants.RED)
 
             elif setting[0] == "teamlimit":
                 try:
@@ -73,7 +73,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                 except ValueError:
                     raise commands.BadArgument("Argument must be a number")
                 guildInfo[ctx.guild.id]['teamLimit'] = setting
-                embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", color=embedColors["Red"])
+                embed = discord.Embed(title=f"Maximum members allowed in one team is now {guildInfo[ctx.guild.id]['teamLimit']}", color=constants.RED)
 
             elif setting[0] == "TTVCrole":
                 if setting[1] == "everyone":
@@ -83,7 +83,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                 if not get(ctx.guild.roles, name=setting1):
                     raise commands.RoleNotFound(setting1)
                 guildInfo[ctx.guild.id]['TTVCrole'] = setting1
-                embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", color=embedColors["Red"])
+                embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", color=constants.RED)
 
             elif setting[0] == "prefix":
                 guildInfo[ctx.guild.id]['prefix'] = setting[1]
@@ -101,7 +101,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
     @commands.command(help="Uses Google Translate to translate a message into English")
     async def translate(self, ctx, *, message):
-        embed = discord.Embed(title=f'Translation of "{message}"', color=embedColors["Red"])
+        embed = discord.Embed(title=f'Translation of "{message}"', color=constants.RED)
         translation = Translator().translate(message, dest='en')
         embed.add_field(name=LANGUAGES[translation.src.lower()].capitalize(), value=message, inline=False)
         embed.add_field(name=LANGUAGES[translation.dest].capitalize(), value=translation.text, inline=False)
@@ -110,7 +110,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
     @commands.command(help="Returns the definition of a word")
     async def define(self, ctx, word):
-        embed = discord.Embed(title=f"Definition of '{word}'", color=embedColors["Red"])
+        embed = discord.Embed(title=f"Definition of '{word}'", color=constants.RED)
         meanings = PyDictionary().meaning(word)
 
         if not meanings:
@@ -159,7 +159,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                 member_or_role = await Converters.MemberConverter.convert(ctx, member_or_role)
 
 
-        embed = discord.Embed(title=f"Perms for {str(member_or_role)} in {ctx.guild.name}", color=embedColors["Red"])
+        embed = discord.Embed(title=f"Perms for {str(member_or_role)} in {ctx.guild.name}", color=constants.RED)
 
         if type(member_or_role) == discord.Member:
             permissions = member_or_role.guild_permissions
@@ -211,7 +211,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             raise commands.BadArgument("Minimum of 2 options")
 
         try:
-            embed = discord.Embed(title=poll, color=embedColors["Red"])
+            embed = discord.Embed(title=poll, color=constants.RED)
         except discord.HTTPException:
             raise commands.BadArgument("Poll title must be less than 256 characters")
 
@@ -240,7 +240,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         footer = footer[8:]
         title = f"(closed) {dic['title']}"
         if str(user) == footer:
-            embed = discord.Embed(title=title, color=embedColors["Red"])
+            embed = discord.Embed(title=title, color=constants.RED)
             await ctx.message.delete()
             await close.delete()
             x = 0
@@ -303,7 +303,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             return m.channel == ctx.channel and m.author == ctx.author
         await ctx.reply("Please write your message as to what errors/problems you are experiencing. This will timeout in 3 minutes")
         message = await self.bot.wait_for('message', timeout=180, check=check)
-        embed = discord.Embed(title="Report", description=None, color=embedColors["Red"])
+        embed = discord.Embed(title="Report", description=None, color=constants.RED)
         embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
         embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
         embed.add_field(name="Guild Owner:", value=str(ctx.guild.owner), inline=True)
@@ -392,15 +392,15 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         if move1.content == "rock" and move2.content == "scissors":
             embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
         if move1.content == "scissors" and move2.content == "rock":
-            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=embedColors["Red"])
+            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         if move1.content == "rock" and move2.content == "paper":
-            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=embedColors["Red"])
+            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         if move1.content == "scissors" and move2.content == "paper":
             embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
         if move1.content == "paper" and move2.content == "rock":
             embedVar = discord.Embed(title=f"{str(move1.author)} beats {str(move2.author)}", description=f"{move1.content.capitalize()} and {move2.content.capitalize()}", color=0x00ff00)
         if move1.content == "paper" and move2.content == "scissors":
-            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=embedColors["Red"])
+            embedVar = discord.Embed(title=f"{str(move2.author)} beats {str(move1.author)}", description=f"{move2.content.capitalize()} and {move1.content.capitalize()}", color=constants.RED)
         await ctx.reply(embed=embedVar)
 
 

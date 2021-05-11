@@ -38,21 +38,12 @@ class HypixelModes:
     skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal", "doubles normal", "double normal"): "teams normal", ("teams insane", "team insane", "doubles insane", "double insane"): "teams insane"}
     duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "op doubles": "op_doubles", "combo": "combo_duel", "skywars": "sw_duel", "skywars doubles": "sw_doubles", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
 
-
-#Utils
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
 
-embedColors = {
-    "Red": 0xff0000,
-    "Orange": 0xff6600,
-    "Yellow": 0xfff700,
-    "Green": 0x00ff1e,
-    "Blue": 0x002aff,
-    "Purple": 0x8000ff,
-    "Pink": 0xfb00ff
-}
+RED = 0xff0000
+
 
 ezmessages = [
     "Wait... This isn't what I typed!",

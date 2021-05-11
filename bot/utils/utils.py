@@ -164,3 +164,11 @@ def checkIfSetup(ctx):
         raise commands.BadArgument(f"Your server may not be setup for Game Events yet. Run {determine_prefix(ctx.bot, ctx)[-1]}setup")
     else:
         return True
+
+
+def get_key(dict: dict, val):
+    for key, value in dict.items():
+        if value == val:
+            return keys
+    else:
+        return None

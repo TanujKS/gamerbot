@@ -178,11 +178,11 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
 
     @commands.command(description="<player> can be a Minecraft player or left blank to get your own Hypixel guild statistics", help="Gets the statistics of a Hypixel guild of a Minecraft player")
-    async def hypixelguild(self, ctx, *player):
-
-        EXP_NEEDED = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000]
+    async def hypixelguild(self, ctx, *player_or_guild):
 
         def getGuildLevel(exp):
+            EXP_NEEDED = [100000, 150000, 250000, 500000, 750000, 1000000, 1250000, 1500000, 2000000, 2500000, 2500000, 2500000, 2500000, 2500000, 3000000]
+
             level = 0
 
             for i in range(1000):
@@ -201,19 +201,35 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
             return 1000
 
-        player = await self.hasLink(ctx, player)
-        uuid = MojangAPI.get_uuid(player)
-        if not uuid:
-            raise commands.BadArgument(f'Player "{player}" not found.')
-        id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={uuid}")
-        success = id.get('guild')
-        if success:
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}")
-            success = guild.get('success')
-        if success == None:
-            raise commands.BadArgument(f"Player {player} is not in a guild.")
-        embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile",description=f"Guild stats for {guild['guild']['name']}", color=embedColors["Red"])
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
+
+        if len(player_or_guild) == 0:
+            is_player = True
+
+            player = r.get(ctx.author.id)
+            if player == None:
+                raise commands.BadArgument(f"{ctx.author.mention} has not linked their Discord to their Minecraft account")
+            player = player.decode('utf-8')
+
+            uuid = MojangAPI.get_uuid(player)
+            if not uuid:
+                raise commands.BadArgument(f'Player "{player}" not found')
+
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&player={uuid}")
+            if not guild.get('guild'):
+                raise commands.BadArgument(f"Player {player} is not in a guild")
+
+        else:
+            is_player = False
+
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&name={player_or_guild[0]}")
+            if not guild.get('guild'):
+                raise commands.BadArgument(f"Guild {player_or_guild[0]} not found")
+
+
+        embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=embedColors["Red"])
+        if is_player:
+            embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
+
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="ID:", value=len(guild['guild']['_id']), inline=True)
@@ -224,14 +240,17 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         embed.add_field(name="Winners:", value=guild['guild']['achievements']['WINNERS'])
         embed.add_field(name="Experience Kings:", value=guild['guild']['achievements']['EXPERIENCE_KINGS'])
         embed.add_field(name="Online Players:", value=guild['guild']['achievements']['ONLINE_PLAYERS'])
-        for member in guild['guild']['members']:
-            if member['uuid'] == uuid:
-                embed.add_field(name="\u200b", value="\u200b", inline=False)
-                embed.add_field(name="Player Stats:", value="\u200b", inline=False)
-                embed.add_field(name="Rank", value=member['rank'])
-                embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
-                await ctx.reply(embed=embed)
-                break
+
+        if is_player:
+            for member in guild['guild']['members']:
+                if member['uuid'] == uuid:
+                    embed.add_field(name="\u200b", value="\u200b", inline=False)
+                    embed.add_field(name="Player Stats:", value="\u200b", inline=False)
+                    embed.add_field(name="Rank", value=member['rank'])
+                    embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
+                    break
+
+        await ctx.reply(embed=embed)
 
 
     def getrate(self, stat1 : int, stat2 : int):

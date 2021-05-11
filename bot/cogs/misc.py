@@ -193,7 +193,10 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
         response = await utils.getJSON(url, json=False, read=True)
         img = BytesIO(response)
-        emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
+        try:
+            emoji = await ctx.guild.create_custom_emoji(name=emojiName, image=img.read())
+        except discord.HTTPException as error:
+            raise commands.BadArgument(error.text)
 
         await ctx.reply(f"Created {emojiName}: \n{emoji}")
 

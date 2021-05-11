@@ -32,24 +32,25 @@ class Info(commands.Cog, description="Commands for getting information on users,
 
 
     @commands.command(description="<user> can be the name, id, or mention of a user", help="Gets information of a user")
-    async def userinfo(self, ctx, user : discord.User):
+    async def userinfo(self, ctx, *user : discord.User):
+        user = ctx.author if not user else user[0]
         embed = await self.getUserInfo(ctx, user)
         await ctx.reply(embed=embed)
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Gets information of a member")
     @commands.guild_only()
-    async def memberinfo(self, ctx, member : discord.Member):
+    async def memberinfo(self, ctx, *member : discord.Member):
+        member = ctx.author if not member else member[0]
         embed = await self.getUserInfo(ctx, member)
         embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
         await ctx.send(embed=embed)
 
 
-    @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"], enabled=False, hidden=True)
+    @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"])
     @commands.guild_only()
     async def guildinfo(self, ctx, *guild : discord.Guild):
-        if not guild:
-            guild = ctx.guild
+        guild = ctx.guild if not guild else guild[0]
 
         embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=constants.RED)
         embed.set_thumbnail(url=ctx.guild.icon_url)
@@ -62,20 +63,18 @@ class Info(commands.Cog, description="Commands for getting information on users,
         embed.add_field(name="Region:", value=str(ctx.guild.region))
         embed.add_field(name="Region:", value=regions[str(ctx.guild.region)])
         embed.add_field(name="\u200b", value="\u200b")
-        embed.add_field(name="Owner:", value=str(ctx.guild.owner))
-        embed.add_field(name="Owner ID:", value=guild.owner_id)
-        embed.add_field(name="Owner Mention:", value=guild.owner.mention)
+        embed.add_field(name="Owner:", value=guild.owner.mention, inline=False)
         embed.add_field(name="Emoji Limit:", value=f"{guild.emoji_limit} Emojis")
         embed.add_field(name="Filesize Limit:", value=f"{guild.filesize_limit} Bytes")
         embed.add_field(name="Bitrate Limit:", value=f"{guild.bitrate_limit} Bits")
 
         def getMFALevel(mfaint : int):
-            if int == 0:
+            if mfaint == 0:
                 return "Not required"
-            if int == 1:
+            if mfaint == 1:
                 return "Required"
 
-        embed.add_field(name="Multi-Factor Authentication")
+        embed.add_field(name="Multi-Factor Authentication", value=getMFALevel(guild.mfa_level))
         await ctx.reply(embed=embed)
 
 

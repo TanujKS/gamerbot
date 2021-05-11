@@ -1,5 +1,5 @@
 from utils import exceptions
-from utils.constants import command_prefix, r, REPORTS, embedColors, regions, teams
+from utils.constants import command_prefix, r, EnvVars, embedColors, regions, teams
 
 import discord
 from discord.ext import commands
@@ -105,7 +105,7 @@ def convertBooltoExpress(bool : bool):
 
 async def sendReport(ctx, message, *, embed=None):
     async with aiohttp.ClientSession() as cs:
-        webhook = Webhook.from_url(REPORTS, adapter=AsyncWebhookAdapter(cs))
+        webhook = Webhook.from_url(EnvVars.REPORTS, adapter=AsyncWebhookAdapter(cs))
         await webhook.send(message, embed=embed)
 
 
@@ -161,7 +161,7 @@ def checkIfSetup(ctx):
 
 
     if NotFound:
-        raise commands.BadArgument(f"Your server may not be setup for Game Events yet. Run {determine_prefix(ctx.bot, ctx)[-1]}setup")
+        raise commands.BadArgument(f"Your server may not be setup for Game Events yet. Run {determine_prefix(ctx.bot, ctx, clean=True)}setup")
     else:
         return True
 

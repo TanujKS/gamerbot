@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, MemberConverter, bedwarsModes, skywarsModes, duelModes, HYPIXEL_KEY
+from utils.constants import r, embedColors, MemberConverter, bedwarsModes, skywarsModes, duelModes, EnvVars
 
 import discord
 from discord.ext import commands
@@ -68,7 +68,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
 
-        data = await utils.getJSON(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}")
+        data = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
         if not data.get('player') or not data['player'].get('socialMedia'):
             raise commands.BadArgument(f"{player} has not played Hypixel or has not linked Discord and cannot verify their account. If this is your account, log into Hypixel and run /discord")
 
@@ -101,7 +101,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
-        data = await utils.getJSON(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}")
+        data = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
         if not data.get('player') or not data['player'].get('displayname'):
             raise commands.BadArgument(f"{player} has not played Hypixel")
         embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=embedColors["Red"])
@@ -158,12 +158,12 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         embed.add_field(name="Level:", value=level, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="Karma:", value=karma, inline=True)
-        friends = await utils.getJSON(f"https://api.hypixel.net/friends?key={HYPIXEL_KEY}&uuid={data['player']['uuid']}")
+        friends = await utils.getJSON(f"https://api.hypixel.net/friends?key={EnvVars.HYPIXEL_KEY}&uuid={data['player']['uuid']}")
         friends = str(len(friends.get('records', [])))
         embed.add_field(name="Friends:", value=friends, inline=True)
-        id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={HYPIXEL_KEY}&byUuid={data['player']['uuid']}")
+        id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={EnvVars.HYPIXEL_KEY}&byUuid={data['player']['uuid']}")
         try:
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&id={id['guild']}")
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&id={id['guild']}")
             embed.add_field(name="\u200b", value="\u200b", inline=True)
             embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
             embed.add_field(name="Guild Members:", value=len(guild['guild']['members']), inline=True)
@@ -214,14 +214,14 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             if not uuid:
                 raise commands.BadArgument(f'Player "{player}" not found')
 
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&player={uuid}")
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&player={uuid}")
             if not guild.get('guild'):
                 raise commands.BadArgument(f"Player {player} is not in a guild")
 
         else:
             is_player = False
 
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={HYPIXEL_KEY}&name={player_or_guild[0]}")
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&name={player_or_guild[0]}")
             if not guild.get('guild'):
                 raise commands.BadArgument(f"Guild {player_or_guild[0]} not found")
 
@@ -290,7 +290,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
-        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}")
+        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
 
         if rawData.get("success") == None:
             raise commands.BadArgument(rawData.get('cause'))
@@ -428,7 +428,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
-        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}")
+        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
         if not rawData.get('player') or not rawData['player'].get('stats') or not   rawData['player']['stats'].get("SkyWars"):
             raise commands.BadArgument(f"{player} has not played SkyWars")
         data = rawData['player']['stats']['SkyWars']
@@ -537,7 +537,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         uuid = MojangAPI.get_uuid(player)
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
-        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={HYPIXEL_KEY}&uuid={uuid}")
+        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
         if rawData.get("success") == False:
             raise commands.BadArgument(f"Hypixel API returned an error: {rawData.get('cause')}")
         if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get('Duels'):

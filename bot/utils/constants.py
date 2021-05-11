@@ -13,19 +13,19 @@ load_dotenv()
 
 command_prefix = "?"
 
-#Keys
-ALT_TOKEN = os.getenv("ALT_TOKEN")
-HYPIXEL_KEY = os.getenv("HYPIXEL_KEY")
-REDIS_URL = os.getenv("REDIS_URL")
-REPORTS = os.getenv("REPORTS")
-TOKEN = os.getenv("TOKEN")
-TRN_API_KEY = os.getenv("TRN_API_KEY")
-TWITCH_AUTH = os.getenv("TWITCH_AUTH")
-TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
-YT_KEY = os.getenv("YT_KEY")
 
-r = redis.from_url(REDIS_URL)
+class EnvVars:
+    ALT_TOKEN = os.getenv("ALT_TOKEN")
+    HYPIXEL_KEY = os.getenv("HYPIXEL_KEY")
+    REDIS_URL = os.getenv("REDIS_URL")
+    REPORTS = os.getenv("REPORTS")
+    TOKEN = os.getenv("TOKEN")
+    TRN_API_KEY = os.getenv("TRN_API_KEY")
+    TWITCH_AUTH = os.getenv("TWITCH_AUTH")
+    TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
+    YT_KEY = os.getenv("YT_KEY")
 
+r = redis.from_url(EnvVars.REDIS_URL)
 
 #Converters
 MemberConverter = commands.MemberConverter()

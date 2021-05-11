@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, MemberConverter, TWITCH_CLIENT_ID, TWITCH_AUTH, YT_KEY, TRN_API_KEY
+from utils.constants import r, embedColors, MemberConverter, EnvVars
 
 import discord
 from discord.ext import commands, tasks
@@ -22,7 +22,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         for guild in trackingGuilds:
             for track in trackingGuilds[guild]:
                 index = trackingGuilds[guild].index(track)
-                data = await utils.getJSON(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":TWITCH_CLIENT_ID, "Authorization": TWITCH_AUTH})
+                data = await utils.getJSON(f'https://api.twitch.tv/helix/search/channels?query={trackingGuilds[guild][index]["streamer"]}/', headers={"client-id":EnvVars.TWITCH_CLIENT_ID, "Authorization": EnvVars.TWITCH_AUTH})
                 returned = list(data['data'])
                 for channel in returned:
                     if channel['id'] == str(trackingGuilds[guild][index]['id']):
@@ -55,7 +55,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         if data['status'] != 200:
             raise commands.BadArgument(f'Player "{player}" not found.')
         else:
-            embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", description=None, color=embedColors["Red"])
+            embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", color=embedColors["Red"])
             embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
             embed.add_field(name="ID:", value=data['data']['account']['id'], inline=False)
             embed.add_field(name="BattlePass Level:", value=data['data']['battlePass']['level'])
@@ -88,7 +88,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             description = "None"
         embed.add_field(name="Channel Description", value=description, inline=False)
         embed.add_field(name="Views", value=data['view_count'], inline=True)
-        followers = await utils.getJSON(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"})
+        followers = await utils.getJSON(f"https://api.twitch.tv/helix/users/follows?to_id={data['id']}", headers={"client-id":f"{EnvVars.TWITCH_CLIENT_ID}", "Authorization":f"{EnvVars.TWITCH_AUTH}"})
         embed.add_field(name="Followers", value=followers['total'], inline=True)
         embed.set_footer(text=f"Stats provided by the Twitch API \nNot the streamer your looking for? Type 'see more' to see more {channel}s and then run '?twitchbyid (id_of_the_channel_you_want)'")
         return embed
@@ -96,7 +96,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @commands.command(help="Gets the statistics of a Twitch streamer by their Channel ID")
     async def twitchbyid(self, ctx, id):
-        rawData = await utils.getJSON(f"https://api.twitch.tv/helix/users?id={id}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"})
+        rawData = await utils.getJSON(f"https://api.twitch.tv/helix/users?id={id}", headers={"client-id":f"{EnvVars.TWITCH_CLIENT_ID}", "Authorization":f"{EnvVars.TWITCH_AUTH}"})
         if not rawData.get('data'):
             raise commands.ChannelNotFound(channel)
         await self.twitch(ctx, rawData['data'][0]['login'])
@@ -104,7 +104,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @commands.command(help="Gets the statistics of a Twitch streamer by their channel name")
     async def twitch(self, ctx, channel):
-        user = await utils.getJSON(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"})
+        user = await utils.getJSON(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{EnvVars.TWITCH_CLIENT_ID}", "Authorization":f"{EnvVars.TWITCH_AUTH}"})
 
         if not user.get('data'):
             raise commands.ChannelNotFound(channel)
@@ -131,7 +131,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         if not message:
             message = f"{channel} is live"
 
-        user = await utils.getJSON(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{TWITCH_CLIENT_ID}", "Authorization":f"{TWITCH_AUTH}"})
+        user = await utils.getJSON(f"https://api.twitch.tv/helix/users?login={channel}", headers={"client-id":f"{EnvVars.TWITCH_CLIENT_ID}", "Authorization":f"{EnvVars.TWITCH_AUTH}"})
         if not user:
             raise commands.ChannelNotFound(channel)
 
@@ -182,14 +182,14 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
     @commands.command(help="Gets the statistics of a YouTuber", aliases=["yt"])
     async def youtube(self, ctx, *, channel):
         channel = channel.replace(" ", "%20")
-        data = await utils.getJSON(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={YT_KEY}")
+        data = await utils.getJSON(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={channel}&type=channel&key={EnvVars.YT_KEY}")
         errors = data.get('error')
         if errors:
             raise commands.BadArgument("YouTube returned an error!")
         if not data.get('items'):
             raise commands.ChannelNotFound(channel)
         channel_id = data['items'][0]['snippet']['channelId']
-        stats = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={YT_KEY}")
+        stats = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={EnvVars.YT_KEY}")
         embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=embedColors["Red"])
         embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
         embed.add_field(name="Channel ID:", value=channel_id, inline=True)
@@ -227,7 +227,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
     @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])
     async def csgoverify(self, ctx, id):
         csgoLinks = utils.loadCSGOLinks(r)
-        rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": TRN_API_KEY})
+        rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": EnvVars.TRN_API_KEY})
         data = rawData.get('data')
         if not data:
             raise commands.BadArgument(rawData['errors'][0]['message'])
@@ -251,7 +251,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             player = csgoLinks.get(member)
             if not player:
                 raise commands.BadArgument(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run {utils.determine_prefix(ctx.bot, ctx)}csgolink")
-        rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": TRN_API_KEY})
+        rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": EnvVars.TRN_API_KEY})
         data = rawData.get('data')
         if not data:
             raise commands.BadArgument(rawData['errors'][0]['message'])

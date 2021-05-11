@@ -1,6 +1,6 @@
 from utils import utils, exceptions
 from utils.help import EmbedHelpCommand
-from utils.constants import r, TOKEN, ALT_TOKEN
+from utils.constants import r, EnvVars
 
 import os
 import sys
@@ -11,12 +11,6 @@ from discord.ext import commands
 
 if r.get("shutdown") == "True":
     raise Exception("Shutting down")
-
-
-keys = {
-"TOKEN": TOKEN,
-"ALT_TOKEN": ALT_TOKEN
-}
 
 
 bot = commands.Bot(
@@ -35,6 +29,10 @@ for file in os.listdir("bot/cogs"):
         bot.load_extension(f"cogs.{fileName}")
 
 
+try:
+    TOKEN = getattr(EnvVars, sys.argv[1])
+except (AttributeError, IndexError):
+    raise ValueError("Invalid token")
 
 
-bot.run(keys[sys.argv[1]])
+bot.run(TOKEN)

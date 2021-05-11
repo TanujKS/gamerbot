@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, MemberConverter, EnvVars
+from utils.constants import r, embedColors, Converters, EnvVars
 
 import discord
 from discord.ext import commands, tasks
@@ -242,7 +242,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         if len(player) == 0:
             member = ctx.author.id
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player[0])
+            member = await Converters.MemberConverter.convert(ctx, player[0])
             member = member.id
         else:
             member = None

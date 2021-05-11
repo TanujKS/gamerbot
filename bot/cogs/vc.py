@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, MemberConverter, VoiceChannelConverter
+from utils.constants import r, Converters
 
 import os
 
@@ -39,7 +39,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
             await ctx.reply(f"{action} all members in {ctx.guild.name}")
 
         else:
-            member = await MemberConverter.convert(ctx, member)
+            member = await Converters.MemberConverter.convert(ctx, member)
             if not member.voice:
                 raise commands.BadArgument(f"{str(member)} is not in a voice channel")
 
@@ -59,7 +59,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
                 raise commands.BadArgument("You are not in a voice channel")
             voicechannel = ctx.author.voice.channel
         else:
-            voicechannel = await VoiceChannelConverter.convert(ctx, voicechannel)
+            voicechannel = await Converters.VoiceChannelConverter.convert(ctx, voicechannel)
 
         for member in await self.editMemberVoice(ctx, member, "Moving"):
             await member.edit(voice_channel=voicechannel)

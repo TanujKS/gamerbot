@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, MemberConverter, bedwarsModes, skywarsModes, duelModes, EnvVars
+from utils.constants import r, embedColors, Converters, bedwarsModes, skywarsModes, duelModes, EnvVars
 
 import discord
 from discord.ext import commands
@@ -28,7 +28,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if len(player) == 0:
             member = ctx.author
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player[0])
+            member = await Converters.MemberConverter.convert(ctx, player[0])
         else:
             member = None
             player = player[0]
@@ -277,7 +277,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 player_and_mode = tuple(player_and_mode)
 
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player_and_mode[0])
+            member = await Converters.MemberConverter.convert(ctx, player_and_mode[0])
         else:
             member = None
             player = player_and_mode[0]
@@ -416,7 +416,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 player_and_mode.insert(0, "")
                 player_and_mode = tuple(player_and_mode)
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player_and_mode[0])
+            member = await Converters.MemberConverter.convert(ctx, player_and_mode[0])
         else:
             member = None
             player = player_and_mode[0]
@@ -525,7 +525,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 player_and_mode.insert(0, "")
                 player_and_mode = tuple(player_and_mode)
         elif ctx.message.mentions:
-            member = await MemberConverter.convert(ctx, player_and_mode[0])
+            member = await Converters.MemberConverter.convert(ctx, player_and_mode[0])
         else:
             member = None
             player = player_and_mode[0]

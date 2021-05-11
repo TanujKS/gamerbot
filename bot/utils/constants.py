@@ -27,10 +27,10 @@ class EnvVars:
 
 r = redis.from_url(EnvVars.REDIS_URL)
 
-#Converters
-MemberConverter = commands.MemberConverter()
-VoiceChannelConverter = commands.VoiceChannelConverter()
-RoleConverter = commands.RoleConverter()
+class Converters:
+    MemberConverter = commands.MemberConverter()
+    VoiceChannelConverter = commands.VoiceChannelConverter()
+    RoleConverter = commands.RoleConverter()
 
 
 #Hypixel Modes

@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, emojis, MemberConverter, RoleConverter
+from utils.constants import r, embedColors, emojis, Converters
 
 import discord
 from discord.ext import commands
@@ -154,9 +154,9 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             member_or_role = ctx.author
         else:
             try:
-                member_or_role = await RoleConverter.convert(ctx, member_or_role)
+                member_or_role = await Converters.RoleConverter.convert(ctx, member_or_role)
             except commands.RoleNotFound:
-                member_or_role = await MemberConverter.convert(ctx, member_or_role)
+                member_or_role = await Converters.MemberConverter.convert(ctx, member_or_role)
 
 
         embed = discord.Embed(title=f"Perms for {str(member_or_role)} in {ctx.guild.name}", color=embedColors["Red"])
@@ -371,7 +371,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             def rpsCheck1(m):
                 return m.author == ctx.author and m.guild == None and m.content in moves
 
-            member = await MemberConverter.convert(ctx, member)
+            member = await Converters.MemberConverter.convert(ctx, member)
             await ctx.send(f"{member.mention}! {ctx.author.mention} challenges you to rock paper scissors!")
 
             await ctx.reply(f"{ctx.author.mention} DM me your move")

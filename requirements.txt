@@ -1,14 +1,11 @@
-discord.py
-mojang
+discord
+python-dotenv
 pytz
-youtube-data-api
 gtts
 ffmpeg-python
 ffmpeg
-pynacl
 redis
 Pillow
 googletrans==3.1.0a0
 PyDictionary
-python-dotenv
-youtube-dl
+mojang

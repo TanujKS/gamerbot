@@ -116,7 +116,7 @@ class Listeners(commands.Cog):
 
             messageList = message.content.lower().split()
 
-            if len(messageList) == 1 and self.bot.user in message.mentions:
+            if not message.reference and len(messageList) == 1 and self.bot.user in message.mentions:
                 try:
                     await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message)[-1]}`")
                 except discord.errors.Forbidden:

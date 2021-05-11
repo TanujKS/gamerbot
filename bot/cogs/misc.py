@@ -227,7 +227,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
             await msg.add_reaction(emojis[i])
 
 
-    @commands.command(description="You can only close your own poll", help="Closes a poll tallying the results and preventing anymore votes")
+    @commands.command(description="You can only close your own poll", help="Closes a poll tallying the results and preventing anymore votes", enabled=False)
     @commands.bot_has_guild_permissions(add_reactions=True, manage_messages=True)
     async def closepoll(self, ctx):
         def closePollCheck(reaction, user):

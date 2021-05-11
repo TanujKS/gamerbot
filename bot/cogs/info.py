@@ -34,7 +34,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
     @commands.command(description="<user> can be the name, id, or mention of a user", help="Gets information of a user")
     async def userinfo(self, ctx, user : discord.User):
         embed = await self.getUserInfo(ctx, user)
-        await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        await ctx.reply(embed=embed)
 
 
     @commands.command(description="<member> can be the name, id, or mention of a member", help="Gets information of a member")
@@ -42,7 +42,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
     async def memberinfo(self, ctx, member : discord.Member):
         embed = await self.getUserInfo(ctx, member)
         embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
-        await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        await ctx.send(embed=embed)
 
 
     @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"], enabled=False, hidden=True)
@@ -76,7 +76,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
                 return "Required"
 
         embed.add_field(name="Multi-Factor Authentication")
-        await ctx.reply(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        await ctx.reply(embed=embed)
 
 
 

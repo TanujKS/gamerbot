@@ -292,7 +292,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         webhook = get(await ctx.channel.webhooks(), name="quotebot")
         if not webhook:
             webhook = await ctx.channel.create_webhook(name="quotebot")
-        await webhook.send(message, username=member.display_name, avatar_url=member.avatar_url, allowed_mentions=discord.AllowedMentions.none())
+        await webhook.send(message, username=member.display_name, avatar_url=member.avatar_url)
         await ctx.message.delete()
 
 

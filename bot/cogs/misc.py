@@ -175,11 +175,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
     @commands.command(description="'user' can be the name, id, or mention of a Discord user", help="Returns the profile picture of a Discord user", aliases=['pfp', 'profile'])
     async def avatar(self, ctx, *user : discord.User):
-        if len(user) == 0:
-            user = ctx.author
-        else:
-            user = user[0]
-
+        user = ctx.author if not user else user[0]
         await ctx.reply(user.avatar_url)
 
 

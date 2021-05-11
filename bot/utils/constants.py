@@ -33,10 +33,10 @@ class Converters:
     RoleConverter = commands.RoleConverter()
 
 
-#Hypixel Modes
-bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
-skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal", "doubles normal", "double normal"): "teams normal", ("teams insane", "team insane", "doubles insane", "double insane"): "teams insane"}
-duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "op doubles": "op_doubles", "combo": "combo_duel", "skywars": "sw_duel", "skywars doubles": "sw_doubles", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
+class HypixelModes:
+    bedwarsModes = {("solos", "solo", "ones"): "eight_one", ("doubles", "double", "twos"): "eight_two", ("3s", "triples", "threes", "3v3v3v3"): "four_three", ("4s", "4v4v4v4", "quadruples", "fours"): "four_four", "4v4": "two_four"}
+    skywarsModes = {("solo normal", "solos normal"): "solos normal", ("solo insane", "solos insane"): "solos insane", ("teams normal", "team normal", "doubles normal", "double normal"): "teams normal", ("teams insane", "team insane", "doubles insane", "double insane"): "teams insane"}
+    duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "op doubles": "op_doubles", "combo": "combo_duel", "skywars": "sw_duel", "skywars doubles": "sw_doubles", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
 
 
 #Utils

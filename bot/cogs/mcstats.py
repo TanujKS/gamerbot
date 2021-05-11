@@ -1,5 +1,5 @@
 from utils import utils
-from utils.constants import r, embedColors, Converters, bedwarsModes, skywarsModes, duelModes, EnvVars
+from utils.constants import r, embedColors, Converters, HypixelModes, EnvVars
 
 import discord
 from discord.ext import commands
@@ -267,9 +267,9 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         return ceilingRate, total, res
 
 
-    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
     async def bedwars(self, ctx, *player_and_mode):
-        if len(player_and_mode) == 0 or utils.multi_key_dict_get(bedwarsModes, player_and_mode[0]) != None:
+        if len(player_and_mode) == 0 or utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[0]) != None:
             member = ctx.author
             if len(player_and_mode) == 1:
                 player_and_mode = list(player_and_mode)
@@ -332,7 +332,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             embed.add_field(name=f"Beds broken needed for a B/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
         else:
-            mode = utils.multi_key_dict_get(bedwarsModes, player_and_mode[1])
+            mode = utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[1])
             if mode == None:
                 raise commands.BadArgument("Invalid mode")
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=embedColors["Red"])
@@ -394,7 +394,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         return "".join([a for a in roman_num(num)])
 
 
-    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
     async def skywars(self, ctx, *player_and_mode):
         def getSkyWarsLevel(xp : int):
             if xp >= 15000:
@@ -409,7 +409,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
 
         mode = " ".join(player_and_mode)
-        if len(player_and_mode) == 0 or utils.multi_key_dict_get(skywarsModes, mode) != None:
+        if len(player_and_mode) == 0 or utils.multi_key_dict_get(HypixelModes.skywarsModes, mode) != None:
             member = ctx.author
             if len(player_and_mode) > 0:
                 player_and_mode = list(player_and_mode)
@@ -457,7 +457,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             player_and_mode = list(player_and_mode)
             player_and_mode.pop(0)
             joinedmode = " ".join(player_and_mode)
-            joinedmode = (utils.multi_key_dict_get(skywarsModes, joinedmode))
+            joinedmode = (utils.multi_key_dict_get(HypixelModes.skywarsModes, joinedmode))
             if joinedmode == "solos normal":
                 embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=embedColors["Red"])
                 embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
@@ -511,14 +511,14 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         await ctx.reply(embed=embed)
 
 
-    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Duels statistics \n Mode can be {utils.getHypixelHelp(duelModes)} or left blank to get overall statistics", help="Gets the Duels statistics of a Minecraft player")
+    @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Duels statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.duelModes)} or left blank to get overall statistics", help="Gets the Duels statistics of a Minecraft player")
     async def duels(self, ctx, *player_and_mode):
         ranks = ['godlike', 'grandmaster', 'legend', 'master', 'diamond', 'gold', 'iron', 'rookie']
         bridgeModes = ["bridge_3v3v3v3", "bridge_doubles", "bridge_four", "bridge_2v2v2v2"]
         prestige = None
 
         mode = " ".join(player_and_mode)
-        if len(player_and_mode) == 0 or utils.multi_key_dict_get(duelModes, mode) != None:
+        if len(player_and_mode) == 0 or utils.multi_key_dict_get(HypixelModes.duelModes, mode) != None:
             member = ctx.author
             if len(player_and_mode) > 0:
                 player_and_mode = list(player_and_mode)
@@ -584,7 +584,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             player_and_mode = list(player_and_mode)
             player_and_mode.pop(0)
             mode = " ".join(player_and_mode)
-            if not mode in duelModes:
+            if not mode in HypixelModes.duelModes:
                 raise commands.BadArgument(f'Mode "{mode}" not found.')
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=embedColors["Red"])
             for ra in ranks:
@@ -594,7 +594,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                         break
                     prestige = f'{ra.capitalize()} {self.write_roman(prestigeNumber)}'
                     break
-            mode = duelModes[mode]
+            mode = HypixelModes.duelModes[mode]
             embed.add_field(name="Prestige", value=prestige, inline=True)
             embed.add_field(name="Current Winstreak", value=data.get(f"current_winstreak_mode_{mode}", 0), inline=True)
             embed.add_field(name="Best Winstreak", value=data.get(f"best_winstreak_mode_{mode}", 0), inline=True)

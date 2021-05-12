@@ -1,11 +1,9 @@
-from utils import constants
-from utils.constants import regions
+from utils import utils, constants
+from utils.constants import Regions
 
 import discord
 from discord.ext import commands
 from discord.utils import get
-
-from pytz import timezone
 
 
 class Info(commands.Cog, description="Commands for getting information on users, members, etc"):
@@ -14,21 +12,21 @@ class Info(commands.Cog, description="Commands for getting information on users,
         print("Loaded", __name__)
 
 
-    async def getUserInfo(self, ctx, user : discord.User):
-        embed = discord.Embed(title=f"{str(user)}'s Profile", description=user.mention, color=constants.RED)
-        embed.set_thumbnail(url=user.avatar_url)
-        embed.add_field(name="Display Name:", value=user.display_name)
-        embed.add_field(name="ID:", value=user.id)
-        embed.add_field(name="Account creation date:", value=(user.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S ') + f" {regions[str(ctx.guild.region)]} Time")
-        return embed
-
-
     @commands.command(help="Gets source code of GamerBot")
     async def sourcecode(self, ctx):
         embed = discord.Embed(color=constants.RED)
         embed.add_field(name="Source Code:", value="https://github.com/gamerbot")
         embed.add_field(name="Invite Link:", value="http://gamerbot.ga")
         await ctx.reply(embed=embed)
+
+
+    async def getUserInfo(self, ctx, user : discord.User):
+        embed = discord.Embed(title=f"{str(user)}'s Profile", description=user.mention, color=constants.RED)
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.add_field(name="Display Name:", value=user.display_name)
+        embed.add_field(name="ID:", value=user.id)
+        embed.add_field(name="Account creation date:", value=utils.UTCtoZone(user.created_at, ctx.guild.region.name))
+        return embed
 
 
     @commands.command(description="<user> can be the name, id, or mention of a user", help="Gets information of a user")
@@ -43,7 +41,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
     async def memberinfo(self, ctx, *member : discord.Member):
         member = ctx.author if not member else member[0]
         embed = await self.getUserInfo(ctx, member)
-        embed.add_field(name=f"Joined {ctx.guild.name} at:", value=(member.joined_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
+        embed.add_field(name=f"Joined {ctx.guild.name} at:", value=utils.UTCtoZone(member.joined_at, ctx.guild.region.name))
         await ctx.send(embed=embed)
 
 
@@ -56,12 +54,12 @@ class Info(commands.Cog, description="Commands for getting information on users,
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.add_field(name="Name:", value=guild.name)
         embed.add_field(name="ID:", value=guild.id)
-        embed.add_field(name="Created at:", value=(guild.created_at).astimezone(timezone(regions[str(ctx.guild.region)])).strftime('%m/%d/%Y %H:%M:%S') + f" {regions[str(ctx.guild.region)]} Time")
+        embed.add_field(name="Created at:", value=utils.UTCtoZone(guild.created_at, ctx.guild.region.name))
         embed.add_field(name="Members:", value=len([member for member in ctx.guild.members if not member.bot]))
         embed.add_field(name="Bots:", value=len([bot for bot in ctx.guild.members if bot.bot]))
         embed.add_field(name="Total Members:", value=guild.member_count)
         embed.add_field(name="Region:", value=str(ctx.guild.region))
-        embed.add_field(name="Region:", value=regions[str(ctx.guild.region)])
+        embed.add_field(name="Region:", value=getattr(Regions, ctx.guild.region.name))
         embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Owner:", value=guild.owner.mention, inline=False)
         embed.add_field(name="Emoji Limit:", value=f"{guild.emoji_limit} Emojis")

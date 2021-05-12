@@ -1,6 +1,6 @@
 discord
 python-dotenv
-pytz
+python-dateutil
 gtts
 ffmpeg-python
 ffmpeg
@@ -9,4 +9,4 @@ Pillow
 googletrans==3.1.0a0
 PyDictionary
 mojang
-PyNaCl 
+PyNaCl

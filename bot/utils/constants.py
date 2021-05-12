@@ -33,6 +33,31 @@ class HypixelModes:
     duelModes = {"classic": "classic_duel", "uhc": "uhc_duel", "op": "op_duel", "op doubles": "op_doubles", "combo": "combo_duel", "skywars": "sw_duel", "skywars doubles": "sw_doubles", "sumo": "sumo_duel", "uhc doubles": "uhc_doubles", "bridge": "bridge_duel", "bridge 3v3v3v3": "bridge_3v3v3v3", "bridge doubles": "bridge_doubles", "bridge teams": "bridge_four", "bridge 2v2v2v2": "bridge_2v2v2v2"}
 
 
+class Regions:
+    amsterdam = "Europe/Amsterdam"
+    brazil = "America/Sao_Paulo"
+    dubai = "Asia/Dubai"
+    eu_central = "Europe/Paris"
+    eu_west = "Europe/Lisbon"
+    europe = "Europe/Paris"
+    frankfurt = "Europe/Berlin"
+    hongkong = "Asia/Hong_Kong"
+    india = "Asia/Kolkata"
+    japan = "Asia/Tokyo"
+    london = "Europe/London"
+    russia = "Europe/Moscow"
+    southafrica = "Africa/Johannesburg"
+    south_korea = "Asia/Seoul"
+    sydney = "Australia/Sydney"
+    us_central = "America/Chicago"
+    us_east = "America/New_York"
+    us_south = "America/Chicago"
+    us_west = "America/Los_Angeles"
+    vip_amsterdam = "Europe/Amsterdam"
+    vip_us_east = "America/New_York"
+    vip_us_west = "America/Los_Angeles"
+
+
 command_prefix = "?"
 
 r = redis.from_url(EnvVars.REDIS_URL)
@@ -80,28 +105,3 @@ ezmessages = [
     "Pineapple doesn't go on pizza!",
     "Lets be friends instead of fighting okay?"
     ]
-
-regions = {
-"amsterdam": "Europe/Amsterdam",
-"brazil": "America/Sao_Paulo",
-"dubai": "Asia/Dubai",
-"eu-central": "Europe/Paris",
-"eu-west": "Europe/Lisbon",
-"europe": "Europe/Paris",
-"frankfurt": "Europe/Berlin",
-"hongkong": "Asia/Hong_Kong",
-"india": "Asia/Kolkata",
-"japan": "Asia/Tokyo",
-"london": "Europe/London",
-"russia": "Europe/Moscow",
-"southafrica": "Africa/Johannesburg",
-"south-korea": "Asia/Seoul",
-"sydney": "Australia/Sydney",
-"us-central": "America/Chicago",
-"us-east": "America/New_York",
-"us-south": "America/Chicago",
-"us-west": "America/Los_Angeles",
-"vip-amsterdam": "Europe/Amsterdam",
-"vip-us-east": "America/New_York",
-"vip-us-west": "America/Los_Angeles"
-}

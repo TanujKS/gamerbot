@@ -352,7 +352,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         await ctx.reply(dmedMessage)
 
 
-    @commands.command(description="'member' can be the name, id, or mention of a member or 'bot'", help="Starts a game of rock, paper, scissors with a member or GamerBot")
+    @commands.command(description="<member> can be the name, id, or mention of a member or 'bot'", help="Starts a game of rock, paper, scissors with a member or GamerBot")
     async def rps(self, ctx, member):
         moves = ["rock", "paper", "scissors"]
 

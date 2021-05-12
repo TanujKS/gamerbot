@@ -8,7 +8,7 @@ from discord.utils import get
 import math
 
 import time
-from pytz import timezone
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -108,7 +108,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         ts = data['player'].get('lastLogin')
         if ts:
             ts /= 1000
-            d = utils.TimefromStamp(ts, ctx.guild.region)
+            d = datetime.fromtimestamp(ts).strftime("%H:%M:%S %m/%d/%Y")
         else:
             d = "Never"
             status = "Offline"
@@ -116,7 +116,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         ts = data['player'].get('lastLogout')
         if ts:
             ts /= 1000
-            d1 = utils.TimefromStamp(ts, ctx.guild.region)
+            d1 = datetime.fromtimestamp(ts).strftime("%H:%M:%S %m/%d/%Y")
         else:
             d1 = "Never"
             status = "Online"

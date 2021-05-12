@@ -1,5 +1,5 @@
 from utils import exceptions
-from utils.constants import command_prefix, r, EnvVars, regions, teams
+from utils.constants import command_prefix, r, EnvVars, Regions, teams
 
 import discord
 from discord.ext import commands
@@ -11,7 +11,7 @@ import aiohttp
 import json
 
 from datetime import datetime
-from pytz import timezone
+from dateutil import tz
 
 
 def saveData(r, key, value):
@@ -120,11 +120,24 @@ async def getJSON(url, headers=None, json=True, read=False):
 
 
 def TimefromStamp(ts, region):
-    region = str(region)
-    if regions.get(region) != None:
-        region = regions[region]
-    d = ((datetime.fromtimestamp(ts)).astimezone(timezone(region))).strftime('%H:%M:%S %m/%d/%Y') + f" {region} Time"
-    return d
+    time = datetime.fromtimestamp(ts)
+    return UTCtoZone(time, region)
+
+
+def UTCtoZone(utc_time, region):
+    try:
+        region = getattr(Regions, region)
+    except AttributeError:
+        pass
+
+    utc = tz.gettz('UTC')
+    new_zone = tz.gettz(region)
+
+    utc_time = utc_time.replace(tzinfo=utc)
+
+    local_time = (utc_time.astimezone(new_zone)).strftime('%H:%M:%S %m/%d/%Y') + f" {region} Time"
+
+    return local_time
 
 
 def getHypixelHelp(dict : dict):

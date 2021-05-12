@@ -21,7 +21,7 @@ class Listeners(commands.Cog):
 
 
     async def bot_check(self, ctx):
-        blackListed = utils.loadBlacklisted(r)
+        blackListed = utils.loadBlacklisted()
         if ctx.author.id not in blackListed:
             return True
         else:

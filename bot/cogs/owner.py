@@ -20,7 +20,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Blacklists a user")
     async def blacklist(self, ctx, user : discord.User):
-        blackListed = utils.loadBlacklisted(r)
+        blackListed = utils.loadBlacklisted()
         if user.id in blackListed:
             raise commands.BadArgument(f"{user.mention} is already blacklisted")
         blackListed.append(user.id)
@@ -30,7 +30,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Unblacklists a user")
     async def unblacklist(self, ctx, user : discord.User):
-        blackListed = utils.loadBlacklisted(r)
+        blackListed = utils.loadBlacklisted()
         if not user.id in blackListed:
             raise commands.BadArgument(f"{user.mention} is not blacklisted")
         blackListed.remove(user.id)
@@ -40,7 +40,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Returns a list of blacklisted users")
     async def blacklisted(self, ctx):
-        blackListed = utils.loadBlacklisted(r)
+        blackListed = utils.loadBlacklisted()
         mentions = [user.mention for user in [self.bot.get_user(x) for x in blackListed]]
         message = ""
         for mention in mentions:

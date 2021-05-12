@@ -14,6 +14,20 @@ from datetime import datetime
 from dateutil import tz
 
 
+def determine_prefix(bot, ctx, clean=False):
+    guildInfo = loadGuildInfo()
+    guild = ctx.guild
+    if guild:
+        prefix = guildInfo[guild.id].get('prefix')
+    else:
+        prefix = command_prefix
+
+    if clean == False:
+        prefix = commands.when_mentioned_or(*prefix)(bot, ctx)
+
+    return prefix
+
+
 def saveData(r, key, value):
     rval = json.dumps(value)
     r.set(key, rval)
@@ -30,21 +44,7 @@ def loadGuildInfo():
     return guildInfo
 
 
-def determine_prefix(bot, ctx, clean=False):
-    guildInfo = loadGuildInfo(r)
-    guild = ctx.guild
-    if guild:
-        prefix = guildInfo[guild.id].get('prefix')
-    else:
-        prefix = command_prefix
-
-    if clean == False:
-        prefix = commands.when_mentioned_or(*prefix)(bot, ctx)
-
-    return prefix
-
-
-def loadBlacklisted(r):
+def loadBlacklisted():
     blackListed = r.lrange("blacklisted", 0, -1)
     for i in range(0, len(blackListed)):
         blackListed[i] = int(blackListed[i].decode("utf-8"))
@@ -52,7 +52,7 @@ def loadBlacklisted(r):
     return blackListed
 
 
-def loadTrackingGuilds(r):
+def loadTrackingGuilds():
     rval = r.get("trackingGuilds")
     tempTrackingGuilds = json.loads(rval)
     trackingGuilds = {}

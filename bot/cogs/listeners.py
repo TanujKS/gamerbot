@@ -35,7 +35,7 @@ class Listeners(commands.Cog):
 
 
     def initGuild(self, guild : discord.Guild):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
         guildInfo[guild.id] = {}
         guildInfo[guild.id]['antiez'] = False
         guildInfo[guild.id]['teamLimit'] = 2
@@ -48,7 +48,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild : discord.Guild):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
         trackingGuilds = utils.loadTrackingGuilds(r)
 
         try:
@@ -104,7 +104,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
 
         if not message.author.bot:
 
@@ -179,7 +179,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
 
         if not user.bot and reaction.message.author == self.bot.user:
             if reaction.message.content == "React to get into your teams":
@@ -228,7 +228,7 @@ class Listeners(commands.Cog):
 
     @tasks.loop(seconds=600)
     async def updateStatus(self):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
         trackingGuilds = utils.loadTrackingGuilds(r)
 
         appinfo = await self.bot.application_info()

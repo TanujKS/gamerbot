@@ -30,7 +30,7 @@ class Teams(commands.Cog, description="Commands for team and event management"):
     @commands.bot_has_guild_permissions(manage_channels=True)
     @commands.has_permissions(manage_channels=True)
     async def lockevents(self, ctx):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
         for team in teams:
             channel = get(ctx.guild.voice_channels, name=team)
             perms = channel.overwrites_for(ctx.guild.default_role)

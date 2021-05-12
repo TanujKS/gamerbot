@@ -19,7 +19,7 @@ def saveData(r, key, value):
     r.set(key, rval)
 
 
-def loadGuildInfo(r):
+def loadGuildInfo():
     rval = r.get("guildInfo")
     tempGuildInfo = json.loads(rval)
     guildInfo = {}

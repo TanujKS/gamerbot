@@ -143,7 +143,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
 
     def ttvc_check():
         def predicate(ctx):
-            guildInfo = utils.loadGuildInfo(r)
+            guildInfo = utils.loadGuildInfo()
 
             if get(ctx.author.roles, name=guildInfo[ctx.guild.id]['TTVCrole']):
                 return True

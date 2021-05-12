@@ -68,7 +68,6 @@ teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "
 
 RED = 0xff0000
 
-
 ezmessages = [
     "Wait... This isn't what I typed!",
     "Anyone else really like Rick Astley?",

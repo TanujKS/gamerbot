@@ -45,7 +45,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
     @commands.command(help="Changes server-specific configurations")
     async def settings(self, ctx, *setting):
-        guildInfo = utils.loadGuildInfo(r)
+        guildInfo = utils.loadGuildInfo()
 
         if len(setting) == 0:
             embed = discord.Embed(title=f"Settings for {ctx.guild.name}", description=f"To edit a setting use '{utils.determine_prefix(ctx.bot, ctx, clean=True)}settings (setting) (on/off, 1/2/3, etc)", color=constants.RED)

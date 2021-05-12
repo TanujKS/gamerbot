@@ -91,7 +91,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
 
             else:
                 raise commands.BadArgument(f'Setting "{setting[0]}" not found.')
-            utils.saveData(r, "guildInfo", guildInfo)
+            utils.saveData("guildInfo", guildInfo)
 
         else:
             raise commands.BadArgument("Invalid arguments")

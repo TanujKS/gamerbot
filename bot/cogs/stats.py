@@ -17,7 +17,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @tasks.loop(seconds=60)
     async def checkIfLive(self):
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
 
         for guild in trackingGuilds:
             for track in trackingGuilds[guild]:
@@ -40,7 +40,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
                         else:
                             trackingGuilds[guild][index]['pinged'] = "False"
                         break
-        utils.saveData(r, "trackingGuilds", trackingGuilds)
+        utils.saveData("trackingGuilds", trackingGuilds)
 
 
     @checkIfLive.before_loop
@@ -126,7 +126,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @commands.command(help="Notifies the current channel whenever a streamer goes live")
     async def twitchtrack(self, ctx, channel, message=None):
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
 
         if not message:
             message = f"{channel} is live"
@@ -147,12 +147,12 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed.add_field(name="This is an example stream", value="\u200b", inline=False)
         channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][-1]["channel-id"])
         await channelSend.send(embed=embed)
-        utils.saveData(r, "trackingGuilds", trackingGuilds)
+        utils.saveData("trackingGuilds", trackingGuilds)
 
 
     @commands.command(help="Stops notifying the current channel whenever a streamer goes live")
     async def deltrack(self, ctx, *, streamer):
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
 
         def findTwitchTrack(ctx, streamer):
             for track in trackingGuilds[ctx.guild.id]:
@@ -166,12 +166,12 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         trackingGuilds[ctx.guild.id].pop(track)
 
         await ctx.reply(f"No longer tracking {streamer}")
-        utils.saveData(r, "trackingGuilds", trackingGuilds)
+        utils.saveData("trackingGuilds", trackingGuilds)
 
 
     @commands.command(help="Gets a list of all tracked Twitch streamers")
     async def twitchtracklist(self, ctx):
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
         embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", color=constants.RED)
         for track in trackingGuilds[ctx.guild.id]:
             index = trackingGuilds[ctx.guild.id].index(track)
@@ -226,19 +226,19 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])
     async def csgoverify(self, ctx, id):
-        csgoLinks = utils.loadCSGOLinks(r)
+        csgoLinks = utils.loadCSGOLinks()
         rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{id}", headers={"TRN-Api-Key": EnvVars.TRN_API_KEY})
         data = rawData.get('data')
         if not data:
             raise commands.BadArgument(rawData['errors'][0]['message'])
         await ctx.reply(f"{str(ctx.author)} is now linked to {data['platformInfo']['platformUserHandle']} \n**NOTE: There is no way to verify you are actually {data['platformInfo']['platformUserHandle']}, this is purely for convenience so you do not have to memorize your ID**")
         csgoLinks[ctx.author.id] = data['platformInfo']['platformUserId']
-        utils.saveData(r, "csgoLinks", csgoLinks)
+        utils.saveData("csgoLinks", csgoLinks)
 
 
     @commands.command(description="<player> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Gets the statistics of a CS:GO player")
     async def csgo(self, ctx, *player):
-        csgoLinks = utils.loadCSGOLinks(r)
+        csgoLinks = utils.loadCSGOLinks()
         if len(player) == 0:
             member = ctx.author.id
         elif ctx.message.mentions:

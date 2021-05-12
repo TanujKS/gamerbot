@@ -1,5 +1,5 @@
 from utils import exceptions
-from utils.constants import command_prefix, r, EnvVars, Regions, teams
+from utils.constants import command_prefix, r, teams, EnvVars, Regions
 
 import discord
 from discord.ext import commands
@@ -28,7 +28,7 @@ def determine_prefix(bot, ctx, clean=False):
     return prefix
 
 
-def saveData(r, key, value):
+def saveData(key, value):
     rval = json.dumps(value)
     r.set(key, rval)
 
@@ -66,7 +66,7 @@ def loadTrackingGuilds():
     return trackingGuilds
 
 
-def loadCSGOLinks(r):
+def loadCSGOLinks():
     rval = r.get("csgoLinks")
     tempCsgoLinks = json.loads(rval)
     csgoLinks = {}

@@ -42,14 +42,14 @@ class Listeners(commands.Cog):
         guildInfo[guild.id]['maximumTeams'] = 1
         guildInfo[guild.id]['TTVCrole'] = "TTVC"
         guildInfo[guild.id]['prefix'] = command_prefix
-        utils.saveData(r, "guildInfo", guildInfo)
+        utils.saveData("guildInfo", guildInfo)
         print(f"Initialised {guild.name}")
 
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild : discord.Guild):
         guildInfo = utils.loadGuildInfo()
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
 
         try:
             trackingGuilds[guild.id]
@@ -63,7 +63,7 @@ class Listeners(commands.Cog):
 
         await utils.sendReport(ctx, f"Joined {guild.name} with {guild.member_count} members")
 
-        utils.saveData(r, "trackingGuilds", trackingGuilds)
+        utils.saveData("trackingGuilds", trackingGuilds)
 
         print(f"Joined {guild}")
 
@@ -229,7 +229,7 @@ class Listeners(commands.Cog):
     @tasks.loop(seconds=600)
     async def updateStatus(self):
         guildInfo = utils.loadGuildInfo()
-        trackingGuilds = utils.loadTrackingGuilds(r)
+        trackingGuilds = utils.loadTrackingGuilds()
 
         appinfo = await self.bot.application_info()
         self.owner_id = appinfo.owner.id
@@ -243,7 +243,7 @@ class Listeners(commands.Cog):
             if not guildInfo.get(guild.id):
                 self.initGuild(guild)
 
-        utils.saveData(r, "guildInfo", guildInfo)
+        utils.saveData("guildInfo", guildInfo)
 
 
     @updateStatus.before_loop

@@ -6,7 +6,7 @@ GamerBot comes with a variety of commands for admins or game-night managers. Mem
 GamerBot also uses APIs to provide live statistics for numerous games.
 
 GamerBot also comes with many other useful commands, such as polling and nick-naming, so I suggest adding it to your server and trying it out!
-Invite link can be found at https://gamerbot.ga
+Invite link can be found at http://gamerbot.ga
 
 
 The code is fully public in this repository for you to see how all the commands work. GamerBot#8134 is hosted on Heroku: Cloud Application Platform and is coded 100% in Python 3.9

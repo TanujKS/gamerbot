@@ -1,2 +1,2 @@
 worker: python bot/main.py TOKEN
-web: gunicorn app:app
+web: gunicorn app:website/app

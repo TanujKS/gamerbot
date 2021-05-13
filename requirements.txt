@@ -1,15 +1,3 @@
-discord
-python-dotenv
-python-dateutil
-gtts
-ffmpeg-python
-ffmpeg
-redis
-Pillow
-googletrans==3.1.0a0
-PyDictionary
-mojang
-PyNaCl
 click
 Flask
 gunicorn

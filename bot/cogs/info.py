@@ -12,7 +12,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
         print("Loaded", __name__)
 
 
-    @commands.command(help="Gets source code of GamerBot")
+    @commands.command(help="Gets source code of GamerBot", aliases=['src'])
     async def sourcecode(self, ctx):
         embed = discord.Embed(color=constants.RED)
         embed.add_field(name="Source Code:", value="https://github.com/gamerbot")

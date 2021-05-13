@@ -119,8 +119,14 @@ async def getJSON(url, headers=None, json=True, read=False):
             return data
 
 
-def TimefromStamp(ts, region):
-    time = datetime.fromtimestamp(ts)
+def TimefromStamp(ts):
+    time = datetime.fromtimestamp(ts).strftime('%H:%M:%S %m/%d/%Y')
+    print(time)
+    return time
+
+
+def UTCStamptoZone(ts, region):
+    time = datetime.fromtimestamp(ts).astimezone(tz.gettz("America/Los_Angeles"))
     return UTCtoZone(time, region)
 
 

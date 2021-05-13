@@ -108,7 +108,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         ts = data['player'].get('lastLogin')
         if ts:
             ts /= 1000
-            d = datetime.fromtimestamp(ts).strftime("%H:%M:%S %m/%d/%Y")
+            print(ts)
+            d = utils.TimefromStamp(ts)
         else:
             d = "Never"
             status = "Offline"
@@ -116,7 +117,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         ts = data['player'].get('lastLogout')
         if ts:
             ts /= 1000
-            d1 = datetime.fromtimestamp(ts).strftime("%H:%M:%S %m/%d/%Y")
+            d1 = utils.TimefromStamp(ts)
         else:
             d1 = "Never"
             status = "Online"

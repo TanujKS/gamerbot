@@ -109,7 +109,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if ts:
             ts /= 1000
             print(ts)
-            d = utils.TimefromStamp(ts)
+            d = utils.TimefromStamp(ts, ctx.guild.region)
         else:
             d = "Never"
             status = "Offline"
@@ -117,7 +117,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         ts = data['player'].get('lastLogout')
         if ts:
             ts /= 1000
-            d1 = utils.TimefromStamp(ts)
+            d1 = utils.TimefromStamp(ts, ctx.guild.region)
         else:
             d1 = "Never"
             status = "Online"

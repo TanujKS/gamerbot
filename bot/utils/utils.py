@@ -119,22 +119,27 @@ async def getJSON(url, headers=None, json=True, read=False):
             return data
 
 
-def TimefromStamp(ts):
-    time = datetime.fromtimestamp(ts).strftime('%H:%M:%S %m/%d/%Y')
-    print(time)
-    return time
+def getTimeRegion(region):
+    if isinstance(region, discord.VoiceRegion):
+        region = region.name
 
-
-def UTCStamptoZone(ts, region):
-    time = datetime.fromtimestamp(ts).astimezone(tz.gettz("America/Los_Angeles"))
-    return UTCtoZone(time, region)
-
-
-def UTCtoZone(utc_time, region):
     try:
         region = getattr(Regions, region)
     except AttributeError:
         pass
+
+    return region
+
+
+def TimefromStamp(ts, region):
+    region = getTimeRegion(region)
+    time = datetime.fromtimestamp(ts).astimezone(tz.gettz(region)).strftime('%H:%M:%S %m/%d/%Y')
+    print(time)
+    return time
+
+
+def UTCtoZone(utc_time, region):
+    region = getTimeRegion(region)
 
     utc = tz.gettz('UTC')
     new_zone = tz.gettz(region)

@@ -10,10 +10,3 @@ googletrans==3.1.0a0
 PyDictionary
 mojang
 PyNaCl
-click
-Flask
-gunicorn
-itsdangerous
-Jinja2
-MarkupSafe
-Werkzeug

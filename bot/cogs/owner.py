@@ -24,7 +24,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.startTime = datetime.now()
+        self.startTime = datetime.utcnow()
 
 
     @commands.Cog.listener()
@@ -46,7 +46,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
         embed.add_field(name="Total Members:", value=total_members)
         embed.add_field(name="\u200b", value="\u200b")
-        embed.add_field(name="Up since:", value=self.startTime.strftime("%H:%M:%S %m/%d/%Y"))
+        embed.add_field(name="Up since:", value=utils.UTCtoZone(self.startTime, ctx.guild.region))
         embed.add_field(name="Commands ran:", value=self.command_count)
         embed.add_field(name="Unique Users:", value=len(self.uniqueUsers))
         await ctx.reply(embed=embed)

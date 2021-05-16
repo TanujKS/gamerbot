@@ -1,9 +1,11 @@
-from utils import utils
+from utils import utils, constants
 from utils.constants import r
 
 import discord
 from discord.ext import commands
 from discord.utils import get
+
+from datetime import datetime
 
 import ast
 
@@ -11,11 +13,43 @@ import ast
 class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=dict(hidden=True, description="Can only be used by an Owner")):
     def __init__(self, bot):
         self.bot = bot
+        self.command_count = 0
+        self.uniqueUsers = []
         print("Loaded", __name__)
 
 
     async def cog_check(self, ctx):
         return commands.is_owner()
+
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.startTime = datetime.now()
+
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx):
+        self.command_count += 1
+        if ctx.author.id not in self.uniqueUsers:
+            self.uniqueUsers.append(ctx.author.id)
+
+
+    @commands.command(help="Gets information of GamerBot")
+    async def botinfo(self, ctx):
+        embed = discord.Embed(title="GamerBot statistics", color=constants.RED)
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.add_field(name="Guilds:", value=len(self.bot.guilds))
+
+        total_members = 0
+        for guild in self.bot.guilds:
+            total_members += guild.member_count
+
+        embed.add_field(name="Total Members:", value=total_members)
+        embed.add_field(name="\u200b", value="\u200b")
+        embed.add_field(name="Up since:", value=self.startTime.strftime("%H:%M:%S %m/%d/%Y"))
+        embed.add_field(name="Commands ran:", value=self.command_count)
+        embed.add_field(name="Unique Users:", value=len(self.uniqueUsers))
+        await ctx.reply(embed=embed)
 
 
     @commands.command(help="Blacklists a user")

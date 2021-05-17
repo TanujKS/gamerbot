@@ -400,6 +400,8 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
     @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
     async def skywars(self, ctx, *player_and_mode):
         def getSkyWarsLevel(xp : int):
+            if xp == 0:
+                return 0
             if xp >= 15000:
                 return (xp - 15000) / 10000. + 12
             else:

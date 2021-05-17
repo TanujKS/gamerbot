@@ -200,11 +200,23 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
 
         if len(player_or_guild) == 0:
-            is_player = True
+            member = ctx.author
 
-            player = r.get(ctx.author.id)
+        elif ctx.message.mentions:
+            member = await Converters.MemberConverter.convert(ctx, player_or_guild[0])
+
+        else:
+            member = False
+
+            guildName = " ".join(player_or_guild)
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&name={guildName}")
+            if not guild.get('guild'):
+                raise commands.BadArgument(f"Guild {guildName} not found")
+
+        if member:
+            player = r.get(member.id)
             if player == None:
-                raise commands.BadArgument(f"{ctx.author.mention} has not linked their Discord to their Minecraft account")
+                raise commands.BadArgument(f"{member.mention} has not linked their Discord to their Minecraft account")
             player = player.decode('utf-8')
 
             uuid = MojangAPI.get_uuid(player)
@@ -215,16 +227,9 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             if not guild.get('guild'):
                 raise commands.BadArgument(f"Player {player} is not in a guild")
 
-        else:
-            is_player = False
-            guildName = " ".join(player_or_guild)
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&name={guildName}")
-            if not guild.get('guild'):
-                raise commands.BadArgument(f"Guild {guildName} not found")
-
 
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=constants.RED)
-        if is_player:
+        if member:
             embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
 
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
@@ -238,7 +243,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         embed.add_field(name="Experience Kings:", value=guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0))
         embed.add_field(name="Online Players:", value=guild['guild']['achievements'].get('ONLINE_PLAYERS'))
 
-        if is_player:
+        if member:
             for member in guild['guild']['members']:
                 if member['uuid'] == uuid:
                     embed.add_field(name="\u200b", value="\u200b", inline=False)
@@ -248,6 +253,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                     break
 
         await ctx.reply(embed=embed)
+
 
 
     def getrate(self, stat1 : int, stat2 : int):

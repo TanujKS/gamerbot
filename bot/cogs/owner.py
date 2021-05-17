@@ -15,6 +15,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
         self.bot = bot
         self.command_count = 0
         self.uniqueUsers = []
+        self.uniqueGuilds = []
         print("Loaded", __name__)
 
 
@@ -30,8 +31,12 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
     @commands.Cog.listener()
     async def on_command(self, ctx):
         self.command_count += 1
+
         if ctx.author.id not in self.uniqueUsers:
             self.uniqueUsers.append(ctx.author.id)
+
+        if ctx.guild.id not in self.uniqueGuilds:
+            self.uniqueGuilds.append(ctx.guild.id)
 
 
     @commands.command(help="Gets information of GamerBot")
@@ -46,9 +51,10 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
         embed.add_field(name="Total Members:", value=total_members)
         embed.add_field(name="\u200b", value="\u200b")
-        embed.add_field(name="Up since:", value=utils.UTCtoZone(self.startTime, ctx.guild.region))
+        embed.add_field(name="Up since:", value=utils.UTCtoZone(self.startTime, ctx.guild.region), inline=False)
         embed.add_field(name="Commands ran:", value=self.command_count)
         embed.add_field(name="Unique Users:", value=len(self.uniqueUsers))
+        embed.add_field(name="Unique Guilds:", value=len(self.uniqueGuilds))
         await ctx.reply(embed=embed)
 
 

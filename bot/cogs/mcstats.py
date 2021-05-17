@@ -217,10 +217,10 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
         else:
             is_player = False
-
-            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&name={player_or_guild[0]}")
+            guildName = " ".join(player_or_guild)
+            guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&name={guildName}")
             if not guild.get('guild'):
-                raise commands.BadArgument(f"Guild {player_or_guild[0]} not found")
+                raise commands.BadArgument(f"Guild {guildName} not found")
 
 
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=constants.RED)
@@ -234,9 +234,9 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         embed.add_field(name="EXP:", value=guild['guild']['exp'], inline=True)
         embed.add_field(name="Level:", value=getGuildLevel(guild['guild']['exp']))
         embed.add_field(name="Public:", value=utils.convertBooltoExpress(guild['guild'].get('publiclyListed')))
-        embed.add_field(name="Winners:", value=guild['guild']['achievements']['WINNERS'])
-        embed.add_field(name="Experience Kings:", value=guild['guild']['achievements']['EXPERIENCE_KINGS'])
-        embed.add_field(name="Online Players:", value=guild['guild']['achievements']['ONLINE_PLAYERS'])
+        embed.add_field(name="Winners:", value=guild['guild']['achievements'].get('WINNERS', 0))
+        embed.add_field(name="Experience Kings:", value=guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0))
+        embed.add_field(name="Online Players:", value=guild['guild']['achievements'].get('ONLINE_PLAYERS'))
 
         if is_player:
             for member in guild['guild']['members']:

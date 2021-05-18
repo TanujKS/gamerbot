@@ -44,7 +44,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
         await ctx.send(embed=embed)
 
 
-    @commands.command(elp="Gets information of the current server", aliases=["serverinfo"])
+    @commands.command(help="Gets information of the current server", aliases=["serverinfo"])
     @commands.guild_only()
     async def guildinfo(self, ctx, *guild):
         if commands.is_owner() and guild:

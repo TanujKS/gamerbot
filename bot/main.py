@@ -24,6 +24,7 @@ bot = commands.Bot(
 
 bot.owner_mode = True if len(sys.argv) >= 3 and sys.argv[2] == "owner" else False
 
+
 for file in os.listdir("bot/cogs"):
     if file.endswith(".py"):
         fileName = file[:-3]

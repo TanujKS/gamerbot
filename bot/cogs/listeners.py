@@ -9,6 +9,8 @@ import random
 
 import asyncio
 
+import sys
+
 
 class Listeners(commands.Cog):
     def __init__(self, bot):
@@ -17,6 +19,7 @@ class Listeners(commands.Cog):
         self.updateStatus.start()
 
         self.hidden = True
+
         print("Loaded", __name__)
 
 
@@ -104,19 +107,18 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        guildInfo = utils.loadGuildInfo()
-
         if not message.author.bot:
 
             messageList = message.content.lower().split()
 
             if not message.reference and len(messageList) == 1 and self.bot.user in message.mentions:
                 try:
-                    await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message)[-1]}`")
+                    await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message, clean=True)}`")
                 except discord.errors.Forbidden:
                     pass
 
             if message.guild:
+                guildInfo = utils.loadGuildInfo()
 
                 if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
                     webhooks = await message.channel.webhooks()

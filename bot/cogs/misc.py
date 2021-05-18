@@ -311,7 +311,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         embed.add_field(name="Reporter:", value=ctx.author.mention, inline=True)
         embed.add_field(name="Report:", value=message.content, inline=False)
         await ctx.reply("Your report is submitted", embed=embed)
-        await utils.sendReport(ctx, "Report", embed=embed)
+        await utils.sendReport("Report", embed=embed)
 
 
     @commands.command(help="Starts a stopwatch if there is no active one")

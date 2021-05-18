@@ -98,7 +98,7 @@ def convertBooltoExpress(bool : bool):
         return "No"
 
 
-async def sendReport(ctx, message, *, embed=None):
+async def sendReport(message, *, embed=None):
     async with aiohttp.ClientSession() as cs:
         webhook = Webhook.from_url(EnvVars.REPORTS, adapter=AsyncWebhookAdapter(cs))
         await webhook.send(message, embed=embed)

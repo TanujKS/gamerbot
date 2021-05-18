@@ -66,7 +66,7 @@ class Listeners(commands.Cog):
         except KeyError:
             self.initGuild(guild)
 
-        await utils.sendReport(ctx, f"Joined {guild.name} with {guild.member_count} members")
+        await utils.sendReport(f"Joined {guild.name} with {guild.member_count} members")
 
         utils.saveData("trackingGuilds", trackingGuilds)
 
@@ -77,7 +77,7 @@ class Listeners(commands.Cog):
     async def on_guild_remove(self, guild : discord.Guild):
         print(f"Left {guild}")
 
-        await utils.sendReport(ctx, f"Left {guild.name} with {guild.member_count} members")
+        await utils.sendReport(f"Left {guild.name} with {guild.member_count} members")
 
         try:
             dm = await guild.owner.create_dm()
@@ -88,15 +88,15 @@ class Listeners(commands.Cog):
             if response.content == "y":
                 await dm.send(f"Thank you! First, why are you removing {self.bot.user.name} from your server?")
                 response = await self.bot.wait_for('message', timeout=120, check=check)
-                await utils.sendReport(ctx, f"Reason for removal: {response.content}")
+                await utils.sendReport(f"Reason for removal: {response.content}")
 
                 await dm.send(f"Got it, on a scale of 1-10 how would you rate {self.bot.user.name}'s features, response time, ease of use, etc")
                 response = await self.bot.wait_for('message', timeout=120, check=check)
-                await utils.sendReport(ctx, f"Rating: {response.content}")
+                await utils.sendReport(f"Rating: {response.content}")
 
                 await dm.send("Thanks! Any other comments/feedback?")
                 response = await self.bot.wait_for('message', timeout=120, check=check)
-                await utils.sendReport(ctx, f"Feedback: {response.content}")
+                await utils.sendReport(f"Feedback: {response.content}")
 
                 await dm.send(f"Thank you. Your feedback helps us make {self.bot.user.name} a better bot.")
 
@@ -104,7 +104,7 @@ class Listeners(commands.Cog):
                 await dm.send("No problem. Goodbye!")
 
         except Exception as e:
-            await utils.sendReport(ctx, f"Could not DM {str(guild.owner)} Exception: {e}")
+            await utils.sendReport(f"Could not DM {str(guild.owner)} Exception: {e}")
 
 
     @commands.Cog.listener()
@@ -173,7 +173,7 @@ class Listeners(commands.Cog):
             embed.add_field(name="Command:", value=ctx.command.name, inline=False)
             embed.add_field(name="Error:", value=type(error), inline=True)
             embed.add_field(name="Error:", value=error, inline=True)
-            await utils.sendReport(ctx, "Error", embed=embed)
+            await utils.sendReport("Error", embed=embed)
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
             await self.on_command_error(ctx, error)
 

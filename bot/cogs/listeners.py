@@ -82,8 +82,10 @@ class Listeners(commands.Cog):
         try:
             dm = await guild.owner.create_dm()
             def check(m):
-                return m.author == dm.recipient and m.channel == dm
-            await dm.send(f"Hello {str(guild.owner)}. I see you have removed {self.bot.user.name} from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
+                responses = ['y', 'n']
+                return m.author == dm.recipient and m.channel == dm and m.content in responses
+
+            await dm.send(f"Hello {guild.owner.mention}. I see you have removed {self.bot.user.name} from your server. As GamerBot is a new bot and is still in development it would be great to get your feedback on how the bot is/why you removed it. Would you be willing to answer a few questions? (y/n)")
             response = await self.bot.wait_for('message', timeout=120, check=check)
             if response.content == "y":
                 await dm.send(f"Thank you! First, why are you removing {self.bot.user.name} from your server?")
@@ -104,7 +106,7 @@ class Listeners(commands.Cog):
                 await dm.send("No problem. Goodbye!")
 
         except Exception as e:
-            await utils.sendReport(f"Could not DM {str(guild.owner)} Exception: {e}")
+            await utils.sendReport(f"Could not DM {guild.owner.mention} Exception: {e}")
 
 
     @commands.Cog.listener()

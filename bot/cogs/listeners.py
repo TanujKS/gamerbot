@@ -185,9 +185,8 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        guildInfo = utils.loadGuildInfo()
-
         if not user.bot and reaction.message.author == self.bot.user:
+            guildInfo = utils.loadGuildInfo()
             if reaction.message.content == "React to get into your teams":
                 if not get(user.roles, name="Banned from event"):
                     if str(reaction) in emojis:

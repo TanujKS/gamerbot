@@ -174,7 +174,7 @@ class Listeners(commands.Cog):
             embed.add_field(name="Time", value=ctx.message.created_at, inline=False)
             embed.add_field(name="Command:", value=ctx.command.name, inline=False)
             embed.add_field(name="Error:", value=type(error), inline=True)
-            embed.add_field(name="Error:", value=error, inline=True)
+            embed.add_field(name="Message:", value=str(error), inline=True)
             await utils.sendReport("Error", embed=embed)
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
             await self.on_command_error(ctx, error)

@@ -45,21 +45,24 @@ class Info(commands.Cog, description="Commands for getting information on users,
         await ctx.send(embed=embed)
 
 
-    @commands.command(description="<guild> can be the name, or id of a server GamerBot is in or left blank to get information of the current server", help="Gets information of a server", aliases=["serverinfo"])
+    @commands.command(elp="Gets information of the current server", aliases=["serverinfo"])
     @commands.guild_only()
     async def guildinfo(self, ctx, *guild : discord.Guild):
-        guild = ctx.guild if not guild else guild[0]
+        if commands.is_owner() and guild:
+            guild = guild[0]
+        else:
+            guild = ctx.guild
 
         embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=constants.RED)
-        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(name="Name:", value=guild.name)
         embed.add_field(name="ID:", value=guild.id)
-        embed.add_field(name="Created at:", value=utils.UTCtoZone(guild.created_at, ctx.guild.region.name))
-        embed.add_field(name="Members:", value=len([member for member in ctx.guild.members if not member.bot]))
-        embed.add_field(name="Bots:", value=len([bot for bot in ctx.guild.members if bot.bot]))
+        embed.add_field(name="Created at:", value=utils.UTCtoZone(guild.created_at, guild.region.name))
+        embed.add_field(name="Members:", value=len([member for member in guild.members if not member.bot]))
+        embed.add_field(name="Bots:", value=len([bot for bot in guild.members if bot.bot]))
         embed.add_field(name="Total Members:", value=guild.member_count)
-        embed.add_field(name="Region:", value=str(ctx.guild.region))
-        embed.add_field(name="Region:", value=getattr(Regions, ctx.guild.region.name))
+        embed.add_field(name="Region:", value=str(guild.region))
+        embed.add_field(name="Region:", value=getattr(Regions, guild.region.name))
         embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Owner:", value=guild.owner.mention, inline=False)
         embed.add_field(name="Emoji Limit:", value=f"{guild.emoji_limit} Emojis")

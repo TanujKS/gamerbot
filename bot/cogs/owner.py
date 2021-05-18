@@ -175,7 +175,17 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
     @commands.command(help="Restarts the bot")
     async def restart(self, ctx):
         await ctx.reply("Confirm restart: (y/n)")
+        await self.botLogout(ctx)
 
+
+    @commands.command(help="Shuts down the bot")
+    async def shutdown(self, ctx):
+        await ctx.reply("Confirm shutdown: (y/n)")
+        if await self.botLogout(ctx):
+            r.set("shutdown", "True")
+
+
+    async def botLogout(self, ctx):
         def check(m):
             responses = ['y', 'n']
             return m.author == ctx.author and m.channel == ctx.channel and m.content in responses
@@ -185,21 +195,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
         if response == "y":
             await self.bot.close()
-        elif response == "n":
-            await ctx.reply("Cancelled")
-
-
-    @commands.command(help="Shuts down the bot")
-    async def shutdown(self, ctx):
-        await ctx.reply("Confirm shutdown: (y/n)")
-        def check(m):
-            responses = ["y", "n"]
-            return m.author == ctx.author and m.channel == ctx.channel and m.content in responses
-        response = await self.bot.wait_for('message', timeout=60, check=check)
-        response = response.content
-        if response == "y":
-            r.set("shutdown", "True")
-            await self.bot.logout()
+            return True
         elif response == "n":
             await ctx.reply("Cancelled")
 

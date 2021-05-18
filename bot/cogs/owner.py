@@ -62,7 +62,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Gets a list of all servers GamerBot is in and their member count")
     async def guildlist(self, ctx):
-        embed = discord.Embed(title="GamerBot Servers", description="Page 1", color=constants.RED)
+        embed = discord.Embed(title="GamerBot Servers", color=constants.RED)
         embed.add_field(name="Guilds:", value=len(self.bot.guilds), inline=False)
         embed.add_field(name="Total Members:", value=self.getTotalMembers(), inline=False)
         for guild in self.bot.guilds:

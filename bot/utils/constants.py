@@ -25,6 +25,7 @@ class Converters:
     MemberConverter = commands.MemberConverter()
     VoiceChannelConverter = commands.VoiceChannelConverter()
     RoleConverter = commands.RoleConverter()
+    GuildConverter = commands.GuildConverter()
 
 
 class HypixelModes:

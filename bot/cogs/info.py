@@ -1,9 +1,8 @@
 from utils import utils, constants
-from utils.constants import Regions
+from utils.constants import Regions, Converters
 
 import discord
 from discord.ext import commands
-from discord.utils import get
 
 
 class Info(commands.Cog, description="Commands for getting information on users, members, etc"):
@@ -47,9 +46,9 @@ class Info(commands.Cog, description="Commands for getting information on users,
 
     @commands.command(elp="Gets information of the current server", aliases=["serverinfo"])
     @commands.guild_only()
-    async def guildinfo(self, ctx, *guild : discord.Guild):
+    async def guildinfo(self, ctx, *guild):
         if commands.is_owner() and guild:
-            guild = guild[0]
+            guild = await Converters.GuildConverter.convert(ctx, " ".join(guild))
         else:
             guild = ctx.guild
 

@@ -165,10 +165,8 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
             exec(compile(parsed, filename="<ast>", mode="exec"), env)
 
             result = (await eval(f"{fn_name}()", env))
-            if not result:
-                result = "Done"
 
-            await ctx.reply(f"```{result}```")
+            await ctx.reply(f"```{str(result)}```")
 
         except Exception as err:
             raise commands.BadArgument(f"```{err}```")

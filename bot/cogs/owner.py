@@ -39,22 +39,34 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
             self.uniqueGuilds.append(ctx.guild.id)
 
 
+    def getTotalMembers(self):
+        total_members = 0
+        for guild in self.bot.guilds:
+            total_members += guild.member_count
+        return total_members
+
+
     @commands.command(help="Gets information of GamerBot")
     async def botinfo(self, ctx):
         embed = discord.Embed(title="GamerBot statistics", color=constants.RED)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(name="Guilds:", value=len(self.bot.guilds))
-
-        total_members = 0
-        for guild in self.bot.guilds:
-            total_members += guild.member_count
-
-        embed.add_field(name="Total Members:", value=total_members)
+        embed.add_field(name="Total Members:", value=self.getTotalMembers())
         embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Up since:", value=utils.UTCtoZone(self.startTime, ctx.guild.region), inline=False)
         embed.add_field(name="Commands ran:", value=self.command_count)
         embed.add_field(name="Unique Users:", value=len(self.uniqueUsers))
         embed.add_field(name="Unique Guilds:", value=len(self.uniqueGuilds))
+        await ctx.reply(embed=embed)
+
+
+    @commands.command(help="Gets a list of all servers GamerBot is in and their member count")
+    async def guildlist(self, ctx):
+        embed = discord.Embed(title="GamerBot Servers", description="Page 1", color=constants.RED)
+        embed.add_field(name="Guilds:", value=len(self.bot.guilds), inline=False)
+        embed.add_field(name="Total Members:", value=self.getTotalMembers(), inline=False)
+        for guild in self.bot.guilds:
+                embed.add_field(name=guild.name, value=f"{guild.member_count} Members", inline=False)
         await ctx.reply(embed=embed)
 
 

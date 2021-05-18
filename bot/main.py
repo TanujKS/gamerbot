@@ -22,6 +22,7 @@ bot = commands.Bot(
     allowed_mentions=discord.AllowedMentions.none()
 )
 
+bot.owner_mode = True if len(sys.argv) >= 3 and sys.argv[2] == "owner" else False
 
 for file in os.listdir("bot/cogs"):
     if file.endswith(".py"):

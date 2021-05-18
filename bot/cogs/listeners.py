@@ -9,8 +9,6 @@ import random
 
 import asyncio
 
-import sys
-
 
 class Listeners(commands.Cog):
     def __init__(self, bot):
@@ -24,6 +22,9 @@ class Listeners(commands.Cog):
 
 
     async def bot_check(self, ctx):
+        if self.bot.owner_mode:
+            return commands.is_owner()
+
         blackListed = utils.loadBlacklisted()
         if ctx.author.id not in blackListed:
             return True
@@ -35,6 +36,7 @@ class Listeners(commands.Cog):
     async def on_ready(self):
         print("Logged into", self.bot.user)
         print("ID:", self.bot.user.id)
+        print("Owner Only:", self.bot.owner_mode)
 
 
     def initGuild(self, guild : discord.Guild):

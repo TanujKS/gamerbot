@@ -66,9 +66,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
         embed.add_field(name="Guilds:", value=len(self.bot.guilds), inline=False)
         embed.add_field(name="Total Members:", value=self.getTotalMembers(), inline=False)
         for guild in self.bot.guilds:
-            embed.add_field(name="Name:", value=guild.name)
-            embed.add_field(name="Members:", value=guild.member_count)
-            embed.add_field(name="Region:", value=guild.region.name)
+            embed.add_field(name=guild.name, value=f"{guild.member_count} Members \nRegion: {guild.region.name}")
         await ctx.reply(embed=embed)
 
 

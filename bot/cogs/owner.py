@@ -16,6 +16,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
         self.command_count = 0
         self.uniqueUsers = []
         self.uniqueGuilds = []
+        self.hidden = True
         print("Loaded", __name__)
 
 

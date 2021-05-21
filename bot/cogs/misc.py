@@ -260,15 +260,11 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
     @commands.command(description="<member> can be the name, id, or mention of a member \nNickname must be fewer than 32 characters", help="Changes a member's nickname")
     @commands.bot_has_guild_permissions(manage_nicknames=True)
     @commands.has_permissions(manage_nicknames=True)
-    async def nick(self, ctx, member : discord.Member, nick=None):
+    async def nick(self, ctx, member : discord.Member, *, nick=None):
         oldNick = member.display_name
-
-        if nick:
-            nick = " ".join(nick)
 
         try:
             await member.edit(nick=nick)
-
         except discord.Forbidden:
             raise commands.BadArgument(f"Could not change {member.mention}'s nickname because their highest role is higher than mine.")
         except discord.HTTPException:

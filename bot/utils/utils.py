@@ -188,5 +188,3 @@ def get_key(dict: dict, val):
     for key, value in dict.items():
         if value == val:
             return keys
-    else:
-        return None

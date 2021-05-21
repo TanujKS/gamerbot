@@ -2,11 +2,16 @@ from utils import utils, exceptions
 from utils.help import EmbedHelpCommand
 from utils.constants import r, EnvVars
 
-import os
-import sys
-
 import discord
 from discord.ext import commands
+
+import os
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("TOKEN", help="The variable name for the token to log into a Discord client")
+parser.add_argument("-o", "--owner", help="Boots the bot into Owner mode, where only the bot Owner can use commands", action="store_true")
+args = parser.parse_args()
 
 
 if r.get("shutdown") == "True":
@@ -22,7 +27,7 @@ bot = commands.Bot(
     allowed_mentions=discord.AllowedMentions.none()
 )
 
-bot.owner_mode = True if len(sys.argv) >= 3 and sys.argv[2] == "owner" else False
+bot.owner_mode = True if args.owner else False
 
 
 for file in os.listdir("bot/cogs"):
@@ -32,8 +37,8 @@ for file in os.listdir("bot/cogs"):
 
 
 try:
-    TOKEN = getattr(EnvVars, sys.argv[1])
-except (AttributeError, IndexError):
+    TOKEN = getattr(EnvVars, args.TOKEN)
+except AttributeError:
     raise ValueError("Invalid token")
 
 

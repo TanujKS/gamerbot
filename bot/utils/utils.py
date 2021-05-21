@@ -133,7 +133,7 @@ def getTimeRegion(region):
 
 def TimefromStamp(ts, region):
     region = getTimeRegion(region)
-    time = datetime.fromtimestamp(ts).astimezone(tz.gettz(region)).strftime('%H:%M:%S %m/%d/%Y')
+    time = datetime.fromtimestamp(ts).astimezone(tz.gettz(region)).strftime('%H:%M:%S %m/%d/%Y') + f" {region} Time"
     return time
 
 

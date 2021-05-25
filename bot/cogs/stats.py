@@ -198,7 +198,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             description = "None"
         embed.add_field(name="Channel Description:", value=description, inline=False)
         embed.add_field(name="Views:", value=stats['items'][0]['statistics']['viewCount'], inline=True)
-        embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics']['subscriberCount'], inline=True)
+        embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics'].get('subscriberCount'), inline=True)
         embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
         embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
         embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel.replace('%20', ' ')}s and then run '?youtube (id_of_the_channel_you_want)'")

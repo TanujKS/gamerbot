@@ -193,13 +193,11 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=constants.RED)
         embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
         embed.add_field(name="Channel ID:", value=channel_id, inline=True)
-        description = (data['items'][0]['snippet'])['description']
-        if not description:
-            description = "None"
+        description = str((data['items'][0]['snippet'])['description'])
         embed.add_field(name="Channel Description:", value=description, inline=False)
-        embed.add_field(name="Views:", value=stats['items'][0]['statistics']['viewCount'], inline=True)
-        embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics'].get('subscriberCount'), inline=True)
-        embed.add_field(name="Videos:", value=stats['items'][0]['statistics']['videoCount'], inline=True)
+        embed.add_field(name="Views:", value=stats['items'][0]['statistics'].get('viewCount', 0), inline=True)
+        embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics'].get('subscriberCount', 0), inline=True)
+        embed.add_field(name="Videos:", value=stats['items'][0]['statistics'].get('videoCount'), inline=True)
         embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
         embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel.replace('%20', ' ')}s and then run '?youtube (id_of_the_channel_you_want)'")
         await ctx.reply(embed=embed)

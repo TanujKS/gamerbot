@@ -10,7 +10,7 @@ import os
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("TOKEN", help="The variable name for the token to log into a Discord client")
-parser.add_argument("-o", "--owner", help="Boots the bot into Owner mode, where only the bot Owner can use commands", action="store_true")
+parser.add_argument("-o", "-owner", help="Boots the bot into Owner mode, where only the bot Owner can use commands", action="store_true")
 args = parser.parse_args()
 
 

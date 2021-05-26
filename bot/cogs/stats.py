@@ -193,7 +193,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=constants.RED)
         embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
         embed.add_field(name="Channel ID:", value=channel_id, inline=True)
-        description = str((data['items'][0]['snippet'])['description'])
+        description = (data['items'][0]['snippet'])['description'] if (data['items'][0]['snippet'])['description'] else "None"
         embed.add_field(name="Channel Description:", value=description, inline=False)
         embed.add_field(name="Views:", value=stats['items'][0]['statistics'].get('viewCount', 0), inline=True)
         embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics'].get('subscriberCount', 0), inline=True)

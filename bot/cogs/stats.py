@@ -220,6 +220,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
                 embed.add_field(name="Description:", value=description, inline=True)
                 embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
                 await ctx.reply(embed=embed)
+                await asyncio.sleep(2)
 
 
     @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])

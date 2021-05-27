@@ -1,5 +1,5 @@
 from utils import exceptions
-from utils.constants import command_prefix, r, teams, EnvVars, Regions
+from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
 import discord
 from discord.ext import commands

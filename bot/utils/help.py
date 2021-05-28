@@ -12,7 +12,7 @@ class EmbedHelpCommand(commands.MinimalHelpCommand):
 
     async def send_pages(self):
         destination = self.get_destination()
-        embed = discord.Embed(description="", color=constants.RED)
+        embed = discord.Embed(description="", color=constants.Color.red())
         embed.set_footer(text="GamerBot is created and maintained by tanju_shorty#2828")
         embed.set_thumbnail(url=self.context.bot.user.avatar_url)
         for page in self.paginator.pages:

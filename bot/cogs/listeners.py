@@ -153,7 +153,7 @@ class Listeners(commands.Cog):
             return
 
         if isinstance(error, exceptions.EmbedError):
-            embed = discord.Embed(title=error.title, description=error.description, color=constants.RED)
+            embed = discord.Embed(title=error.title, description=error.description, color=constants.Color.red())
 
             if isinstance(originalerror, utils.exceptions.Blacklisted):
                 try:
@@ -165,7 +165,7 @@ class Listeners(commands.Cog):
 
         else:
             print(type(error), error)
-            embed = discord.Embed(title="Error Report", color=constants.RED)
+            embed = discord.Embed(title="Error Report", color=constants.Color.red())
             embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
             embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
             embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)

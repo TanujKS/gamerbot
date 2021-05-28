@@ -49,7 +49,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Gets information of GamerBot")
     async def botinfo(self, ctx):
-        embed = discord.Embed(title="GamerBot statistics", color=constants.RED)
+        embed = discord.Embed(title="GamerBot statistics", color=constants.Color.red())
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.add_field(name="Guilds:", value=len(self.bot.guilds))
         embed.add_field(name="Total Members:", value=self.getTotalMembers())
@@ -63,7 +63,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
     @commands.command(help="Gets a list of all servers GamerBot is in and their member count")
     async def guildlist(self, ctx):
-        embed = discord.Embed(title="GamerBot Servers", color=constants.RED)
+        embed = discord.Embed(title="GamerBot Servers", color=constants.Color.red())
         embed.add_field(name="Guilds:", value=len(self.bot.guilds), inline=False)
         embed.add_field(name="Total Members:", value=self.getTotalMembers(), inline=False)
         for guild in self.bot.guilds:

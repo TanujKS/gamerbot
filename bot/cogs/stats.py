@@ -30,7 +30,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
                         is_live = x['is_live']
                         if is_live:
                             if trackingGuilds[guild][index]['pinged'] == "False":
-                                embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=constants.RED)
+                                embed = discord.Embed(title=trackingGuilds[guild][index]['message'], description=f"https://twitch.tv/{trackingGuilds[guild][index]['streamer']}", color=constants.Color.red())
                                 embed.set_thumbnail(url=x['thumbnail_url'])
                                 embed.add_field(name=x['title'], value="\u200b", inline=False)
                                 guildSend = self.bot.get_guild(guild)
@@ -55,7 +55,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         if data['status'] != 200:
             raise commands.BadArgument(f'Player "{player}" not found.')
         else:
-            embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", color=constants.RED)
+            embed = discord.Embed(title=f"Fortnite stats for {data['data']['account']['name']}", color=constants.Color.red())
             embed.add_field(name="Username:", value=data['data']['account']['name'], inline=False)
             embed.add_field(name="ID:", value=data['data']['account']['id'], inline=False)
             embed.add_field(name="BattlePass Level:", value=data['data']['battlePass']['level'])
@@ -74,7 +74,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
 
     async def twitchProfile(self, channel, data):
-        embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=constants.RED)
+        embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=constants.Color.red())
         embed.set_thumbnail(url=data['profile_image_url'])
         embed.add_field(name="Username:", value=data['display_name'], inline=True)
         embed.add_field(name="Login Name:", value=data['login'], inline=True)
@@ -142,7 +142,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         trackingGuilds[ctx.guild.id][-1]['pinged'] = "False"
         trackingGuilds[ctx.guild.id][-1]['message'] = message
         trackingGuilds[ctx.guild.id][-1]['id'] = x['id']
-        embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][-1]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][-1]['streamer']}", color=constants.RED)
+        embed = discord.Embed(title=f"THIS IS AN EXAMPLE STREAM: {trackingGuilds[ctx.guild.id][-1]['message']}", description=f"https://twitch.tv/{trackingGuilds[ctx.guild.id][-1]['streamer']}", color=constants.Color.red())
         embed.set_thumbnail(url=x['profile_image_url'])
         embed.add_field(name="This is an example stream", value="\u200b", inline=False)
         channelSend = ctx.guild.get_channel(trackingGuilds[ctx.guild.id][-1]["channel-id"])
@@ -172,7 +172,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
     @commands.command(help="Gets a list of all tracked Twitch streamers")
     async def twitchtracklist(self, ctx):
         trackingGuilds = utils.loadTrackingGuilds()
-        embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", color=constants.RED)
+        embed = discord.Embed(title=f"All Twitch Tracks in {ctx.guild.name}", color=constants.Color.red())
         for track in trackingGuilds[ctx.guild.id]:
             index = trackingGuilds[ctx.guild.id].index(track)
             embed.add_field(name=trackingGuilds[ctx.guild.id][index]['streamer'], value=f"Tracking to channel: {ctx.guild.get_channel(trackingGuilds[ctx.guild.id][index]['channel-id'])}")
@@ -190,7 +190,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             raise commands.ChannelNotFound(channel)
         channel_id = data['items'][0]['snippet']['channelId']
         stats = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={EnvVars.YT_KEY}")
-        embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=constants.RED)
+        embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=constants.Color.red())
         embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
         embed.add_field(name="Channel ID:", value=channel_id, inline=True)
         description = (data['items'][0]['snippet'])['description'] if (data['items'][0]['snippet'])['description'] else "None"
@@ -211,7 +211,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
         for item in data['items']:
             if item != data['items'][0]:
-                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=constants.RED)
+                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=constants.Color.red())
                 embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
                 embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
                 description = item['snippet']['description']
@@ -254,7 +254,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         data = rawData.get('data')
         if not data:
             raise commands.BadArgument(rawData['errors'][0]['message'])
-        embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=constants.RED)
+        embed = discord.Embed(title=f"{data['platformInfo']['platformUserHandle']}'s CS:GO Profile", description=f"Stats for {data['platformInfo']['platformUserHandle']}", color=constants.Color.red())
         embed.set_thumbnail(url=data['platformInfo']['avatarUrl'])
         embed.add_field(name="Username:", value=data['platformInfo']['platformUserHandle'], inline=True)
         embed.add_field(name="ID:", value=data['platformInfo']['platformUserId'], inline=True)

@@ -13,14 +13,14 @@ class Info(commands.Cog, description="Commands for getting information on users,
 
     @commands.command(help="Gets source code of GamerBot", aliases=['src'])
     async def sourcecode(self, ctx):
-        embed = discord.Embed(color=constants.RED)
+        embed = discord.Embed(color=constants.Color.red())
         embed.add_field(name="Source Code:", value="https://github.com/gamerbot")
         embed.add_field(name="Invite Link:", value="http://gamerbot.ga")
         await ctx.reply(embed=embed)
 
 
     async def getUserInfo(self, ctx, user : discord.User):
-        embed = discord.Embed(title=f"{str(user)}'s Profile", description=user.mention, color=constants.RED)
+        embed = discord.Embed(title=f"{str(user)}'s Profile", description=user.mention, color=constants.Color.red())
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="Display Name:", value=user.display_name)
         embed.add_field(name="ID:", value=user.id)
@@ -52,7 +52,7 @@ class Info(commands.Cog, description="Commands for getting information on users,
         else:
             guild = ctx.guild
 
-        embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=constants.RED)
+        embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=constants.Color.red())
         embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(name="Name:", value=guild.name)
         embed.add_field(name="ID:", value=guild.id)

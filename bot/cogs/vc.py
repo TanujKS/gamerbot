@@ -19,7 +19,8 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
         print("Loaded", __name__)
 
 
-    async def editMemberVoice(self, ctx, member, action):
+    @staticmethod
+    async def editMemberVoice(ctx, member, action):
         members = []
 
         if member == "channel-all":

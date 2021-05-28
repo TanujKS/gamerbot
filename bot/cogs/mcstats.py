@@ -32,7 +32,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if member:
             player = r.get(member.id)
             if player == None:
-                raise commands.BadArgument(f"{member.mention} has not linked their Discord to their Minecraft account")
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account")
             player = player.decode('utf-8')
         return player
 

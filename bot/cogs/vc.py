@@ -113,7 +113,7 @@ class VC(commands.Cog, description="Commands for managing member in voice channe
                 await ctx.author.voice.channel.connect()
                 await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
             else:
-                if len(ctx.guild.me.voice.channel.members) == 1:
+                if len(ctx.guild.me.voice.channel.members) == 1 and ctx.author.voice.channel != ctx.guild.me.voice.channel:
                     await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_deaf=True)
                 else:
                     raise commands.BadArgument("Already in a voice channel")

@@ -1,5 +1,5 @@
 from utils import utils, constants, exceptions
-from utils.constants import r, ezmessages, teams, command_prefix, emojis
+from utils.constants import r, ezmessages, teams, command_prefix, emojis, Color
 
 import discord
 from discord.ext import commands, tasks
@@ -153,7 +153,7 @@ class Listeners(commands.Cog):
             return
 
         if isinstance(error, exceptions.EmbedError):
-            embed = discord.Embed(title=error.title, description=error.description, color=constants.RED)
+            embed = discord.Embed(title=error.title, description=error.description, color=Color.red())
 
             if isinstance(originalerror, utils.exceptions.Blacklisted):
                 try:
@@ -165,7 +165,7 @@ class Listeners(commands.Cog):
 
         else:
             print(type(error), error)
-            embed = discord.Embed(title="Error Report", color=constants.RED)
+            embed = discord.Embed(title="Error Report", color=Color.red())
             embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
             embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
             embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)

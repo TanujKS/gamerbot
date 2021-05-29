@@ -58,6 +58,12 @@ class Regions:
     vip_us_west = "America/Los_Angeles"
 
 
+class Color(discord.Color):
+    @classmethod
+    def red(cls):
+        return cls(0xff0000)
+
+        
 command_prefix = "?"
 
 r = redis.from_url(EnvVars.REDIS_URL)
@@ -65,8 +71,6 @@ r = redis.from_url(EnvVars.REDIS_URL)
 emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣"]
 
 teams = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6", "Team 7", "Team 8"]
-
-RED = 0xff0000
 
 ezmessages = [
     "Wait... This isn't what I typed!",

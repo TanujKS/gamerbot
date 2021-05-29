@@ -1,5 +1,5 @@
 from utils import utils, constants
-from utils.constants import r, Converters, HypixelModes, EnvVars
+from utils.constants import r, Converters, HypixelModes, EnvVars, Color
 
 import discord
 from discord.ext import commands
@@ -44,7 +44,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
         info = MojangAPI.get_profile(uuid)
-        embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=constants.RED)
+        embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=Color.red())
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
         embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from Crafatar")
         embed.add_field(name="Username:", value=info.name, inline=True)
@@ -86,7 +86,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
         info = MojangAPI.get_profile(uuid)
-        embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=constants.RED)
+        embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=Color.red())
         embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from Crafatar")
         embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}?overlay&?{round(time.time())}")
         await ctx.reply(embed=embed)
@@ -101,7 +101,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         data = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
         if not data.get('player') or not data['player'].get('displayname'):
             raise commands.BadArgument(f"{player} has not played Hypixel")
-        embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=constants.RED)
+        embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=Color.red())
         embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay&?{round(time.time())}")
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         status = None
@@ -228,7 +228,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 raise commands.BadArgument(f"Player {player} is not in a guild")
 
 
-        embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=constants.RED)
+        embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=Color.red())
         if member:
             embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
 
@@ -302,7 +302,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
         data = rawData['player']['stats']['Bedwars']
         if len(player_and_mode) < 2:
-            embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=constants.RED)
+            embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=Color.red())
             embed.add_field(name="Coins:", value=data.get("coins", 0), inline=True)
             embed.add_field(name="EXP:", value=data.get("Experience", 0), inline=True)
             embed.add_field(name="Level:", value=rawData['player']['achievements'].get("bedwars_level", 0), inline=True)
@@ -338,7 +338,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             mode = utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[1])
             if mode == None:
                 raise commands.BadArgument("Invalid mode")
-            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=constants.RED)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=Color.red())
             embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
             embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
             embed.add_field(name="\u200b", value="\u200b", inline=True)
@@ -438,7 +438,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f"{player} has not played SkyWars")
         data = rawData['player']['stats']['SkyWars']
         if len(player_and_mode) <= 1:
-            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=constants.RED)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Skywars Profile", description=f"Skywars stats for {rawData['player']['displayname']}", color=Color.red())
             embed.add_field(name="Coins:", value=data.get('coins', 0), inline=True)
             embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
@@ -464,7 +464,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             joinedmode = " ".join(player_and_mode)
             joinedmode = (utils.multi_key_dict_get(HypixelModes.skywarsModes, joinedmode))
             if joinedmode == "solos normal":
-                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=constants.RED)
+                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Normal Skywars Profile", description=f"Solo Normal Skywars stats for {rawData['player']['displayname']}", color=Color.red())
                 embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
                 embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
                 embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
@@ -477,7 +477,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="Losses:", value=data.get('losses_solo', 0) - data.get('losses_solo_insane', 0), inline=True)
                 embed.add_field(name="W/L Rate:", value=self.getrate(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0), data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
             elif joinedmode == "solos insane":
-                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {rawData['player']['displayname']}", color=constants.RED)
+                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Solos Insane Skywars Profile", description=f"Solo Insane Skywars stats for {rawData['player']['displayname']}", color=Color.red())
                 embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
                 embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
                 embed.add_field(name="Games Played:", value=data.get('wins_solo_insane', 0) + data.get('losses_solo_insane', 0), inline=True)
@@ -488,7 +488,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="Losses:", value=data.get("losses_solo_insane", 0), inline=True)
                 embed.add_field(name="W/L Rate:", value=self.getrate(data.get("wins_solo_insane", 0), data.get("losses_solo_insane", 0)), inline=True)
             elif joinedmode == "teams normal":
-                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=constants.RED)
+                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Normal Skywars Profile", description=f"Teams Normal Skywars stats for {rawData['player']['displayname']}", color=Color.red())
                 embed.add_field(name="EXP:", value=data.get("skywars_experience", 0), inline=True)
                 embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
                 embed.add_field(name="Games Played:", value=(data.get("wins_team", 0) - data.get("wins_team_insane", 0)) + (data.get("losses_team", 0) - data.get("losses_team_insane", 0)), inline=True)
@@ -499,7 +499,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="Losses:", value=data.get("losses_team", 0) - data.get("losses_team_insane", 0), inline=True)
                 embed.add_field(name="W/L Rate:", value=self.getrate(data.get("wins_team", 0) - data.get("wins_team_insane", 0), data.get("losses_team", 0) - data.get("losses_team_insane", 0)), inline=True)
             elif joinedmode == "teams insane":
-                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {rawData['player']['displayname']}", color=constants.RED)
+                embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Teams Insane Skywars Profile", description=f"Teams Insane Skywars stats for {rawData['player']['displayname']}", color=Color.red())
                 embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
                 embed.add_field(name="Level:", value=getSkyWarsLevel(data.get("skywars_experience", 0)), inline=True)
                 embed.add_field(name="Games Played:", value=data.get("wins_team_insane", 0) + data.get("losses_team_insane", 0), inline=True)
@@ -549,7 +549,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f"{player} has not played Duels")
         data = rawData['player']['stats']['Duels']
         if len(player_and_mode) < 2:
-            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=constants.RED)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Duels Profile", description=f"Duels stats for {rawData['player']['displayname']}", color=Color.red())
             mode = "all_modes"
             for ra in ranks:
                 prestigeNumber = data.get(f'{mode}_{ra}_title_prestige', None)
@@ -591,7 +591,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             mode = " ".join(player_and_mode)
             if not mode in HypixelModes.duelModes:
                 raise commands.BadArgument(f'Mode "{mode}" not found.')
-            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=constants.RED)
+            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=Color.red())
             for ra in ranks:
                 prestigeNumber = data.get(f'{mode.split()[0]}_{ra}_title_prestige', None)
                 if prestigeNumber:

@@ -44,7 +44,7 @@ class MinecraftSkinFetcher:
         return f"/&?{round(time.time())}"
 
 
-class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Commands for Minecraft player statistics"):
+class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Minecraft player statistics"):
     def __init__(self, bot):
         self.bot = bot
         print("Loaded", __name__)

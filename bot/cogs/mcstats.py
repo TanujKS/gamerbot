@@ -100,12 +100,12 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
 
         link = data['player']['socialMedia']['links'].get('DISCORD')
         if link == None:
-            raise commands.BadArgument(f"{data['player']['displayname']} has no Discord user linked to their Hypixel account")
+            raise commands.BadArgument(f"**{data['player']['displayname']}** has no Discord user linked to their Hypixel account")
         if link == str(ctx.author):
-            await ctx.reply(f"Your Discord account is now linked to {data['player']['displayname']}. Anyone can see your Minecraft and Hypixel stats by doing '?mc {ctx.author.mention}' and running '?hypixel' will bring up your own Hypixel stats")
+            await ctx.reply(f"Your Discord account is now linked to **{data['player']['displayname']}**. Anyone can see your Minecraft and Hypixel stats by doing `'?mc {ctx.author.mention}'` and running `?mc` will bring up your own Minecraft stats")
             r.set(ctx.author.id, data['player']['displayname'])
         else:
-            raise commands.BadArgument(f"{data['player']['displayname']} can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
+            raise commands.BadArgument(f"**{data['player']['displayname']}** can only be linked to {data['player']['socialMedia']['links']['DISCORD']}")
 
 
     @commands.command(description="<player> can be a Minecraft player or left blank to get your own skin", help="Gets the skin of a Minecraft player")

@@ -15,6 +15,35 @@ from collections import OrderedDict
 from mojang import MojangAPI
 
 
+class MinecraftSkinFetcher:
+    api = "https://mc-heads.net/"
+    head_url = "head/"
+    body_url = "body/"
+
+
+    def __init__(self, url):
+        self.url = url
+
+
+    def __str__(self):
+        return self.url
+
+
+    @classmethod
+    def head(cls, identifier):
+        return cls(cls.api + cls.head_url + identifier + cls.finalize())
+
+
+    @classmethod
+    def body(cls, identifier):
+        return cls(cls.api + cls.body_url + identifier + cls.finalize())
+
+
+    @staticmethod
+    def finalize():
+        return f"/&?{round(time.time())}"
+
+
 class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Commands for Minecraft player statistics"):
     def __init__(self, bot):
         self.bot = bot
@@ -45,7 +74,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             raise commands.BadArgument(f'Player "{player}" not found.')
         info = MojangAPI.get_profile(uuid)
         embed = discord.Embed(title=f"{info.name}'s Minecraft Profile", description=f"Stats for {info.name}", color=Color.red())
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
+        embed.set_thumbnail(url=MinecraftSkinFetcher.head(uuid))
         embed.set_footer(text="Stats provided using the Mojang APIs \nAvatars and skins from Crafatar")
         embed.add_field(name="Username:", value=info.name, inline=True)
         embed.add_field(name="UUID:", value=info.id, inline=True)
@@ -88,7 +117,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         info = MojangAPI.get_profile(uuid)
         embed=discord.Embed(title=f"{info.name}'s Skin", description=f"Full render of {info.name}'s skin", color=Color.red())
         embed.set_footer(text="Stats provided using the Mojang API \nAvatars and skins from Crafatar")
-        embed.set_image(url=f"https://crafatar.com/renders/body/{uuid}?overlay&?{round(time.time())}")
+        embed.set_image(url=MinecraftSkinFetcher.body(uuid))
         await ctx.reply(embed=embed)
 
 
@@ -102,7 +131,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
         if not data.get('player') or not data['player'].get('displayname'):
             raise commands.BadArgument(f"{player} has not played Hypixel")
         embed = discord.Embed(title=f"{data['player']['displayname']}'s Hypixel Profile", description=f"Hypixel stats for {data['player']['displayname']}", color=Color.red())
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{data['player']['uuid']}?overlay&?{round(time.time())}")
+        embed.set_thumbnail(url=MinecraftSkinFetcher.head(data['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         status = None
         ts = data['player'].get('lastLogin')
@@ -230,7 +259,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
 
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=Color.red())
         if member:
-            embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{uuid}?overlay&?{round(time.time())}")
+            embed.set_thumbnail(url=MinecraftSkinFetcher.head(uuid))
 
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
@@ -367,7 +396,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_beds_broken_bedwars", deaths=f"{mode}_beds_lost_bedwars")
             embed.add_field(name=f"Beds needed for a B/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
+        embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed)
 
@@ -511,7 +540,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
                 embed.add_field(name="W/L Rate:", value=self.getrate(data.get("wins_team_insane", 0), data.get("losses_team_insane", 0)), inline=True)
             else:
                 raise commands.BadArgument("Invalid mode")
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&{round(time.time())}")
+        embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed)
 
@@ -626,7 +655,7 @@ class MinecraftStats(commands.Cog, name="Minecraft Statistics", description="Com
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins", deaths=f"{mode}_losses")
             embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
-        embed.set_thumbnail(url=f"https://crafatar.com/renders/head/{rawData['player']['uuid']}?overlay&?{round(time.time())}")
+        embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         await ctx.reply(embed=embed)
 

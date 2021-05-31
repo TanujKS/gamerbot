@@ -39,7 +39,8 @@ class Listeners(commands.Cog):
         print("Owner Only:", self.bot.owner_mode)
 
 
-    def initGuild(self, guild : discord.Guild):
+    @staticmethod
+    def initGuild(guild : discord.Guild):
         guildInfo = utils.loadGuildInfo()
         guildInfo[guild.id] = {}
         guildInfo[guild.id]['antiez'] = False

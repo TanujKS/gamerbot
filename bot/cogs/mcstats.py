@@ -50,7 +50,8 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         print("Loaded", __name__)
 
 
-    async def hasLink(self, ctx, player):
+    @staticmethod
+    async def hasLink(ctx, player):
         if len(player) == 0:
             member = ctx.author
         elif ctx.message.mentions:
@@ -284,16 +285,17 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         await ctx.reply(embed=embed)
 
 
-
-    def getrate(self, stat1 : int, stat2 : int):
+    @staticmethod
+    def getrate(stat1 : int, stat2 : int):
         try:
             return round(stat1/stat2, 2)
         except ZeroDivisionError:
             return 0
 
 
-    def getCeilingRate(self, *, data, kills, deaths):
-        ceilingRate = math.ceil(self.getrate(data.get(kills, 0), data.get(deaths, 0)))
+    @classmethod
+    def getCeilingRate(cls, *, data, kills, deaths):
+        ceilingRate = math.ceil(cls.getrate(data.get(kills, 0), data.get(deaths, 0)))
         total = ceilingRate * data.get(deaths, 0)
         res = max(0, total - data.get(kills, 0))
         return ceilingRate, total, res
@@ -401,7 +403,8 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         await ctx.reply(embed=embed)
 
 
-    def write_roman(self, num : int):
+    @staticmethod
+    def write_roman(num : int):
         roman = OrderedDict()
         roman[1000] = "M"
         roman[900] = "CM"

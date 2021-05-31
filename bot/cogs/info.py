@@ -19,7 +19,8 @@ class Info(commands.Cog, description="Commands for getting information on users,
         await ctx.reply(embed=embed)
 
 
-    async def getUserInfo(self, ctx, user : discord.User):
+    @staticmethod
+    async def getUserInfo(ctx, user : discord.User):
         embed = discord.Embed(title=f"{str(user)}'s Profile", description=user.mention, color=Color.red())
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name="Display Name:", value=user.display_name)

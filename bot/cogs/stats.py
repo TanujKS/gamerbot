@@ -73,7 +73,8 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             await ctx.reply(embed=embed)
 
 
-    async def twitchProfile(self, channel, data):
+    @staticmethod
+    async def twitchProfile(channel, data):
         embed = discord.Embed(title=f"{data['display_name']}'s' Twitch Stats", description=f"https://twitch.tv/{channel}", color=Color.red())
         embed.set_thumbnail(url=data['profile_image_url'])
         embed.add_field(name="Username:", value=data['display_name'], inline=True)

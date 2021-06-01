@@ -181,19 +181,19 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         EXP = round(data['player'].get("networkExp", 0))
         level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) // 2500)
         karma = data['player'].get("karma", 0)
-        embed.add_field(name="EXP:", value=EXP, inline=True)
-        embed.add_field(name="Level:", value=level, inline=True)
+        embed.add_field(name="EXP:", value=utils.insert_commas(EXP), inline=True)
+        embed.add_field(name="Level:", value=utils.insert_commas(level), inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="Karma:", value=karma, inline=True)
+        embed.add_field(name="Karma:", value=utils.insert_commas(karma), inline=True)
         friends = await utils.getJSON(f"https://api.hypixel.net/friends?key={EnvVars.HYPIXEL_KEY}&uuid={data['player']['uuid']}")
-        friends = str(len(friends.get('records', [])))
-        embed.add_field(name="Friends:", value=friends, inline=True)
+        friends = len(friends.get('records', []))
+        embed.add_field(name="Friends:", value=utils.insert_commas(friends), inline=True)
         id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={EnvVars.HYPIXEL_KEY}&byUuid={data['player']['uuid']}")
         try:
             guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&id={id['guild']}")
             embed.add_field(name="\u200b", value="\u200b", inline=True)
             embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
-            embed.add_field(name="Guild Members:", value=len(guild['guild']['members']), inline=True)
+            embed.add_field(name="Guild Members:", value=utils.insert_commas(len(guild['guild']['members'])), inline=True)
             embed.add_field(name="\u200b", value="\u200b", inline=True)
         except KeyError:
             embed.add_field(name="Guild:", value="None", inline=True)
@@ -221,7 +221,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
                     need = EXP_NEEDED[i]
 
                 if (exp - need) < 0:
-                    return (((level + (exp / need)) * 100) // 100)
+                    return math.floor(((level + (exp / need)) * 100) // 100)
 
                 level += 1
                 exp -= need
@@ -265,13 +265,13 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="ID:", value=len(guild['guild']['_id']), inline=True)
-        embed.add_field(name="Members:", value=len(guild['guild']['members']), inline=True)
-        embed.add_field(name="EXP:", value=guild['guild']['exp'], inline=True)
-        embed.add_field(name="Level:", value=getGuildLevel(guild['guild']['exp']))
+        embed.add_field(name="Members:", value=utils.insert_commas(len(guild['guild']['members'])), inline=True)
+        embed.add_field(name="EXP:", value=utils.insert_commas(guild['guild']['exp']), inline=True)
+        embed.add_field(name="Level:", value=utils.insert_commas(getGuildLevel(guild['guild']['exp'])))
         embed.add_field(name="Public:", value=utils.convertBooltoExpress(guild['guild'].get('publiclyListed')))
-        embed.add_field(name="Winners:", value=guild['guild']['achievements'].get('WINNERS', 0))
-        embed.add_field(name="Experience Kings:", value=guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0))
-        embed.add_field(name="Online Players:", value=guild['guild']['achievements'].get('ONLINE_PLAYERS'))
+        embed.add_field(name="Winners:", value=utils.insert_commas(guild['guild']['achievements'].get('WINNERS', 0)))
+        embed.add_field(name="Experience Kings:", value=utils.insert_commas(guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0)))
+        embed.add_field(name="Online Players:", value=utils.insert_commas(guild['guild']['achievements'].get('ONLINE_PLAYERS')))
 
         if member:
             for member in guild['guild']['members']:
@@ -279,7 +279,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
                     embed.add_field(name="\u200b", value="\u200b", inline=False)
                     embed.add_field(name="Player Stats:", value="\u200b", inline=False)
                     embed.add_field(name="Rank", value=member['rank'])
-                    embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
+                    embed.add_field(name="Quest Participation", value=utils.insert_commas(member.get('questParticipation', 0)))
                     break
 
         await ctx.reply(embed=embed)

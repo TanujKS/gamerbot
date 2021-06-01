@@ -23,8 +23,9 @@ def determine_prefix(bot, ctx, clean=False):
         prefix = command_prefix
 
     if clean == False:
-        prefix = commands.when_mentioned_or(*prefix)(bot, ctx)
+        prefix = commands.when_mentioned_or(prefix)(bot, ctx)
 
+    print(prefix)
     return prefix
 
 
@@ -182,3 +183,7 @@ def checkIfSetup(ctx):
         raise commands.BadArgument(f"Your server may not be setup for Game Events yet. Run {determine_prefix(ctx.bot, ctx, clean=True)}setup")
     else:
         return True
+
+
+def insert_commas(num: int):
+    return "{:,}".format(num)

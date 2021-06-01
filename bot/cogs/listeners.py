@@ -9,6 +9,8 @@ import random
 
 import asyncio
 
+import traceback
+
 
 class Listeners(commands.Cog):
     def __init__(self, bot):
@@ -116,7 +118,7 @@ class Listeners(commands.Cog):
 
             messageList = message.content.lower().split()
 
-            if not message.reference and len(messageList) == 1 and self.bot.user in message.mentions:
+            if not message.reference and len(messageList) == 1 and message.guild.me.mention == messageList[0]:
                 try:
                     await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message, clean=True)}`")
                 except discord.errors.Forbidden:
@@ -178,6 +180,7 @@ class Listeners(commands.Cog):
             embed.add_field(name="Message:", value=str(error), inline=True)
             await utils.sendReport("Error", embed=embed)
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
+            traceback.print_tb(error.__traceback__)
             await self.on_command_error(ctx, error)
 
         if isinstance(originalerror, commands.MissingRequiredArgument):

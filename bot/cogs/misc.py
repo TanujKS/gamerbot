@@ -86,6 +86,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
                 embed = discord.Embed(title=f"TTVC Role is now set to {guildInfo[ctx.guild.id]['TTVCrole']}", color=Color.red())
 
             elif setting[0] == "prefix":
+                print(setting[1])
                 guildInfo[ctx.guild.id]['prefix'] = setting[1]
                 embed = discord.Embed(title=f"Prefix for {str(self.bot.user)} in {ctx.guild.name} is now {guildInfo[ctx.guild.id]['prefix']}")
 

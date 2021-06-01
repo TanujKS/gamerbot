@@ -25,7 +25,6 @@ def determine_prefix(bot, ctx, clean=False):
     if clean == False:
         prefix = commands.when_mentioned_or(prefix)(bot, ctx)
 
-    print(prefix)
     return prefix
 
 

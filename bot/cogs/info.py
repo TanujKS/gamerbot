@@ -48,34 +48,24 @@ class Info(commands.Cog, description="Commands for getting information on users,
     @commands.command(help="Gets information of the current server", aliases=["serverinfo"])
     @commands.guild_only()
     async def guildinfo(self, ctx, *guild):
-        if commands.is_owner() and guild:
-            guild = await Converters.GuildConverter.convert(ctx, " ".join(guild))
-        else:
-            guild = ctx.guild
+        guild = await Converters.GuildConverter.convert(ctx, " ".join(guild)) if commands.is_owner() and guild else ctx.guild
 
         embed = discord.Embed(title=f"{guild.name}'s Information", description=f"Description: {guild.description}", color=Color.red())
         embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(name="Name:", value=guild.name)
         embed.add_field(name="ID:", value=guild.id)
         embed.add_field(name="Created at:", value=utils.UTCtoZone(guild.created_at, guild.region.name))
-        embed.add_field(name="Members:", value=len([member for member in guild.members if not member.bot]))
-        embed.add_field(name="Bots:", value=len([bot for bot in guild.members if bot.bot]))
-        embed.add_field(name="Total Members:", value=guild.member_count)
+        embed.add_field(name="Members:", value=utils.insert_commas(len([member for member in guild.members if not member.bot])))
+        embed.add_field(name="Bots:", value=utils.insert_commas(len([bot for bot in guild.members if bot.bot])))
+        embed.add_field(name="Total Members:", value=utils.insert_commas(guild.member_count))
         embed.add_field(name="Region:", value=str(guild.region))
         embed.add_field(name="Region:", value=getattr(Regions, guild.region.name))
         embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Owner:", value=guild.owner.mention, inline=False)
-        embed.add_field(name="Emoji Limit:", value=f"{guild.emoji_limit} Emojis")
-        embed.add_field(name="Filesize Limit:", value=f"{guild.filesize_limit} Bytes")
-        embed.add_field(name="Bitrate Limit:", value=f"{guild.bitrate_limit} Bits")
-
-        def getMFALevel(mfaint : int):
-            if mfaint == 0:
-                return "Not required"
-            if mfaint == 1:
-                return "Required"
-
-        embed.add_field(name="Multi-Factor Authentication", value=getMFALevel(guild.mfa_level))
+        embed.add_field(name="Emoji Limit:", value=f"{utils.insert_commas(round(guild.emoji_limit))} Emojis")
+        embed.add_field(name="Filesize Limit:", value=f"{utils.insert_commas(round(guild.filesize_limit))} Bytes")
+        embed.add_field(name="Bitrate Limit:", value=f"{utils.insert_commas(round(guild.bitrate_limit))} Bits")
+        embed.add_field(name="Multi-Factor Authentication", value="Required" if guild.mfa_level == 1 else "Not Required")
         await ctx.reply(embed=embed)
 
 

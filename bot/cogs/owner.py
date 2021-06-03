@@ -61,6 +61,15 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
         await ctx.reply(embed=embed)
 
 
+    @commands.command(help="Gets a list of all unique servers using GamerBot")
+    async def uniqueguilds(self, ctx):
+        list = [guild.name for guild in [self.bot.get_guild(x) for x in self.uniqueGuilds]]
+        embed = discord.Embed(title="Unique Servers", color=Color.red())
+        for x in list:
+            embed.add_field(name=x, value="\u200b")
+        await ctx.send(embed=embed)
+
+
     @commands.command(help="Gets a list of all servers GamerBot is in and their member count")
     async def guildlist(self, ctx):
         embed = discord.Embed(title="GamerBot Servers", color=Color.red())

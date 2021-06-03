@@ -24,7 +24,7 @@ class Listeners(commands.Cog):
 
 
     async def bot_check(self, ctx):
-        if self.bot.owner_mode:
+        if self.bot.debug:
             return commands.is_owner()
 
         blackListed = utils.loadBlacklisted()
@@ -38,7 +38,7 @@ class Listeners(commands.Cog):
     async def on_ready(self):
         print("Logged into", self.bot.user)
         print("ID:", self.bot.user.id)
-        print("Owner Only:", self.bot.owner_mode)
+        print("Debug:", self.bot.debug)
 
 
     @staticmethod
@@ -167,20 +167,28 @@ class Listeners(commands.Cog):
             await ctx.reply(embed=embed)
 
         else:
-            print(type(error), error)
-            embed = discord.Embed(title="Error Report", color=Color.red())
-            embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
-            embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
-            embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
-            embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
-            embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
-            embed.add_field(name="Time", value=ctx.message.created_at, inline=False)
-            embed.add_field(name="Command:", value=ctx.command.name, inline=False)
-            embed.add_field(name="Error:", value=type(error), inline=True)
-            embed.add_field(name="Message:", value=str(error), inline=True)
-            await utils.sendReport("Error", embed=embed)
+            if not self.bot.debug:
+                embed = discord.Embed(title="Error Report", color=Color.red())
+                embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
+                embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
+                embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
+                embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
+                embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
+                embed.add_field(name="Time", value=ctx.message.created_at, inline=False)
+                embed.add_field(name="Command:", value=ctx.command.name, inline=False)
+                embed.add_field(name="Error:", value=type(error), inline=True)
+                embed.add_field(name="Message:", value=str(error), inline=True)
+                await utils.sendReport("Error", embed=embed)
+                tb = traceback.extract_tb(error.__traceback__).format()
+                message = "```"
+                for t in tb:
+                    message += t
+                message += "```"
+                await utils.sendReport(message)
+            else:
+                traceback.print_tb(error.__traceback__)
+
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
-            traceback.print_tb(error.__traceback__)
             await self.on_command_error(ctx, error)
 
         if isinstance(originalerror, commands.MissingRequiredArgument):

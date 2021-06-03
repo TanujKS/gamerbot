@@ -1,5 +1,9 @@
-from utils import exceptions
-from utils.constants import command_prefix, teams, r, EnvVars, Regions
+if __name__ == "__main__":
+    import exceptions
+    from constants import command_prefix, teams, r, EnvVars, Regions
+else:
+    from utils import exceptions
+    from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
 import discord
 from discord.ext import commands
@@ -81,7 +85,6 @@ def multi_key_dict_get(d : dict, k):
     for keys, v in d.items():
         if k in keys:
             return v
-    return None
 
 
 def convertBooltoStr(bool : bool):
@@ -101,7 +104,19 @@ def convertBooltoExpress(bool : bool):
 async def sendReport(message, *, embed=None):
     async with aiohttp.ClientSession() as cs:
         webhook = Webhook.from_url(EnvVars.REPORTS, adapter=AsyncWebhookAdapter(cs))
-        await webhook.send(message, embed=embed)
+        message = sendLargeMessage(message)
+        for m in message:
+            await webhook.send(m, embed=embed)
+
+
+def sendLargeMessage(message):
+    message = str(message)
+    new_message = []
+    x = 0
+    while x <= len(message):
+        new_message.append(message[x:x+1000])
+        x += 1000
+    return new_message
 
 
 async def getJSON(url, headers=None, json=True, read=False):

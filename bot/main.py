@@ -10,7 +10,7 @@ import os
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("TOKEN", help="The variable name for the token to log into a Discord client")
-parser.add_argument("-o", "--owner", help="Boots the bot into Owner mode, where only the bot Owner can use commands", action="store_true")
+parser.add_argument("-d", "--debug", help="Boots the bot into Debug mode, where only the bot Owner can use commands and tracebacks are printed etc", action="store_true")
 args = parser.parse_args()
 
 
@@ -27,7 +27,7 @@ bot = commands.Bot(
     allowed_mentions=discord.AllowedMentions.none()
 )
 
-bot.owner_mode = True if args.owner else False
+bot.debug = True if args.debug else False
 
 
 for file in os.listdir("bot/cogs"):

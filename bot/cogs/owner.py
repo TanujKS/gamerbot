@@ -158,7 +158,6 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
                 '__import__': __import__,
                 'get': get,
                 'r': r,
-                "self": self
             }
 
             exec(compile(parsed, filename="<ast>", mode="exec"), env)

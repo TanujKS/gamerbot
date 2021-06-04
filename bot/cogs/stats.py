@@ -283,7 +283,26 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
     @commands.command()
     async def clashroyale(self, ctx, id):
         data = await utils.getJSON(f"https://api.clashroyale.com/v1/players/{id.replace('#', '%23')}/", headers={"Accept":"application/json", "authorization":"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjA5ZmZhMzU0LWY2ZTEtNGNiZC05MWQ1LTcxYzRlZWFmZDhiOSIsImlhdCI6MTYyMjgyMjk3Nywic3ViIjoiZGV2ZWxvcGVyL2UzMDVjYzQ5LWQ0MzYtMzg1YS1hNjhkLTFiYTA5NzI2ZmI2MCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIyMDQuODguMTU4LjEyMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.-oOZbtSWL7h4GmNwGCgIyxyZwqHOrH4TibWRHRRPtNzVNJTQ6uqF6y6kfXPP7-PEMEzVUCRzcN85SHNlkvO-UQ"})
-        print(data)
+
+        if data.get('reason') == "notFound":
+            raise commands.BadArgument("Invalid tag")
+
+        embed = discord.Embed(title=f"{data['name']}'s Clash Royale Profile", color=Color.red())
+        embed.set_thumbnail(url=data['currentFavouriteCard']['iconUrls']['medium'])
+        embed.add_field(name="Name:", value=data['name'])
+        embed.add_field(name="Tag:", value=data['tag'])
+        embed.add_field(name="\u200b", value="\u200b")
+        embed.add_field(name="Trophies:", value=data['trophies'])
+        embed.add_field(name="Best Trophies:", value=data['bestTrophies'])
+        embed.add_field(name="\u200b", value="\u200b")
+        embed.add_field(name="Wins:", value=data['wins'])
+        embed.add_field(name="Losses:", value=data['losses'])
+        embed.add_field(name="W/L Rate:", value=utils.getrate(data['wins'], data['losses']))
+        embed.add_field(name="Draws:", value=data['battleCount']-(data['wins'] + data['losses']))
+        embed.add_field(name="Games Played:", value=data['battleCount'])
+        embed.add_field(name="Three Crown Wins:", value=data['threeCrownWins'])
+        embed.add_field(name="Clan:", value=data['clan']['name'] if data.get('clan') else "None")
+        await ctx.reply(embed=embed)
 
 
 

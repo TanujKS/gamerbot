@@ -48,6 +48,11 @@ class APIHelp(commands.Cog, name="APIs", description="List of all APIs used by G
         pass
 
 
+    @commands.command(name="Clash Royale API", help="https://developer.clashroyale.com/#/")
+    async def ClashAPI(self, ctx):
+        pass
+
+
 
 
 def setup(bot):

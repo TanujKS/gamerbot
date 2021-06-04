@@ -250,7 +250,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         if member:
             player = csgoLinks.get(member)
             if not player:
-                raise commands.BadArgument(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run {utils.determine_prefix(ctx.bot, ctx)}csgolink")
+                raise commands.BadArgument(f"There is no CS:GO ID linked to {str(ctx.guild.get_member(member))}. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}csgolink")
         rawData = await utils.getJSON(f"https://public-api.tracker.gg/v2/csgo/standard/profile/steam/{player}", headers={"TRN-Api-Key": EnvVars.TRN_API_KEY})
         data = rawData.get('data')
         if not data:

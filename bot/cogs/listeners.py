@@ -137,7 +137,7 @@ class Listeners(commands.Cog):
                     await message.delete()
 
 
-    #@commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, originalerror):
         error = originalerror.original if isinstance(originalerror, commands.CommandInvokeError) else originalerror
 

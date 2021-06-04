@@ -280,10 +280,11 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         await ctx.reply(embed=embed)
 
 
-    @commands.command(aliases=['clash'])
+    @commands.command(aliases=["clash"])
     async def clashroyale(self, ctx, id):
         data = await utils.getJSON(f"https://api.clashroyale.com/v1/players/{id.replace('#', '%23')}/", headers={"Accept":"application/json", "authorization":EnvVars.CLASH_KEY})
-
+        print(data)
+        
         if data.get('reason') == "notFound":
             raise commands.BadArgument("Invalid tag")
 

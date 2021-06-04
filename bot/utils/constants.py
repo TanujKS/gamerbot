@@ -19,6 +19,10 @@ class EnvVars:
     TWITCH_CLIENT_ID = os.getenv("TWITCH_CLIENT_ID")
     YT_KEY = os.getenv("YT_KEY")
     CLASH_KEY = os.getenv("CLASH_KEY")
+    proxies = {
+    "http": os.getenv('QUOTAGUARDSTATIC_URL'),
+    "https": os.getenv('QUOTAGUARDSTATIC_URL')
+    }
 
 
 class Converters:

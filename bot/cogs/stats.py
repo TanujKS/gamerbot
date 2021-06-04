@@ -282,11 +282,11 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
 
     @commands.command(aliases=["clash"])
     async def clashroyale(self, ctx, id):
-        data = await utils.getJSON(f"https://api.clashroyale.com/v1/players/{id.replace('#', '%23')}/", headers={"Accept":"application/json", "authorization":EnvVars.CLASH_KEY})
+        data = await utils.getJSON(f"https://api.clashroyale.com/v1/players/{id.replace('#', '%23')}/", headers={"Accept":"application/json", "authorization":EnvVars.CLASH_KEY}, proxies=EnvVars.proxies)
         print(data)
-        
-        if data.get('reason') == "notFound":
-            raise commands.BadArgument("Invalid tag")
+
+        if data.get('reason'):
+            raise commands.BadArgument(f"Something went wrong! \nError: {data.get('reason')}")
 
         embed = discord.Embed(title=f"{data['name']}'s Clash Royale Profile", color=Color.red())
         embed.set_thumbnail(url=data['currentFavouriteCard']['iconUrls']['medium'])

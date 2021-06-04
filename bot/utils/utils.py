@@ -119,9 +119,9 @@ def sendLargeMessage(message):
     return new_message
 
 
-async def getJSON(url, headers=None, json=True, read=False):
+async def getJSON(url, headers=None, json=True, read=False, proxies={}):
     async with aiohttp.ClientSession() as cs:
-        async with cs.get(url, headers=headers) as data:
+        async with cs.get(url, headers=headers, proxy=proxies.get('http')) as data:
             if json:
                 try:
                     data = await data.json()

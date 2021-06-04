@@ -203,7 +203,7 @@ def insert_commas(num: int):
     return "{:,}".format(num)
 
 
-def getrate(stat1 : int, stat2 : int):
+def getRate(stat1 : int, stat2 : int):
     try:
         return round(stat1/stat2, 2)
     except ZeroDivisionError:

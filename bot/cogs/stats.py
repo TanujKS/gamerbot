@@ -298,7 +298,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
         embed.add_field(name="\u200b", value="\u200b")
         embed.add_field(name="Wins:", value=data['wins'])
         embed.add_field(name="Losses:", value=data['losses'])
-        embed.add_field(name="W/L Rate:", value=utils.getrate(data['wins'], data['losses']))
+        embed.add_field(name="W/L Rate:", value=utils.getRate(data['wins'], data['losses']))
         embed.add_field(name="Draws:", value=data['battleCount']-(data['wins'] + data['losses']))
         embed.add_field(name="Games Played:", value=data['battleCount'])
         embed.add_field(name="Three Crown Wins:", value=data['threeCrownWins'])

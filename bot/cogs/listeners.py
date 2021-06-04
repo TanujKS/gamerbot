@@ -167,7 +167,9 @@ class Listeners(commands.Cog):
             await ctx.reply(embed=embed)
 
         else:
-            if not self.bot.debug:
+            if self.bot.debug:
+                traceback.print_tb(error.__traceback__)
+            else:
                 embed = discord.Embed(title="Error Report", color=Color.red())
                 embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
                 embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
@@ -185,8 +187,6 @@ class Listeners(commands.Cog):
                     message += t
                 message += "```"
                 await utils.sendReport(message)
-            else:
-                traceback.print_tb(error.__traceback__)
 
             error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
             await self.on_command_error(ctx, error)

@@ -208,3 +208,35 @@ def getRate(stat1 : int, stat2 : int):
         return round(stat1/stat2, 2)
     except ZeroDivisionError:
         return 0
+
+
+class Paginator:
+    class PageNotFound(Exception):
+        pass
+
+
+    def __init__(self):
+        self.pages = []
+
+
+    def add_page(self, content):
+        self.pages.append(content)
+
+
+    def del_page(self, index):
+        try:
+            self.pages.pop(index)
+        except IndexError:
+            raise PageNotFound(index)
+
+
+    async def send_page(self, ctx: commands.context, page_number: int):
+        self.ctx = ctx
+        try:
+            page = self.pages[page_number]
+            content = page if not isinstance(page, discord.Embed) else None
+            embed = page if isinstance(page, discord.Embed) else None
+            await self.ctx.send(content, embed=embed)
+            self.currentPage = page_number
+        except IndexError:
+            raise PageNotFound(page_number)

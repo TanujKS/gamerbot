@@ -25,7 +25,7 @@ class Listeners(commands.Cog):
 
     async def bot_check(self, ctx):
         if self.bot.debug:
-            return commands.is_owner()
+            return await self.bot.is_owner(ctx.author)
 
         blackListed = utils.loadBlacklisted()
         if ctx.author.id not in blackListed:
@@ -117,14 +117,14 @@ class Listeners(commands.Cog):
         if not message.author.bot:
 
             messageList = message.content.lower().split()
-
-            if not message.reference and len(messageList) == 1 and message.guild.me.mention == messageList[0]:
-                try:
-                    await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message, clean=True)}`")
-                except discord.errors.Forbidden:
-                    pass
-
             if message.guild:
+
+                if not message.reference and len(messageList) == 1 and message.guild.me.mention == messageList[0]:
+                    try:
+                        await message.channel.send(f"My prefix in this server is `{utils.determine_prefix(self.bot, message, clean=True)}`")
+                    except discord.errors.Forbidden:
+                        pass
+
                 guildInfo = utils.loadGuildInfo()
 
                 if ("ez" in messageList or "kys" in messageList) and guildInfo[message.guild.id]['antiez']:
@@ -142,7 +142,7 @@ class Listeners(commands.Cog):
         error = originalerror.original if isinstance(originalerror, commands.CommandInvokeError) else originalerror
 
         if isinstance(error, commands.DisabledCommand):
-            if ctx.author.id == self.owner_id:
+            if await self.bot.is_owner(ctx.author):
                 await ctx.send("Bypassed disabled command")
                 return await ctx.reinvoke()
 

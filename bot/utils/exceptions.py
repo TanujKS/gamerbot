@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 raiseErrors = (commands.UserNotFound, commands.CommandOnCooldown, commands.NoPrivateMessage, commands.BadArgument, commands.UnexpectedQuoteError, commands.DisabledCommand, commands.MissingPermissions, commands.MissingRole, commands.BotMissingPermissions, discord.errors.Forbidden, commands.MissingRequiredArgument, commands.ExpectedClosingQuoteError, discord.errors.InvalidArgument)
-passErrors = (commands.CommandNotFound, commands.NotOwner)
+passErrors = (commands.CommandNotFound, commands.NotOwner, commands.CheckFailure)
 
 
 class EmbedError(Exception):

@@ -21,7 +21,7 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
 
     async def cog_check(self, ctx):
-        return commands.is_owner()
+        return await self.bot.is_owner(ctx.author)
 
 
     @commands.Cog.listener()
@@ -35,9 +35,9 @@ class Owner(commands.Cog, description="Commands for bot Owners", command_attrs=d
 
         if ctx.author.id not in self.uniqueUsers:
             self.uniqueUsers.append(ctx.author.id)
-
-        if ctx.guild.id not in self.uniqueGuilds:
-            self.uniqueGuilds.append(ctx.guild.id)
+        if ctx.guild:
+            if ctx.guild.id not in self.uniqueGuilds:
+                self.uniqueGuilds.append(ctx.guild.id)
 
 
     def getTotalMembers(self):

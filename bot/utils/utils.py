@@ -199,8 +199,8 @@ def checkIfSetup(ctx):
         return True
 
 
-def insert_commas(num: int):
-    return "{:,}".format(num)
+def insert_commas(num):
+    return "{:,}".format(int(num))
 
 
 def getRate(stat1 : int, stat2 : int):

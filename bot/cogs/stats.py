@@ -189,39 +189,21 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             raise commands.BadArgument("YouTube returned an error!")
         if not data.get('items'):
             raise commands.ChannelNotFound(channel)
-        channel_id = data['items'][0]['snippet']['channelId']
-        stats = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={EnvVars.YT_KEY}")
-        embed = discord.Embed(title=f"YouTube statistics for {data['items'][0]['snippet']['title']}", description=f"https://www.youtube.com/channel/{channel_id}", color=Color.red())
-        embed.add_field(name="Channel Name:", value=data['items'][0]['snippet']['title'], inline=True)
-        embed.add_field(name="Channel ID:", value=channel_id, inline=True)
-        description = (data['items'][0]['snippet'])['description'] if (data['items'][0]['snippet'])['description'] else "None"
-        embed.add_field(name="Channel Description:", value=description, inline=False)
-        embed.add_field(name="Views:", value=stats['items'][0]['statistics'].get('viewCount', 0), inline=True)
-        embed.add_field(name="Subscribers:", value=stats['items'][0]['statistics'].get('subscriberCount', 0), inline=True)
-        embed.add_field(name="Videos:", value=stats['items'][0]['statistics'].get('videoCount'), inline=True)
-        embed.set_thumbnail(url=(data['items'][0])['snippet']['thumbnails']['default']['url'])
-        embed.set_footer(text=f"Stats provided by the YouTube API \nNot the Youtuber your looking for? Type 'see more' to see more {channel.replace('%20', ' ')}s and then run '?youtube (id_of_the_channel_you_want)'")
-        await ctx.reply(embed=embed)
-
-        def ytCheck(m):
-            return m.author == ctx.author and m.channel == ctx.channel and m.content == "see more"
-        try:
-            seemore = await self.bot.wait_for('message', timeout=30, check=ytCheck)
-        except asyncio.TimeoutError:
-            return
-
-        for item in data['items']:
-            if item != data['items'][0]:
-                embed = discord.Embed(title=f"YouTube statistics for {item['snippet']['title']}", description=f"https://www.youtube.com/channel/{item['snippet']['channelId']}", color=Color.red())
-                embed.add_field(name="Name:", value=item['snippet']['title'], inline=True)
-                embed.add_field(name="ID:", value=item['snippet']['channelId'], inline=True)
-                description = item['snippet']['description']
-                if not description:
-                    description = "None"
-                embed.add_field(name="Description:", value=description, inline=True)
-                embed.set_thumbnail(url=item['snippet']['thumbnails']['default']['url'])
-                await ctx.reply(embed=embed)
-                await asyncio.sleep(2)
+        Paginator = utils.Paginator(self.bot)
+        for channel in data['items']:
+            rawData = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel['snippet']['channelId']}&key={EnvVars.YT_KEY}")
+            stats = rawData['items'][0]['statistics']
+            embed = discord.Embed(title=f"YouTube statistics for {channel['snippet']['title']}", description=f"https://www.youtube.com/channel/{rawData['items'][0]['id']}", color=Color.red())
+            embed.add_field(name="Channel Name:", value=channel['snippet']['title'], inline=True)
+            embed.add_field(name="Channel ID:", value=rawData['items'][0]['id'], inline=True)
+            embed.add_field(name="Channel Description:", value=channel['snippet']['description'] if channel['snippet']['description'] else "None", inline=False)
+            embed.add_field(name="Views:", value=stats.get('viewCount', 0), inline=True)
+            embed.add_field(name="Subscribers:", value=stats.get('subscriberCount', 0), inline=True)
+            embed.add_field(name="Videos:", value=stats.get('videoCount'), inline=True)
+            embed.set_thumbnail(url=channel['snippet']['thumbnails']['default']['url'])
+            embed.set_footer(text=f"Stats provided by the YouTube API")
+            Paginator.add_page(embed)
+        await Paginator.send_page(ctx=ctx)
 
 
     @commands.command(description="<id> must be the Steam ID of a CS:GO player \n Player must have their Steam profile set to public", help="Links your Discord to a CS:GO account", aliases=['csgolink'])

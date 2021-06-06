@@ -20,6 +20,7 @@ class Listeners(commands.Cog):
 
         self.hidden = True
 
+        self.paginators = {}
         print("Loaded", __name__)
 
 
@@ -169,6 +170,7 @@ class Listeners(commands.Cog):
         else:
             if self.bot.debug:
                 traceback.print_tb(error.__traceback__)
+                print(type(error), error)
             else:
                 embed = discord.Embed(title="Error Report", color=Color.red())
                 embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
@@ -198,6 +200,13 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if not user.bot and reaction.message.author == self.bot.user:
+            if self.paginators.get(reaction.message.id):
+                if str(reaction) == "⬅️":
+                    await self.paginators[reaction.message.id].previous_page()
+                if str(reaction) == "➡️":
+                    await self.paginators[reaction.message.id].next_page()
+                await reaction.remove(user)
+
             guildInfo = utils.loadGuildInfo()
             if reaction.message.content == "React to get into your teams":
                 if not get(user.roles, name="Banned from event"):
@@ -212,20 +221,6 @@ class Listeners(commands.Cog):
                         await user.add_roles(role)
                     else:
                         await reaction.remove(user)
-
-            try:
-                dic = reaction.message.embeds[0].to_dict()
-                if dic['title'].startswith("(closed)"):
-                    await reaction.remove(user)
-                elif dic['footer']['text'].startswith("Poll by"):
-                    if str(reaction) in emojis:
-                        for eachreaction in reaction.message.reactions:
-                            if not str(eachreaction) == str(reaction):
-                                await eachreaction.remove(user)
-                    else:
-                        await reaction.remove(user)
-            except IndexError:
-                pass
 
 
             if reaction.message.content == "Teams are now closed.":

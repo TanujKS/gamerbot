@@ -267,7 +267,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         try:
             await member.edit(nick=nick)
         except discord.Forbidden:
-            raise commands.BadArgument(f"Could not change {member.mention}'s nickname because their highest role is higher than mine.")
+            raise commands.BadArgument(f"Could not change {str(member)}'s nickname because their highest role is higher than mine.")
         except discord.HTTPException:
             raise commands.BadArgument("Nickname must be fewer than 32 characters")
 

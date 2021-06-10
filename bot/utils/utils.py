@@ -203,6 +203,17 @@ def insert_commas(num):
     return "{:,}".format(int(num))
 
 
+def insert_commas_to_embed(embed: discord.Embed):
+    index = 0
+    for field in embed.fields:
+        try:
+            embed.set_field_at(index, name=field.name, value=insert_commas(field.value), inline=field.inline)
+        except ValueError:
+            pass
+        index += 1
+    return embed
+
+
 def getRate(stat1 : int, stat2 : int):
     try:
         return round(stat1/stat2, 2)

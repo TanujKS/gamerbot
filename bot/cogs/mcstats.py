@@ -99,7 +99,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         if not data.get('player') or not data['player'].get('socialMedia'):
             raise commands.BadArgument(f"{player} has not played Hypixel or has not linked Discord and cannot verify their account. If this is your account, log into Hypixel and run /discord")
 
-        link = data['player']['socialMedia']['links'].get('DISCORD')
+        link = data['player']['socialMedia']['links'].get('DISCORD') if data['player']['socialMedia'].get('links') else None
         if link == None:
             raise commands.BadArgument(f"**{data['player']['displayname']}** has no Discord user linked to their Hypixel account")
         if link == str(ctx.author):
@@ -181,19 +181,18 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         EXP = round(data['player'].get("networkExp", 0))
         level = round(1 + (-8750. + (8750**2 + 5000*EXP)**.5) // 2500)
         karma = data['player'].get("karma", 0)
-        embed.add_field(name="EXP:", value=utils.insert_commas(EXP), inline=True)
-        embed.add_field(name="Level:", value=utils.insert_commas(level), inline=True)
+        embed.add_field(name="EXP:", value=EXP, inline=True)
+        embed.add_field(name="Level:", value=level, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
-        embed.add_field(name="Karma:", value=utils.insert_commas(karma), inline=True)
+        embed.add_field(name="Karma:", value=karma, inline=True)
         friends = await utils.getJSON(f"https://api.hypixel.net/friends?key={EnvVars.HYPIXEL_KEY}&uuid={data['player']['uuid']}")
-        friends = len(friends.get('records', []))
-        embed.add_field(name="Friends:", value=utils.insert_commas(friends), inline=True)
+        embed.add_field(name="Friends:", value=len(friends.get('records', [])), inline=True)
         id = await utils.getJSON(f"https://api.hypixel.net/findGuild?key={EnvVars.HYPIXEL_KEY}&byUuid={data['player']['uuid']}")
         try:
             guild = await utils.getJSON(f"https://api.hypixel.net/guild?key={EnvVars.HYPIXEL_KEY}&id={id['guild']}")
             embed.add_field(name="\u200b", value="\u200b", inline=True)
             embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
-            embed.add_field(name="Guild Members:", value=utils.insert_commas(len(guild['guild']['members'])), inline=True)
+            embed.add_field(name="Guild Members:", value=len(guild['guild']['members']),  inline=True)
             embed.add_field(name="\u200b", value="\u200b", inline=True)
         except KeyError:
             embed.add_field(name="Guild:", value="None", inline=True)
@@ -201,6 +200,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             for link in data['player']['socialMedia']['links']:
                 embed.add_field(name=link, value=data['player']['socialMedia']['links'][link], inline=False)
 
+        embed = utils.insert_commas_to_embed(embed)
         await ctx.reply(embed=embed)
 
 
@@ -259,38 +259,63 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
 
 
         embed = discord.Embed(title=f"{guild['guild']['name']}'s Guild Profile", description=f"Guild stats for {guild['guild']['name']}", color=Color.red())
-        if member:
-            embed.set_thumbnail(url=MinecraftSkinFetcher.head(uuid))
-
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
         embed.add_field(name="Guild:", value=guild['guild']['name'], inline=True)
         embed.add_field(name="ID:", value=len(guild['guild']['_id']), inline=True)
-        embed.add_field(name="Members:", value=utils.insert_commas(len(guild['guild']['members'])), inline=True)
-        embed.add_field(name="EXP:", value=utils.insert_commas(guild['guild']['exp']), inline=True)
-        embed.add_field(name="Level:", value=utils.insert_commas(getGuildLevel(guild['guild']['exp'])))
+        embed.add_field(name="Members:", value=len(guild['guild']['members']), inline=True)
+        embed.add_field(name="EXP:", value=guild['guild']['exp'],  inline=True)
+        embed.add_field(name="Level:", value=getGuildLevel(guild['guild']['exp']))
         embed.add_field(name="Public:", value=utils.convertBooltoExpress(guild['guild'].get('publiclyListed')))
-        embed.add_field(name="Winners:", value=utils.insert_commas(guild['guild']['achievements'].get('WINNERS', 0)))
-        embed.add_field(name="Experience Kings:", value=utils.insert_commas(guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0)))
-        embed.add_field(name="Online Players:", value=utils.insert_commas(guild['guild']['achievements'].get('ONLINE_PLAYERS')))
+        embed.add_field(name="Winners:", value=guild['guild']['achievements'].get('WINNERS', 0))
+        embed.add_field(name="Experience Kings:", value=guild['guild']['achievements'].get('EXPERIENCE_KINGS', 0))
+        embed.add_field(name="Online Players:", value=guild['guild']['achievements'].get('ONLINE_PLAYERS'))
 
         if member:
+            embed.set_thumbnail(url=MinecraftSkinFetcher.head(uuid))
             for member in guild['guild']['members']:
                 if member['uuid'] == uuid:
                     embed.add_field(name="\u200b", value="\u200b", inline=False)
                     embed.add_field(name="Player Stats:", value="\u200b", inline=False)
                     embed.add_field(name="Rank", value=member['rank'])
-                    embed.add_field(name="Quest Participation", value=utils.insert_commas(member.get('questParticipation', 0)))
+                    embed.add_field(name="Quest Participation", value=member.get('questParticipation', 0))
                     break
 
+        embed = utils.insert_commas_to_embed(embed)
         await ctx.reply(embed=embed)
 
 
-    @classmethod
-    def getCeilingRate(cls, *, data, kills, deaths):
+    @staticmethod
+    def getCeilingRate(*, data, kills, deaths):
         ceilingRate = math.ceil(utils.getRate(data.get(kills, 0), data.get(deaths, 0)))
         total = ceilingRate * data.get(deaths, 0)
         res = max(0, total - data.get(kills, 0))
         return ceilingRate, total, res
+
+
+    @staticmethod
+    def write_roman(num : int):
+        roman = OrderedDict()
+        roman[1000] = "M"
+        roman[900] = "CM"
+        roman[500] = "D"
+        roman[400] = "CD"
+        roman[100] = "C"
+        roman[90] = "XC"
+        roman[50] = "L"
+        roman[40] = "XL"
+        roman[10] = "X"
+        roman[9] = "IX"
+        roman[5] = "V"
+        roman[4] = "IV"
+        roman[1] = "I"
+        def roman_num(num : int):
+            for r in roman.keys():
+                x, y = divmod(num, r)
+                yield roman[r] * x
+                num -= (r * x)
+                if num <= 0:
+                    break
+        return "".join([a for a in roman_num(num)])
 
 
     @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
@@ -337,26 +362,27 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Losses:", value=data.get("losses_bedwars", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins_bedwars', 0), data.get("losses_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins_bedwars", deaths="losses_bedwars")
-            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR:", value=res, inline=False)
 
             embed.add_field(name="Kills:", value=data.get("kills_bedwars", 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get("deaths_bedwars", 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills_bedwars", deaths="deaths_bedwars")
-            embed.add_field(name=f"Kills needed for a K/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
 
             embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="final_kills_bedwars", deaths="final_deaths_bedwars")
-            embed.add_field(name=f"Final Kills needed for a FK/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Final Kills for {ceilingRate} FK/DR", value=res, inline=False)
 
             embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
             embed.add_field(name="B/L Rate:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills="beds_broken_bedwars", deaths="beds_lost_bedwars")
-            embed.add_field(name=f"Beds broken needed for a B/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
 
+            embed.add_field(name="Kills/Game:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
+            embed.add_field(name="Finals/Game:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
+            embed.add_field(name="Beds/Game:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
         else:
             mode = utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[1])
             if mode == None:
@@ -370,55 +396,33 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get(f"{mode}_deaths_bedwars", 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_kills_bedwars", deaths=f"{mode}_deaths_bedwars")
-            embed.add_field(name=f"Kills needed for a K/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
 
             embed.add_field(name="Final Kills:", value=data.get(f"{mode}_final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get(f"{mode}_final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_final_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_final_kills_bedwars", deaths=f"{mode}_final_deaths_bedwars")
-            embed.add_field(name=f"Final kills needed for a FK/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Final kills needed for {ceilingRate} FK/DR", value=res, inline=False)
 
             embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
             embed.add_field(name="W/L Rate", value=utils.getRate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins_bedwars", deaths=f"{mode}_losses_bedwars")
-            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins needed for {ceilingRate} W/LR", value=res, inline=False)
 
             embed.add_field(name="Beds Broken:", value=data.get(f"{mode}_beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get(f"{mode}_beds_lost_bedwars", 0), inline=True)
             embed.add_field(name="B/L Rate:", value=utils.getRate(data.get(f"{mode}_beds_broken_bedwars", 0), data.get(f"{mode}_beds_lost_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_beds_broken_bedwars", deaths=f"{mode}_beds_lost_bedwars")
-            embed.add_field(name=f"Beds needed for a B/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+
+            embed.add_field(name="Kills/Game:", value=utils.getRate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
+            embed.add_field(name="Finals/Game:", value=utils.getRate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
+            embed.add_field(name="Beds/Game:", value=utils.getRate(data.get(f"{mode}_beds_broken_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
 
         embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+
+        embed = utils.insert_commas_to_embed(embed)
         await ctx.reply(embed=embed)
-
-
-    @staticmethod
-    def write_roman(num : int):
-        roman = OrderedDict()
-        roman[1000] = "M"
-        roman[900] = "CM"
-        roman[500] = "D"
-        roman[400] = "CD"
-        roman[100] = "C"
-        roman[90] = "XC"
-        roman[50] = "L"
-        roman[40] = "XL"
-        roman[10] = "X"
-        roman[9] = "IX"
-        roman[5] = "V"
-        roman[4] = "IV"
-        roman[1] = "I"
-        def roman_num(num : int):
-            for r in roman.keys():
-                x, y = divmod(num, r)
-                yield roman[r] * x
-                num -= (r * x)
-                if num <= 0:
-                    break
-        return "".join([a for a in roman_num(num)])
 
 
     @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.skywarsModes)} or left blank for overall statistics", help="Gets the SkyWars statistics of a Minecraft player", aliases=['sw', 'sws'])
@@ -427,7 +431,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             if xp == 0:
                 return 0
             if xp >= 15000:
-                return (xp - 15000) / 10000. + 12
+                return math.floor((xp - 15000) / 10000. + 12)
             else:
                 for number in xps:
                     if not xp > number:
@@ -458,7 +462,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
         if not uuid:
             raise commands.BadArgument(f'Player "{player}" not found.')
         rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
-        if not rawData.get('player') or not rawData['player'].get('stats') or not   rawData['player']['stats'].get("SkyWars"):
+        if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get("SkyWars"):
             raise commands.BadArgument(f"{player} has not played SkyWars")
         data = rawData['player']['stats']['SkyWars']
         if len(player_and_mode) <= 1:
@@ -468,20 +472,27 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
             embed.add_field(name="Games Played:", value=data.get('wins', 0) + data.get('losses', 0), inline=True)
             embed.add_field(name="Current Winstreak:", value=data.get('win_streak', 0), inline=True)
+            embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+            embed.add_field(name="Souls:", value=data.get("souls", 0), inline=True)
+            embed.add_field(name="Heads:", value=data.get("heads", 0), inline=True)
             embed.add_field(name="Assists:", value=data.get('assists', 0), inline=True)
 
             embed.add_field(name="Kills:", value=data.get('kills', 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills", deaths="deaths")
-            embed.add_field(name=f"Kills needed for a K/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR ", value=res, inline=False)
 
             embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
             embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins', 0), data.get('losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins", deaths="losses")
-            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
 
+            embed.add_field(name="Kills/Game:", value=utils.getRate(data.get('kills', 0), (data.get('wins', 0)+data.get('losses', 0))), inline=True)
+            embed.add_field(name="Assists/Game:", value=utils.getRate(data.get('assists', 0), (data.get('wins', 0)+data.get('losses', 0))), inline=True)
+            embed.add_field(name="Souls/Game:", value=utils.getRate(data.get('souls', 0), (data.get('wins', 0)+data.get('losses', 0))), inline=True)
         else:
             player_and_mode = list(player_and_mode)
             player_and_mode.pop(0)
@@ -492,11 +503,9 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
                 embed.add_field(name="EXP:", value=data.get('skywars_experience', 0), inline=True)
                 embed.add_field(name="Level:", value=getSkyWarsLevel(data.get('skywars_experience', 0)), inline=True)
                 embed.add_field(name="Games Played:", value=(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0)) + (data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
-
                 embed.add_field(name="Kills:", value=data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), inline=True)
                 embed.add_field(name="Deaths:", value=data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0), inline=True)
                 embed.add_field(name="K/D Rate:", value=utils.getRate(data.get('kills_solo', 0) - data.get('kills_solo_insane', 0), data.get('deaths_solo', 0) - data.get('deaths_solo_insane', 0)), inline=True)
-
                 embed.add_field(name="Wins:", value=data.get('wins_solo', 0) - data.get('wins_solo_insane', 0), inline=True)
                 embed.add_field(name="Losses:", value=data.get('losses_solo', 0) - data.get('losses_solo_insane', 0), inline=True)
                 embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins_solo', 0) - data.get('wins_solo_insane', 0), data.get('losses_solo', 0) - data.get('losses_solo_insane', 0)), inline=True)
@@ -534,9 +543,12 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
                 embed.add_field(name="Losses:", value=data.get("losses_team_insane", 0), inline=True)
                 embed.add_field(name="W/L Rate:", value=utils.getRate(data.get("wins_team_insane", 0), data.get("losses_team_insane", 0)), inline=True)
             else:
-                raise commands.BadArgument("Invalid mode")
+                raise commands.BadArgument(f"Invalid mode  \nMode can be {utils.getHypixelHelp(HypixelModes.skywarsModes)} or left blank for overall statistics")
+
         embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+
+        embed = utils.insert_commas_to_embed(embed)
         await ctx.reply(embed=embed)
 
 
@@ -593,13 +605,13 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills", deaths="deaths")
-            embed.add_field(name=f"Kills needed for a K/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
 
             embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
             embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins', 0), data.get('losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins", deaths="losses")
-            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
 
             embed.add_field(name="Arrows Shot:", value=data.get('bow_shots', 0), inline=True)
             embed.add_field(name="Arrows Hit:", value=data.get('bow_hits', 0), inline=True)
@@ -614,7 +626,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             player_and_mode.pop(0)
             mode = " ".join(player_and_mode)
             if not mode in HypixelModes.duelModes:
-                raise commands.BadArgument(f'Mode "{mode}" not found.')
+                raise commands.BadArgument(f'Mode "{mode}" not found. \nMode can be {utils.getHypixelHelp(HypixelModes.duelModes)} or left blank for overall statistics')
             embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {mode.capitalize()} Duel Profile", description=f"{mode.capitalize()} duel stats for {rawData['player']['displayname']}", color=Color.red())
             for ra in ranks:
                 prestigeNumber = data.get(f'{mode.split()[0]}_{ra}_title_prestige', None)
@@ -637,7 +649,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get(f'{mode}_deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get(f'{mode}_kills', 0), data.get(f'{mode}_deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_kills", deaths=f"{mode}_deaths")
-            embed.add_field(name=f"Kills needed for a K/DR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
 
             if mode == "bridge":
                 mode = "bridge_duel"
@@ -648,10 +660,12 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins", deaths=f"{mode}_losses")
-            embed.add_field(name=f"Wins needed for a W/LR of {ceilingRate}", value=f"{res} ({total} total)", inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
 
         embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
+
+        embed = utils.insert_commas_to_embed(embed)
         await ctx.reply(embed=embed)
 
 

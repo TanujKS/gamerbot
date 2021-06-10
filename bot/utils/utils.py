@@ -5,6 +5,12 @@ else:
     from utils import exceptions
     from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
+from sys import platform
+if platform == "win32":
+    import asyncio
+    policy = asyncio.WindowsSelectorEventLoopPolicy()
+    asyncio.set_event_loop_policy(policy)
+
 import discord
 from discord.ext import commands
 from discord.utils import get
@@ -120,7 +126,7 @@ def sendLargeMessage(message):
 
 
 async def getJSON(url, headers=None, json=True, read=False, proxies={}):
-    async with aiohttp.ClientSession() as cs:
+    async with aiohttp.ClientSession(trust_env=True) as cs:
         async with cs.get(url, headers=headers, proxy=proxies.get('http')) as data:
             if json:
                 try:

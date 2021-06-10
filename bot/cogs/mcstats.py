@@ -362,19 +362,19 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Losses:", value=data.get("losses_bedwars", 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins_bedwars', 0), data.get("losses_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins_bedwars", deaths="losses_bedwars")
-            embed.add_field(name=f"Wins for {ceilingRate} W/LR:", value=res, inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR:", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Kills:", value=data.get("kills_bedwars", 0), inline=True)
             embed.add_field(name="Deaths:", value=data.get("deaths_bedwars", 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills_bedwars", deaths="deaths_bedwars")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="final_kills_bedwars", deaths="final_deaths_bedwars")
-            embed.add_field(name=f"Final Kills for {ceilingRate} FK/DR", value=res, inline=False)
+            embed.add_field(name=f"Final Kills for {ceilingRate} FK/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
@@ -396,19 +396,19 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get(f"{mode}_deaths_bedwars", 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_kills_bedwars", deaths=f"{mode}_deaths_bedwars")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Final Kills:", value=data.get(f"{mode}_final_kills_bedwars", 0), inline=True)
             embed.add_field(name="Final Deaths:", value=data.get(f"{mode}_final_deaths_bedwars", 0), inline=True)
             embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_final_deaths_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_final_kills_bedwars", deaths=f"{mode}_final_deaths_bedwars")
-            embed.add_field(name=f"Final kills needed for {ceilingRate} FK/DR", value=res, inline=False)
+            embed.add_field(name=f"Final kills needed for {ceilingRate} FK/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
             embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
             embed.add_field(name="W/L Rate", value=utils.getRate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins_bedwars", deaths=f"{mode}_losses_bedwars")
-            embed.add_field(name=f"Wins needed for {ceilingRate} W/LR", value=res, inline=False)
+            embed.add_field(name=f"Wins needed for {ceilingRate} W/LR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Beds Broken:", value=data.get(f"{mode}_beds_broken_bedwars", 0), inline=True)
             embed.add_field(name="Beds Lost:", value=data.get(f"{mode}_beds_lost_bedwars", 0), inline=True)
@@ -482,13 +482,13 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills", deaths="deaths")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR ", value=res, inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR ", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
             embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins', 0), data.get('losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins", deaths="losses")
-            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Kills/Game:", value=utils.getRate(data.get('kills', 0), (data.get('wins', 0)+data.get('losses', 0))), inline=True)
             embed.add_field(name="Assists/Game:", value=utils.getRate(data.get('assists', 0), (data.get('wins', 0)+data.get('losses', 0))), inline=True)
@@ -605,13 +605,13 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get('deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get('kills', 0), data.get('deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills", deaths="deaths")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Wins:", value=data.get('wins', 0), inline=True)
             embed.add_field(name="Losses:", value=data.get('losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins', 0), data.get('losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins", deaths="losses")
-            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             embed.add_field(name="Arrows Shot:", value=data.get('bow_shots', 0), inline=True)
             embed.add_field(name="Arrows Hit:", value=data.get('bow_hits', 0), inline=True)
@@ -649,7 +649,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Deaths:", value=data.get(f'{mode}_deaths', 0), inline=True)
             embed.add_field(name="K/D Rate:", value=utils.getRate(data.get(f'{mode}_kills', 0), data.get(f'{mode}_deaths', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_kills", deaths=f"{mode}_deaths")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=res, inline=False)
+            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
             if mode == "bridge":
                 mode = "bridge_duel"
@@ -660,7 +660,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
             embed.add_field(name="Losses:", value=data.get(f'{mode}_losses', 0), inline=True)
             embed.add_field(name="W/L Rate:", value=utils.getRate(data.get(f'{mode}_wins', 0), data.get(f'{mode}_losses', 0)), inline=True)
             ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins", deaths=f"{mode}_losses")
-            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=res, inline=False)
+            embed.add_field(name=f"Wins for {ceilingRate} W/LR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
 
         embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
         embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")

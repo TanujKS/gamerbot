@@ -8,8 +8,8 @@ else:
 from sys import platform
 if platform == "win32":
     import asyncio
-    policy = asyncio.WindowsSelectorEventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
+    #policy = asyncio.WindowsSelectorEventLoopPolicy()
+    #asyncio.set_event_loop_policy(policy)
 
 import discord
 from discord.ext import commands
@@ -225,82 +225,3 @@ def getRate(stat1 : int, stat2 : int):
         return round(stat1/stat2, 2)
     except ZeroDivisionError:
         return 0
-
-
-class Paginator:
-    class PageNotFound(Exception):
-        def __init__(self, page_number):
-            super().__init__(f"Page {page_number} not found")
-
-
-    class NoContext(Exception):
-        def __init__(self):
-            super().__init__("commands.Context is required to send the paginator")
-
-
-    class PaginatorNotSent(Exception):
-        def __init__(self):
-            super().__init__("send_page must be called before next_page or previous_page")
-
-
-    def __init__(self, bot):
-        self.bot = bot
-        self.pages = ["FILLER"]
-
-
-    def add_page(self, content):
-        self.pages.append(content)
-
-
-    def del_page(self, index):
-        try:
-            self.pages.pop(index)
-        except IndexError:
-            raise self.PageNotFound(index)
-
-
-    async def send_page(self, *, ctx=None, action="send", page_number=1):
-        try:
-            page = self.pages[page_number]
-            if page == "FILLER":
-                return
-            content = page if not isinstance(page, discord.Embed) else None
-            embed = page if isinstance(page, discord.Embed) else None
-
-            if action == "send":
-                if not ctx:
-                    raise self.NoContext()
-                self.ctx = await ctx.send(content, embed=embed)
-                self.bot.cogs["Listeners"].paginators[self.ctx.id] = self
-                await self.ctx.add_reaction("⬅️")
-                await self.ctx.add_reaction("➡️")
-
-            elif action == "edit":
-                await self.ctx.edit(content=content, embed=embed)
-
-            self.currentPage = page_number
-
-        except IndexError:
-            raise self.PageNotFound(page_number)
-
-
-    async def next_page(self):
-        try:
-            page_number = self.currentPage + 1
-            if page_number >= len(self.pages):
-                page_number = 1
-            self.currentPage = page_number
-            await self.send_page(page_number=page_number, action="edit")
-        except AttributeError:
-            raise self.PaginatorNotSent()
-
-
-    async def previous_page(self):
-        try:
-            page_number = self.currentPage - 1
-            if page_number == 0:
-                page_number = len(self.pages) - 1
-            self.currentPage = page_number
-            await self.send_page(page_number=page_number, action="edit")
-        except AttributeError:
-            raise self.PaginatorNotSent()

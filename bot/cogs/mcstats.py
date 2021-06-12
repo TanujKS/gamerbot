@@ -44,6 +44,138 @@ class MinecraftSkinFetcher:
         return f"/&?{round(time.time())}"
 
 
+class HypixelStatFetcher:
+    api_url = f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}"
+
+    def __init__(self, *, player, mode, rawData, data):
+        self.player = player
+        self.mode = mode
+        self.rawData = rawData
+        self.data = mode
+        print(player, mode)
+
+
+    @classmethod
+    def has_mode(cls):
+        try:
+            cls.modes
+        except AttributeError:
+            raise AttributeError("No modes have been specified")
+
+
+    @classmethod
+    def check_mode(cls, mode):
+        cls.has_mode()
+        mode = utils.multi_key_dict_get(cls.modes, mode)
+        if not mode:
+            raise commands.BadArgument("Invalid mode")
+        return mode
+
+
+    @classmethod
+    async def get_raw_data(cls, ctx: commands.context, player_and_mode: tuple):
+        cls.has_mode()
+        player_and_mode = list(player_and_mode)
+
+        if len(player_and_mode) == 0:
+            member = ctx.author
+            mode = None
+
+        elif utils.multi_key_dict_get(cls.modes, " ".join(player_and_mode)):
+            member = ctx.author
+            mode = " ".join(player_and_mode)
+
+        elif ctx.message.mentions:
+            member = await Converters.MemberConverter.convert(ctx, player_and_mode[0])
+            player_and_mode.pop(0)
+            if player_and_mode:
+                print(" ".join(player_and_mode))
+
+                mode = cls.check_mode(" ".join(player_and_mode))
+            else:
+                mode = None
+
+        else:
+            member = None
+            player = player_and_mode[0]
+            player_and_mode.pop(0)
+            if player_and_mode:
+                mode = cls.check_mode(" ".join(player_and_mode))
+            else:
+                mode = None
+
+        if member:
+            player = r.get(member.id)
+            if not player:
+                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
+            player = player.decode("utf-8")
+
+        uuid = MojangAPI.get_uuid(player)
+        if not uuid:
+            raise commands.BadArgument(f'Player "{player}" not found.')
+
+        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
+        if rawData.get("success") == None:
+            raise commands.BadArgument(rawData.get('cause'))
+
+        return player, mode, rawData
+
+
+class BedwarsStatFetcher(HypixelStatFetcher):
+    modes = HypixelModes.bedwarsModes
+
+    @classmethod
+    async def get_data(cls, ctx, player_and_mode):
+        player, mode, rawData = await cls.get_raw_data(ctx, player_and_mode)
+
+        if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get("Bedwars"):
+            raise commands.BadArgument(f"{player} has not played Bedwars")
+
+        data = rawData['player']['stats']['Bedwars']
+
+        return cls(player=player, mode=mode, rawData=rawData, data=data)
+
+
+    def overall_stats(self):
+        rawData = self.rawData
+        data = self.data
+
+        embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=Color.red())
+        embed.add_field(name="Coins:", value=data.get("coins", 0), inline=True)
+        embed.add_field(name="EXP:", value=data.get("Experience", 0), inline=True)
+        embed.add_field(name="Level:", value=rawData['player']['achievements'].get("bedwars_level", 0), inline=True)
+        embed.add_field(name="Games Played:", value=data.get("games_played_bedwars", 0), inline=True)
+        embed.add_field(name="Current Winstreak:", value=data.get("winstreak", 0), inline=True)
+        embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+        embed.add_field(name="Wins:", value=data.get("wins_bedwars", 0), inline=True)
+        embed.add_field(name="Losses:", value=data.get("losses_bedwars", 0), inline=True)
+        embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins_bedwars', 0), data.get("losses_bedwars", 0)), inline=True)
+        ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins_bedwars", deaths="losses_bedwars")
+        embed.add_field(name=f"Wins for {ceilingRate} W/LR:", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
+
+        embed.add_field(name="Kills:", value=data.get("kills_bedwars", 0), inline=True)
+        embed.add_field(name="Deaths:", value=data.get("deaths_bedwars", 0), inline=True)
+        embed.add_field(name="K/D Rate:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("deaths_bedwars", 0)), inline=True)
+        ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills_bedwars", deaths="deaths_bedwars")
+        embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
+
+        embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
+        embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
+        embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
+        ceilingRate, total, res = self.getCeilingRate(data=data, kills="final_kills_bedwars", deaths="final_deaths_bedwars")
+        embed.add_field(name=f"Final Kills for {ceilingRate} FK/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
+
+        embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
+        embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
+        embed.add_field(name="B/L Rate:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
+
+        embed.add_field(name="Kills/Game:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
+        embed.add_field(name="Finals/Game:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
+        embed.add_field(name="Beds/Game:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
+        return embed
+
+
 class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Minecraft player statistics"):
     def __init__(self, bot):
         self.bot = bot
@@ -320,108 +452,7 @@ class MinecraftStats(commands.Cog, name="MC Stats", description="Commands for Mi
 
     @commands.command(description=f"<player> can be a Minecraft player or left blank to get your own Bedwars statistics \n Mode can be {utils.getHypixelHelp(HypixelModes.bedwarsModes)} or left blank for overall statistics", help="Gets the Bedwars statistics of a Minecraft player", aliases=['bw', 'bws'])
     async def bedwars(self, ctx, *player_and_mode):
-        if len(player_and_mode) == 0 or utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[0]) != None:
-            member = ctx.author
-            if len(player_and_mode) == 1:
-                player_and_mode = list(player_and_mode)
-                player_and_mode.insert(0, "")
-                player_and_mode = tuple(player_and_mode)
-
-        elif ctx.message.mentions:
-            member = await Converters.MemberConverter.convert(ctx, player_and_mode[0])
-        else:
-            member = None
-            player = player_and_mode[0]
-
-        if member:
-            player = r.get(member.id)
-            if not player:
-                raise commands.BadArgument(f"{str(member)} has not linked their Discord to their Minecraft account. Run {utils.determine_prefix(ctx.bot, ctx, clean=True)}mclink")
-            player = player.decode("utf-8")
-        uuid = MojangAPI.get_uuid(player)
-        if not uuid:
-            raise commands.BadArgument(f'Player "{player}" not found.')
-        rawData = await utils.getJSON(f"https://api.hypixel.net/player?key={EnvVars.HYPIXEL_KEY}&uuid={uuid}")
-
-        if rawData.get("success") == None:
-            raise commands.BadArgument(rawData.get('cause'))
-        if not rawData.get('player') or not rawData['player'].get('stats') or not rawData['player']['stats'].get("Bedwars"):
-            raise commands.BadArgument(f"{player} has not played Bedwars")
-
-        data = rawData['player']['stats']['Bedwars']
-        if len(player_and_mode) < 2:
-            embed=discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel Bedwars Profile", description=f"Bedwars stats for {rawData['player']['displayname']}", color=Color.red())
-            embed.add_field(name="Coins:", value=data.get("coins", 0), inline=True)
-            embed.add_field(name="EXP:", value=data.get("Experience", 0), inline=True)
-            embed.add_field(name="Level:", value=rawData['player']['achievements'].get("bedwars_level", 0), inline=True)
-            embed.add_field(name="Games Played:", value=data.get("games_played_bedwars", 0), inline=True)
-            embed.add_field(name="Current Winstreak:", value=data.get("winstreak", 0), inline=True)
-            embed.add_field(name="\u200b", value="\u200b", inline=True)
-
-            embed.add_field(name="Wins:", value=data.get("wins_bedwars", 0), inline=True)
-            embed.add_field(name="Losses:", value=data.get("losses_bedwars", 0), inline=True)
-            embed.add_field(name="W/L Rate:", value=utils.getRate(data.get('wins_bedwars', 0), data.get("losses_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills="wins_bedwars", deaths="losses_bedwars")
-            embed.add_field(name=f"Wins for {ceilingRate} W/LR:", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Kills:", value=data.get("kills_bedwars", 0), inline=True)
-            embed.add_field(name="Deaths:", value=data.get("deaths_bedwars", 0), inline=True)
-            embed.add_field(name="K/D Rate:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("deaths_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills="kills_bedwars", deaths="deaths_bedwars")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Final Kills:", value=data.get("final_kills_bedwars", 0), inline=True)
-            embed.add_field(name="Final Deaths:", value=data.get("final_deaths_bedwars", 0), inline=True)
-            embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("final_deaths_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills="final_kills_bedwars", deaths="final_deaths_bedwars")
-            embed.add_field(name=f"Final Kills for {ceilingRate} FK/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Beds Broken:", value=data.get("beds_broken_bedwars", 0), inline=True)
-            embed.add_field(name="Beds Lost:", value=data.get("beds_lost_bedwars", 0), inline=True)
-            embed.add_field(name="B/L Rate:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("beds_lost_bedwars", 0)), inline=True)
-
-            embed.add_field(name="Kills/Game:", value=utils.getRate(data.get("kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
-            embed.add_field(name="Finals/Game:", value=utils.getRate(data.get("final_kills_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
-            embed.add_field(name="Beds/Game:", value=utils.getRate(data.get("beds_broken_bedwars", 0), data.get("games_played_bedwars", 0)), inline=True)
-        else:
-            mode = utils.multi_key_dict_get(HypixelModes.bedwarsModes, player_and_mode[1])
-            if mode == None:
-                raise commands.BadArgument("Invalid mode")
-            embed = discord.Embed(title=f"{rawData['player']['displayname']}'s Hypixel {player_and_mode[1].capitalize()} Bedwars Profile", description=f"{player_and_mode[1].capitalize()} Bedwars stats for {rawData['player']['displayname']}", color=Color.red())
-            embed.add_field(name="Games Played:", value=data.get(f"{mode}_games_played_bedwars", 0), inline=True)
-            embed.add_field(name="Current Winstreak:", value=data.get(f"{mode}_winstreak", 0), inline=True)
-            embed.add_field(name="\u200b", value="\u200b", inline=True)
-
-            embed.add_field(name="Kills:", value=data.get(f"{mode}_kills_bedwars", 0), inline=True)
-            embed.add_field(name="Deaths:", value=data.get(f"{mode}_deaths_bedwars", 0), inline=True)
-            embed.add_field(name="K/D Rate:", value=utils.getRate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_deaths_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_kills_bedwars", deaths=f"{mode}_deaths_bedwars")
-            embed.add_field(name=f"Kills for {ceilingRate} K/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Final Kills:", value=data.get(f"{mode}_final_kills_bedwars", 0), inline=True)
-            embed.add_field(name="Final Deaths:", value=data.get(f"{mode}_final_deaths_bedwars", 0), inline=True)
-            embed.add_field(name="Final K/D Rate:", value=utils.getRate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_final_deaths_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_final_kills_bedwars", deaths=f"{mode}_final_deaths_bedwars")
-            embed.add_field(name=f"Final kills needed for {ceilingRate} FK/DR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Wins:", value=data.get(f"{mode}_wins_bedwars", 0), inline=True)
-            embed.add_field(name="Losses:", value=data.get(f"{mode}_losses_bedwars", 0), inline=True)
-            embed.add_field(name="W/L Rate", value=utils.getRate(data.get(f"{mode}_wins_bedwars", 0), data.get(f"{mode}_losses_bedwars", 0)), inline=True)
-            ceilingRate, total, res = self.getCeilingRate(data=data, kills=f"{mode}_wins_bedwars", deaths=f"{mode}_losses_bedwars")
-            embed.add_field(name=f"Wins needed for {ceilingRate} W/LR", value=f"{utils.insert_commas(res)} ({utils.insert_commas(total)} total)", inline=False)
-
-            embed.add_field(name="Beds Broken:", value=data.get(f"{mode}_beds_broken_bedwars", 0), inline=True)
-            embed.add_field(name="Beds Lost:", value=data.get(f"{mode}_beds_lost_bedwars", 0), inline=True)
-            embed.add_field(name="B/L Rate:", value=utils.getRate(data.get(f"{mode}_beds_broken_bedwars", 0), data.get(f"{mode}_beds_lost_bedwars", 0)), inline=True)
-
-            embed.add_field(name="Kills/Game:", value=utils.getRate(data.get(f"{mode}_kills_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
-            embed.add_field(name="Finals/Game:", value=utils.getRate(data.get(f"{mode}_final_kills_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
-            embed.add_field(name="Beds/Game:", value=utils.getRate(data.get(f"{mode}_beds_broken_bedwars", 0), data.get(f"{mode}_games_played_bedwars", 0)), inline=True)
-
-        embed.set_thumbnail(url=MinecraftSkinFetcher.head(rawData['player']['uuid']))
-        embed.set_footer(text=f"Stats provided using the Mojang and Hypixel APIs \nAvatars from Crafatar \nStats requested by {str(ctx.author)}")
-
-        embed = utils.insert_commas_to_embed(embed)
+        BedwarsStatFetcher = await BedwarsStatFetcher.get_data(ctx, player_and_mode)
         await ctx.reply(embed=embed)
 
 

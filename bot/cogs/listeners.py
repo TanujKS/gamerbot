@@ -20,7 +20,6 @@ class Listeners(commands.Cog):
 
         self.hidden = True
 
-        self.paginators = {}
         print("Loaded", __name__)
 
 
@@ -200,13 +199,6 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if not user.bot and reaction.message.author == self.bot.user:
-            if self.paginators.get(reaction.message.id):
-                if str(reaction) == "⬅️":
-                    await self.paginators[reaction.message.id].previous_page()
-                if str(reaction) == "➡️":
-                    await self.paginators[reaction.message.id].next_page()
-                await reaction.remove(user)
-
             guildInfo = utils.loadGuildInfo()
             if reaction.message.content == "React to get into your teams":
                 if not get(user.roles, name="Banned from event"):

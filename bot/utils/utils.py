@@ -5,12 +5,6 @@ else:
     from utils import exceptions
     from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
-from sys import platform
-if platform == "win32":
-    import asyncio
-    policy = asyncio.WindowsSelectorEventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
-
 import discord
 from discord.ext import commands
 from discord.utils import get

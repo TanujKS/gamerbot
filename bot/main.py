@@ -11,6 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("TOKEN", help="The variable name for the token to log into a Discord client")
 parser.add_argument("-d", "--debug", help="Boots the bot into Debug mode, where only the bot Owner can use commands and tracebacks are printed etc", action="store_true")
+parser.add_argument("-w", "--windows", help="Changes the asyncio loop policy to WindowsSelectorEventLoopPolicy")
 args = parser.parse_args()
 
 
@@ -28,6 +29,10 @@ bot = commands.Bot(
 )
 
 bot.debug = True if args.debug else False
+if args.windows:
+    import asyncio
+    policy = asyncio.WindowsSelectorEventLoopPolicy()
+    asyncio.set_event_loop_policy(policy)
 
 
 for file in os.listdir("bot/cogs"):

@@ -1,5 +1,6 @@
 from utils import utils, constants
 from utils.constants import r, Converters, EnvVars, Color
+from cogs import paginator
 
 import discord
 from discord.ext import commands, tasks
@@ -189,7 +190,7 @@ class Stats(commands.Cog, description="Commands for player statistics for all su
             raise commands.BadArgument("YouTube returned an error!")
         if not data.get('items'):
             raise commands.ChannelNotFound(channel)
-        Paginator = utils.Paginator(self.bot)
+        Paginator = paginator.Paginator(self.bot)
         for channel in data['items']:
             rawData = await utils.getJSON(f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel['snippet']['channelId']}&key={EnvVars.YT_KEY}")
             stats = rawData['items'][0]['statistics']

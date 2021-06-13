@@ -591,6 +591,8 @@ class HypixelOverallStatFetcher(HypixelStatFetcher):
 
         rank = rank.replace("_PLUS","+")
         embed.add_field(name="Status:", value=status, inline=True)
+        if data['player']['displayname'] == "_Wonkk":
+            rank = "YOUTUBER"
         embed.add_field(name="Rank:", value=rank, inline=True)
         embed.add_field(name="\u200b", value="\u200b", inline=True)
         embed.add_field(name="Last Logged In:", value=(d), inline=True)

@@ -5,12 +5,6 @@ else:
     from utils import exceptions
     from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
-from sys import platform
-if platform == "win32":
-    import asyncio
-    #policy = asyncio.WindowsSelectorEventLoopPolicy()
-    #asyncio.set_event_loop_policy(policy)
-
 import discord
 from discord.ext import commands
 from discord.utils import get
@@ -22,6 +16,9 @@ import json
 
 from datetime import datetime
 from dateutil import tz
+
+from collections import OrderedDict
+import math
 
 
 def determine_prefix(bot, ctx, clean=False):
@@ -171,18 +168,6 @@ def UTCtoZone(utc_time, region):
     return local_time
 
 
-def getHypixelHelp(dict : dict):
-    help = ""
-    for key, value in dict.items():
-        if isinstance(key, tuple):
-            help += key[0]
-        elif isinstance(key, str):
-            help += key
-        help += ", "
-    help = help[:-2]
-    return help
-
-
 def checkIfSetup(ctx):
     NotFound = None
 
@@ -225,3 +210,45 @@ def getRate(stat1 : int, stat2 : int):
         return round(stat1/stat2, 2)
     except ZeroDivisionError:
         return 0
+
+
+def getCeilingRate(stat1, stat2):
+    rate = getRate(stat1, stat2)
+    ceilingRate = math.ceil(rate)
+    if ceilingRate == rate:
+        ceilingRate += 1
+
+    total = ceilingRate * stat2
+    res = max(0, total - stat1)
+    return ceilingRate, total, res
+
+
+def get_key_from_value(dict : dict, val):
+    for key, value in dict.items():
+        if value == val:
+            return key
+
+
+def write_roman(num : int):
+    roman = OrderedDict()
+    roman[1000] = "M"
+    roman[900] = "CM"
+    roman[500] = "D"
+    roman[400] = "CD"
+    roman[100] = "C"
+    roman[90] = "XC"
+    roman[50] = "L"
+    roman[40] = "XL"
+    roman[10] = "X"
+    roman[9] = "IX"
+    roman[5] = "V"
+    roman[4] = "IV"
+    roman[1] = "I"
+    def roman_num(num : int):
+        for r in roman.keys():
+            x, y = divmod(num, r)
+            yield roman[r] * x
+            num -= (r * x)
+            if num <= 0:
+                break
+    return "".join([a for a in roman_num(num)])

@@ -45,6 +45,8 @@ class Paginator:
             if action == "send":
                 if not ctx:
                     raise self.NoContext()
+
+                self.author = ctx.author
                 self.ctx = await ctx.send(content, embed=embed)
                 self.bot.cogs["PaginatorCog"].paginators[self.ctx.id] = self
                 await self.ctx.add_reaction("⬅️")
@@ -99,13 +101,13 @@ class PaginatorCog(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         if not user.bot and reaction.message.author == self.bot.user:
             if self.paginators.get(reaction.message.id):
-                print(str(reaction))
-                if str(reaction) == "⬅️":
-                    await self.paginators[reaction.message.id].previous_page()
-                if str(reaction) == "➡️":
-                    await self.paginators[reaction.message.id].next_page()
-                if str(reaction) == "🟦":
-                    await self.paginators[reaction.message.id].freeze_paginator()
+                if user == self.paginators[reaction.message.id].author:
+                    if str(reaction) == "⬅️":
+                        await self.paginators[reaction.message.id].previous_page()
+                    if str(reaction) == "➡️":
+                        await self.paginators[reaction.message.id].next_page()
+                    if str(reaction) == "🟦":
+                        await self.paginators[reaction.message.id].freeze_paginator()
 
                 await reaction.remove(user)
 

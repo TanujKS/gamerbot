@@ -325,7 +325,7 @@ class Misc(commands.Cog, description="Miscellaneous Commands"):
         if not startTime:
             raise commands.BadArgument("No active stopwatches")
         seconds = (datetime.utcnow() - startTime).total_seconds()
-        await ctx.reply(f"Ended timer. Timer ran for: {datetime.timedelta(seconds=seconds)}")
+        await ctx.reply(f"Ended timer. Timer ran for: {dtime.timedelta(seconds=seconds)}")
         del self.stopWatches[ctx.author.id]
 
 

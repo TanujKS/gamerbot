@@ -1,4 +1,4 @@
-from utils import utils, exceptions
+from utils import utils
 from utils.help import EmbedHelpCommand
 from utils.constants import r, EnvVars
 

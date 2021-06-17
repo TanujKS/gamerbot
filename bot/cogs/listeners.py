@@ -1,15 +1,12 @@
-from utils import utils, constants, exceptions
+from utils import utils, constants
 from utils.constants import r, ezmessages, teams, command_prefix, emojis, Color
+import cogs.errorhandler as exceptions
 
 import discord
 from discord.ext import commands, tasks
 from discord.utils import get
 
 import random
-
-import asyncio
-
-import traceback
 
 
 class Listeners(commands.Cog):
@@ -135,99 +132,6 @@ class Listeners(commands.Cog):
 
                     await webhook.send(random.choice(ezmessages), username=message.author.display_name, avatar_url=message.author.avatar_url)
                     await message.delete()
-
-
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, originalerror):
-        error = originalerror.original if isinstance(originalerror, commands.CommandInvokeError) else originalerror
-
-        if isinstance(error, commands.DisabledCommand):
-            if await self.bot.is_owner(ctx.author):
-                await ctx.send("Bypassed disabled command")
-                return await ctx.reinvoke()
-
-        if isinstance(error, exceptions.raiseErrors):
-            error = exceptions.EmbedError(title=str(error))
-
-        elif isinstance(error, asyncio.TimeoutError):
-            error = exceptions.EmbedError(title="Timed out")
-
-        elif isinstance(error, exceptions.passErrors):
-            return
-
-        if isinstance(error, exceptions.EmbedError):
-            embed = discord.Embed(title=error.title, description=error.description, color=Color.red())
-
-            if isinstance(originalerror, utils.exceptions.Blacklisted):
-                try:
-                    return await ctx.author.send(embed=embed)
-                except discord.errors.Forbidden:
-                    pass
-
-            await ctx.reply(embed=embed)
-
-        else:
-            if self.bot.debug:
-                traceback.print_tb(error.__traceback__)
-                print(type(error), error)
-            else:
-                embed = discord.Embed(title="Error Report", color=Color.red())
-                embed.add_field(name="Guild Name:", value=ctx.guild.name, inline=True)
-                embed.add_field(name="Guild ID:", value=ctx.guild.id, inline=True)
-                embed.add_field(name="Channel:", value=ctx.channel.name, inline=True)
-                embed.add_field(name="Error Victim:", value=str(ctx.author), inline=True)
-                embed.add_field(name="Victim ID:", value=ctx.author.id, inline=True)
-                embed.add_field(name="Time", value=ctx.message.created_at, inline=False)
-                embed.add_field(name="Command:", value=ctx.command.name, inline=False)
-                embed.add_field(name="Error:", value=type(error), inline=True)
-                embed.add_field(name="Message:", value=str(error), inline=True)
-                await utils.sendReport("Error", embed=embed)
-                tb = traceback.extract_tb(error.__traceback__).format()
-                message = "```"
-                for t in tb:
-                    message += t
-                message += "```"
-                await utils.sendReport(message)
-
-            error = exceptions.EmbedError(title="Something went wrong! This has been reported and will be reviewed shortly")
-            await self.on_command_error(ctx, error)
-
-        if isinstance(originalerror, commands.MissingRequiredArgument):
-            return await ctx.send_help(ctx.command.name)
-
-
-    @commands.Cog.listener()
-    async def on_reaction_add(self, reaction, user):
-        if not user.bot and reaction.message.author == self.bot.user:
-            guildInfo = utils.loadGuildInfo()
-            if reaction.message.content == "React to get into your teams":
-                if not get(user.roles, name="Banned from event"):
-                    if str(reaction) in emojis:
-                        team = teams[emojis.index(str(reaction))]
-                        role = get(user.guild.roles, name=team)
-                        if len(role.members) >= guildInfo[reaction.message.guild.id]['teamLimit']:
-                            return await reaction.remove(user)
-                        for eachteam in teams:
-                            if get(user.roles, name=eachteam):
-                                return await reaction.remove(user)
-                        await user.add_roles(role)
-                    else:
-                        await reaction.remove(user)
-
-
-            if reaction.message.content == "Teams are now closed.":
-                await reaction.remove(user)
-
-
-    @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction, user):
-        if reaction.message.content == "React to get into your teams" and reaction.message.author == self.bot.user:
-            if utils.checkIfSetup(reaction):
-                if str(reaction) in emojis:
-                    team = teams[emojis.index(str(reaction))]
-                    role = get(user.guild.roles, name=team)
-                    if role in user.roles:
-                        await user.remove_roles(role)
 
 
     @tasks.loop(seconds=600)

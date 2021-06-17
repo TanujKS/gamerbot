@@ -1,8 +1,7 @@
 if __name__ == "__main__":
-    import exceptions
     from constants import command_prefix, teams, r, EnvVars, Regions
 else:
-    from utils import exceptions
+    import cogs.errorhandler as exceptions  
     from utils.constants import command_prefix, teams, r, EnvVars, Regions
 
 import discord

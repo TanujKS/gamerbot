@@ -26,6 +26,40 @@ class Teams(commands.Cog, description="Commands for team and event management"):
             return utils.checkIfSetup(ctx)
 
 
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        if not user.bot and reaction.message.author == self.bot.user:
+            guildInfo = utils.loadGuildInfo()
+            if reaction.message.content == "React to get into your teams":
+                if not get(user.roles, name="Banned from event"):
+                    if str(reaction) in emojis:
+                        team = teams[emojis.index(str(reaction))]
+                        role = get(user.guild.roles, name=team)
+                        if len(role.members) >= guildInfo[reaction.message.guild.id]['teamLimit']:
+                            return await reaction.remove(user)
+                        for eachteam in teams:
+                            if get(user.roles, name=eachteam):
+                                return await reaction.remove(user)
+                        await user.add_roles(role)
+                    else:
+                        await reaction.remove(user)
+
+
+            if reaction.message.content == "Teams are now closed.":
+                await reaction.remove(user)
+
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction, user):
+        if reaction.message.content == "React to get into your teams" and reaction.message.author == self.bot.user:
+            if utils.checkIfSetup(reaction):
+                if str(reaction) in emojis:
+                    team = teams[emojis.index(str(reaction))]
+                    role = get(user.guild.roles, name=team)
+                    if role in user.roles:
+                        await user.remove_roles(role)
+
+
     @commands.command(help="Locks all team voice channels")
     @commands.bot_has_guild_permissions(manage_channels=True)
     @commands.has_permissions(manage_channels=True)

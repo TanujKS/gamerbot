@@ -1,4 +1,7 @@
-from utils.constants import Color
+if __name__ == "__main__":
+    from constants import Color
+else:
+    from utils.constants import Color
 
 import discord
 from discord.ext import commands
@@ -21,32 +24,7 @@ class EmbedHelpCommand(commands.MinimalHelpCommand):
 
 
     async def send_cog_help(self, cog):
-        try:
-            if cog.hidden:
-                return
-        except AttributeError:
-            pass
+        if getattr(cog, "hidden", False):
+            return
 
-        bot = self.context.bot
-        if bot.description:
-            self.paginator.add_line(bot.description, empty=True)
-
-        note = self.get_opening_note()
-        if note:
-            self.paginator.add_line(note, empty=True)
-
-        if cog.description:
-            self.paginator.add_line(cog.description, empty=True)
-
-        filtered = await self.filter_commands(cog.get_commands(), sort=self.sort_commands)
-        if filtered:
-            self.paginator.add_line('**%s %s**' % (cog.qualified_name, self.commands_heading))
-            for command in filtered:
-                self.add_subcommand_formatting(command)
-
-            note = self.get_ending_note()
-            if note:
-                self.paginator.add_line()
-                self.paginator.add_line(note)
-
-        await self.send_pages()
+        await super().send_cog_help(cog)

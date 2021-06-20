@@ -28,7 +28,7 @@ class EmbedError(Exception):
     async def send(self, destination):
         try:
             await destination.send(embed=self.get_embed())
-        except discord.HTTPException    :
+        except discord.HTTPException:
             pass
 
 
